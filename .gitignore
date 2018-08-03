@@ -11,4 +11,8 @@ log.txt
 # Data files
 data/areas/*
 data/IGN_Route500/*
+data/demo_DRIEA/*
+
+# Scripts files
+scripts/*
 
