@@ -1,0 +1,14 @@
+# Doc files
+**/doc/*
+
+# Log files
+*.log
+log.txt
+
+# Python pyc files
+*.pyc
+
+# Data files
+data/areas/*
+data/IGN_Route500/*
+

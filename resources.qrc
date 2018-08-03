@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/TempusAccess" >
+        <file>icones/icon.png</file>
+    </qresource>
+</RCC>
