@@ -16,3 +16,5 @@ data/demo_DRIEA/*
 # Scripts files
 scripts/*
 
+# This file
+.gitignore
