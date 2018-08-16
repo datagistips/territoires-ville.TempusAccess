@@ -120,6 +120,10 @@ class DBConnectionDialog(QDialog):
             r = subprocess.call( cmd )
             cmd = [ "python", "-m", "pglite", "start" ]
             r = subprocess.call( cmd )
+            
+            box = QMessageBox()
+            box.setText(u"Le cluster de données est initialisé. Vous pouvez maintenant initialiser une base de données. " )
+            box.exec_()
     
     
     def _slotPushButtonImportDBClicked(self):
