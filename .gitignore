@@ -17,3 +17,5 @@ data/demo_SNCF/archives/*
 # Scripts files
 scripts/*
 
+# This file
+.gitignore
