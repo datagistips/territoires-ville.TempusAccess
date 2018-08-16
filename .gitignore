@@ -12,6 +12,7 @@ log.txt
 data/areas/*
 data/IGN_Route500/*
 data/demo_DRIEA/*
+data/demo_SNCF/archives/*
 
 # Scripts files
 scripts/*

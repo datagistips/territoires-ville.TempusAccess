@@ -88,7 +88,7 @@ BEGIN
     -- Time filter
     IF (time_start IS NULL OR time_end IS NULL)
     THEN time_filter = $$(1=1)$$;
-    ELSE time_filter = $$((s.departure_time <= extract(epoch FROM INTERVAL '$$ || time_end::character varying || $$') AND (s.departure_time >= extract(epoch FROM INTERVAL '$$ || time_start::character varying || $$'))))$$;
+    ELSE time_filter = $$((s.departure_time <= extract(epoch FROM INTERVAL '$$ || time_end::character varying || $$') AND (s.departure_time >= extract(epoch FROM INTERVAL '$$ || time_start::character varying || $$'))) or (s.arrival_time <= extract(epoch FROM INTERVAL '$$ || time_end::character varying || $$') AND (s.arrival_time >= extract(epoch FROM INTERVAL '$$ || time_start::character varying || $$'))))$$;
     END IF; 
     
     indics_time_ag = ''; 
