@@ -138,20 +138,20 @@ class DBConnectionDialog(QDialog):
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 
                 cmd = [ "pglite", "stop" ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                r = subprocess.call( cmd, shell=True )
             
                 cmd = [ "pglite", "start" ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                r = subprocess.call( cmd, shell=True )
                 
                 # Delete database "TempusAccess" (if exists) and (re)create
                 cmd = [ "dropdb", "-h", self.caller.host, "-p", self.caller.port, self.caller.base]
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
                 
                 cmd = [ "createdb", "-h", self.ui.lineEdit_host.text(), "-p", self.ui.lineEdit_port.text(), self.caller.base]
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
                 
                 cmd = [self.plugin_dir+"/exe/runtime/pg_restore.exe",  "-h", self.ui.lineEdit_host.text(), "-p", self.ui.lineEdit_port.text(), "-d", self.caller.base, "-U", os.getenv("USERNAME"), "-w", "-O", "-x", "-v", nom_fichier]
-                r = subprocess.call( cmd, stdout=log_file, stderr=log_file )
+                r = subprocess.call( cmd, shell=True )
             
             self._slotPushButtonUseDBClicked()
             self.caller.DBConnectionDialog.hide()
@@ -165,7 +165,7 @@ class DBConnectionDialog(QDialog):
         nom_fichier = QFileDialog.getSaveFileName(caption = "Enregistrer la base de données sous...", directory=self.caller.data_dir, filter = "Backup files (*.backup)")
         with open(self.plugin_dir+"/log.txt", "a") as log_file:
             cmd = [self.plugin_dir+"/exe/runtime/pg_dump.exe", "--host", self.ui.lineEdit_host.text(), "--port", self.ui.lineEdit_port.text(), "--username", os.getenv("USERNAME"), "--no-password", "--format", "custom", "--encoding", "UTF8", "--no-privileges", "--verbose", "--file", nom_fichier, "-d", self.caller.base]
-            r = subprocess.call( cmd, stdout=log_file, stderr=log_file )
+            r = subprocess.call( cmd, shell=True )
     
     
     def _slotPushButtonUseDBClicked(self):
@@ -290,21 +290,20 @@ class DBConnectionDialog(QDialog):
             self.updateDBConnection()            
             # Restart database server to be sure deleting "TempusAccess" database will be allowed (avoids still connected applications)
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
-
-                cmd = [ "pglite", "stop" ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                cmd = [ "python", "-m", "pglite", "stop" ]
+                r = subprocess.call( cmd, shell=True )
             
-                cmd = [ "pglite", "start" ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                cmd = [ "python", "-m", "pglite", "start" ]
+                r = subprocess.call( cmd, shell=True )
             
                 # Delete database (if exists) and (re)create
                 cmd = [ "dropdb", "-h", self.caller.host, "-p", self.caller.port, self.caller.base ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                r = subprocess.call( cmd, shell=True )
             
                 cmd = [ "createdb", "-h", self.caller.host, "-p", self.caller.port, self.caller.base ]
-                r = subprocess.call( cmd, stdout=log_file, shell = True )
+                r = subprocess.call( cmd, shell=True )
             
-                # Démarrage du host PostgreSQL, version "légère"
+                # Running PGLite
                 if (self.caller.db.open() == False):
                     self.ui.pushButtonImportDB.setEnabled(False)
                     self.ui.pushButtonBackupDB.setEnabled(False)
@@ -316,65 +315,65 @@ class DBConnectionDialog(QDialog):
                     # Create data schema "tempus" and "tempus_gtfs"
                     dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
                     cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", "-t", "osm", "-d", dbstring, "-R"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     # Add to data schema "tempus" et "tempus_gtfs" application specific elements, mainly in tempus_access schema
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/init_bdd.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_pt_stop_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_pt_section_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_pt_trip_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_pt_route_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_pt_agency_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_path_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_path_details_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_paths_tree_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_comb_paths_trees_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_isosurfaces_indicator_layer.sql"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                     
                     # Import holidays definition file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.holidays FROM "+self.caller.data_dir + "/others/holidays.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     # Import modalities definition file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.modalities FROM "+self.caller.data_dir + "/system/modalities.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     # Import agregates definition file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.agregates FROM "+self.caller.data_dir + "/system/agregates.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     # Import areas definition file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.areas_param FROM "+self.caller.data_dir + "/areas/areas_param.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     # Import object types file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.obj_type FROM "+self.caller.data_dir + "/system/obj_type.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     # Import indicators file
                     cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.indicators FROM "+self.caller.data_dir + "/system/indicators.csv CSV HEADER DELIMITER ';'"]
-                    r = subprocess.call( cmd, stdout=log_file, shell=True )
+                    r = subprocess.call( cmd, shell=True )
                 
                     s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param\
                     ORDER BY 2"
@@ -423,14 +422,14 @@ class DBConnectionDialog(QDialog):
                 root.removeChildNode(self.caller.node_group)
                 
                 cmd = [ "pglite", "stop" ]
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
             
                 cmd = [ "pglite", "start" ]
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
             
                 # Delete database
                 cmd = [ "dropdb", "-h", self.caller.host, "-p", self.caller.port, "tempusaccess_"+self.DBName ]
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
             
             self.firstDBConnection()
             self.refreshDBList()

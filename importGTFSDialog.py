@@ -76,7 +76,7 @@ class importGTFSDialog(QDialog):
             with open(self.caller.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    Insert GTFS Data\n\n")
-                r = subprocess.call( cmd, stdout= log_file )
+                r = subprocess.call( cmd )
             
             road_network = False
             s="SELECT * FROM tempus.road_section WHERE id NOT IN (SELECT road_section_id from tempus_gtfs.stops)"

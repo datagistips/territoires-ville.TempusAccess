@@ -70,7 +70,7 @@ class manageGTFSDialog(QDialog):
             
             dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', self.ui.comboBoxGTFSFeeds.currentText()]
-            r = subprocess.call( cmd )
+            r = subprocess.call( cmd, shell=True )
             
             s="REFRESH MATERIALIZED VIEW tempus_access.stops_by_mode;\
                REFRESH MATERIALIZED VIEW tempus_access.sections_by_mode;\

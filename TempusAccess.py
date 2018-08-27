@@ -587,27 +587,27 @@ class TempusAccess:
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write("Begin import SNCF Open-Data :\n")
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
                 log_file.write("\n    Stops referential imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
             
             # Import TER and IC files
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd )
                 log_file.write("\n    TER file imported... elapsed time = = "+str(self.time.elapsed()/1000)+" seconds\n\n")
 
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd )
                 log_file.write("\n    IC file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")                
             
             # Data fusion
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_fusion_ter_ic.sql"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd, stdout = log_file )   
+                r = subprocess.call( cmd )   
                 log_file.write("\n    TER and IC data fusionned... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")              
             
             # Correct stops and sections
@@ -627,13 +627,13 @@ class TempusAccess:
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    IGN Route500 - UIC node pairing file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
             
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_corriger_traces_fer.sql"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    Stops and sections geometries corrected... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
                 
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"] 
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -651,20 +651,20 @@ class TempusAccess:
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write(str(self.time.elapsed()/1000)+" seconds\n    Useless road nodes and sections deleted... elapsed time = ")
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
                        
             # Delete old feeds
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    IC data deleted... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
             
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ter']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    TER data deleted... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, stdout = log_file )
+                r = subprocess.call( cmd, shell=True )
             
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(self.time.elapsed()/1000)+" seconds\nEnd import SNCF Open-Data...\n")

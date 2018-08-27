@@ -91,22 +91,22 @@ class importRoadNetworkDialog(QDialog):
             
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd1))
-                r = subprocess.call( cmd1, stdout = log_file )
+                r = subprocess.call( cmd1, shell=True )
                 log_file.write("\n    Import road network in the "+self.format+" format...\n\n")
                 log_file.write(str(cmd2))
-                r = subprocess.call( cmd2, stdout = log_file )
+                r = subprocess.call( cmd2, shell=True )
                 log_file.write(str(cmd3))
-                r = subprocess.call( cmd3, stdout = log_file )
+                r = subprocess.call( cmd3, shell=True )
                 log_file.write("\n    Import Visum turning movements file...\n\n")
                 log_file.write(str(cmd4))
-                r = subprocess.call( cmd4, stdout = log_file )               
+                r = subprocess.call( cmd4, shell=True )               
                 log_file.write("\n    Update road network...\n\n")
 
         else:
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', nomDossierComplet, '-d', dbstring, '-S', srid, '-W', 'LATIN1']
             with open(self.plugin_dir+"/log.txt", "a") as log_file: 
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd, stdout=log_file )
+                r = subprocess.call( cmd, shell=True )
                 log_file.write("\n    Import road network in the "+self.format+" format...\n\n")
             
             
