@@ -582,11 +582,19 @@ class TempusAccess:
     def importSNCFOpenData(self):
         ret = QMessageBox.question(self.dlg, "TempusAccess", u"L'opération d'import dans la base de données des fichiers de l'open-data SNCF va être lancée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
         
+        self.prog = QProgressDialog(self.dlg)
+        self.prog.setCancelButton(None)
+        self.prog.setMinimum(0)
+        self.prog.setMaximum(100)
+        self.prog.setAutoClose(True)
+        self.prog.setWindowTitle(u"En cours...")
+        self.prog.show()
+        
         self.time.start()
         
         if (ret == QMessageBox.Ok):
             dbstring = "host="+self.host+" dbname="+self.base+" port="+self.port
-            
+        
             # Import stops referential
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/ref_stops.shp",  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:4326", "-t_srs", "EPSG:4326","-nln", "tempus_access.stops"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -595,38 +603,46 @@ class TempusAccess:
                 r = subprocess.call( cmd, shell=True )
                 log_file.write("\n    Stops referential imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
             
+            self.prog.setValue(5)
+            
             # Import TER and IC files
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd )
+                r = subprocess.call( cmd, shell=True )
                 log_file.write("\n    TER file imported... elapsed time = = "+str(self.time.elapsed()/1000)+" seconds\n\n")
 
+            self.prog.setValue(25)
+            
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd )
+                r = subprocess.call( cmd, shell=True )
                 log_file.write("\n    IC file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")                
+            
+            self.prog.setValue(45)
             
             # Data fusion
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_fusion_ter_ic.sql"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
-                r = subprocess.call( cmd )   
+                r = subprocess.call( cmd, shell=True )   
                 log_file.write("\n    TER and IC data fusionned... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")              
+            
+            self.prog.setValue(55)
             
             # Correct stops and sections
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/NOEUD_FERRE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_noeud_ferre"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    IGN Route500 rail node file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r= subprocess.call( cmd )
+                r= subprocess.call( cmd, shell=True )
             
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/TRONCON_VOIE_FERREE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_troncon_voie_ferree"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    IGN Route500 rail section file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd )
+                r = subprocess.call( cmd, shell=True )
             
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/appariement_ign_arrets_fer.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.appariement_ign_arrets_fer"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -634,17 +650,23 @@ class TempusAccess:
                 log_file.write("\n    IGN Route500 - UIC node pairing file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
                 r = subprocess.call( cmd, shell=True )
             
+            self.prog.setValue(65)
+            
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_corriger_traces_fer.sql"]
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    Stops and sections geometries corrected... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
                 r = subprocess.call( cmd, shell=True )
-                
+            
+            self.prog.setValue(75)
+            
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"] 
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(cmd))
                 log_file.write("\n    Old road sections removed... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd )
+                r = subprocess.call( cmd, shell=True )
+            
+            self.prog.setValue(85)
             
             # Data export
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -657,7 +679,9 @@ class TempusAccess:
                 log_file.write(str(cmd))
                 log_file.write(str(self.time.elapsed()/1000)+" seconds\n    Useless road nodes and sections deleted... elapsed time = ")
                 r = subprocess.call( cmd, shell=True )
-                       
+            
+            self.prog.setValue(90)
+            
             # Delete old feeds
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -673,20 +697,18 @@ class TempusAccess:
             
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
                 log_file.write(str(self.time.elapsed()/1000)+" seconds\nEnd import SNCF Open-Data...\n")
-                       
+            
+            self.prog.setValue(95)
+            
             # Refresh list of GTFS data sources and materialized views for QGIS
             self.refreshPTData()
             self.refreshGTFSFeeds()
-                        
+            
             # End
             box = QMessageBox()
             box.setText(u"L'import et la construction de la base open-data de la SNCF sont terminés. Un fichier GTFS fusion_ter_ic.zip contenant la fusion des données TER et IC a été créé dans le répertoire data/demo_SNCF/open_data du plugin. " )
             box.exec_()
             
-    
-    def importOtherData(self):
-        self.importOtherDataDialog.show()
-    
     
     def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
         if (layer_name!=''):
