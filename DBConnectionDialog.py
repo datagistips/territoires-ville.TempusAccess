@@ -262,7 +262,7 @@ class DBConnectionDialog(QDialog):
         self.firstDBConnection()
         DBName = self.ui.comboBoxDB.currentText()
         
-        s="select count(*) from pg_database\
+        s="SELECT count(*) from pg_database\
             WHERE datname = 'tempusaccess_"+DBName+"'";
         q=QtSql.QSqlQuery(unicode(s), self.caller.db)
         q.next()
@@ -274,7 +274,6 @@ class DBConnectionDialog(QDialog):
         
         if (ret == QMessageBox.Ok):
             self.updateDBConnection()  
-            self.prog = QProgressDialog(self)
             
             self.prog = QProgressDialog(self)
             self.prog.setCancelButton(None)
@@ -304,11 +303,13 @@ class DBConnectionDialog(QDialog):
             
             self.firstDBConnection()
             self.refreshDBList()
+            self.ui.comboBoxDB.setCurrentIndex(self.ui.comboBoxDB.findText(DBName))
+            self.updateDBConnection()
             
             self.prog.setValue(25)
             
             
-            if (self.caller.db.open() == False):
+            if (self.caller.db.open() == False): # This should never be the case
                 self.ui.pushButtonImportDB.setEnabled(False)
                 self.ui.pushButtonBackupDB.setEnabled(False)
                 box = QMessageBox()
@@ -398,10 +399,7 @@ class DBConnectionDialog(QDialog):
                     CREATE INDEX IF NOT EXISTS area_type"+str(self.caller.modelAreaType.record(i).value("code"))+"_lib_idx ON tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" USING gist (lib gist_trgm_ops); \
                     CREATE INDEX IF NOT EXISTS area_type"+str(self.caller.modelAreaType.record(i).value("code"))+"_char_id_idx ON tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" USING btree (char_id);"
                     r=QtSql.QSqlQuery(self.caller.db)
-                    r.exec_(unicode(t))
-                
-                self.ui.comboBoxDB.setCurrentIndex(self.ui.comboBoxDB.findText(DBName))
-                self.updateDBConnection()
+                    r.exec_(unicode(t)) 
             
                 self.prog.setValue(100)
             
