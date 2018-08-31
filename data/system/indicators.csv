@@ -5,18 +5,18 @@ code;lib;map_size;map_color;sur_color;col_name
 4;Amplitude horaire;t;t;f;time_ampl
 5;Temps total;f;t;t;total_time
 6;Distance totale;f;f;f;total_dist
-7;VÃ©hicules.km;f;t;f;veh_km
+7;Véhicules.km;f;t;f;veh_km
 8;Communes desservies;f;f;f;area2_list
 9;Population des communes desservies;f;t;f;area2_pop
-10;Modes de transports utilisÃ©s;f;f;f;t_modes
-11;Temps de parcours du premier au dernier arrÃªt;f;f;f;stops_time
-13;Heure de dÃ©part du premier arrÃªt;f;f;f;dep_stops
-14;Heure d'arrivÃ©e au dernier arrÃªt;f;f;f;arr_stops
-17;DÃ©composition des temps par mode;f;f;f;compo_time
-18;DÃ©composition des distances par mode;f;f;f;compo_dist
-19;Liste d'arrÃªts de correspondance;f;f;f;tran_stops
-20;Liste d'arrÃªts desservis;f;f;f;all_stops
-21;Liste de lignes empruntÃ©es;f;f;f;routes
+10;Modes de transports utilisés;f;f;f;t_modes
+11;Temps de parcours du premier au dernier arrêt;f;f;f;stops_time
+13;Heure de départ du premier arrêt;f;f;f;dep_stops
+14;Heure d'arrivée au dernier arrêt;f;f;f;arr_stops
+17;Décomposition des temps par mode;f;f;f;compo_time
+18;Décomposition des distances par mode;f;f;f;compo_dist
+19;Liste d'arrêts de correspondance;f;f;f;tran_stops
+20;Liste d'arrêts desservis;f;f;f;all_stops
+21;Liste de lignes empruntées;f;f;f;routes
 22;Temps d'attente total;f;f;f;wait_time
 23;Nombre de correspondances;f;t;f;tran_numb
 24;Vitesse (km/h);f;t;f;speed_kmh

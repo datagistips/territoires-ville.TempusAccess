@@ -1,24 +1,24 @@
 var;mod_code;mod_lib;mod_data
-node_type;0;Zone d'arrÃªt;
+node_type;0;Zone d'arrêt;
 node_type;1;Noeud routier;
 opt_crit;0;Temps minimum;
 day_type;7;Dimanche;{0}
-day_type;8;Jours ouvrÃ©s (lundi au vendredi);{1,2,3,4,5}
+day_type;8;Jours ouvrés (lundi au vendredi);{1,2,3,4,5}
 day_type;9;Jours ouvrables (lundi au samedi);{1,2,3,4,5,6}
 per_type;3;Vacances scolaires zone C;(SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('C' in zones)>0)
 per_type;2;Vacances scolaires zone B;(SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('B' in zones)>0)
 per_type;1;Vacances scolaires zone A;(SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('A' in zones)>0)
 day_type;0;Tous les jours;{0,1,2,3,4,5,6}
-per_type;0;Tous les types de pÃ©riodes;(SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates)
-per_type;4;PÃ©riode scolaire zone A;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('A' in zones)>0))
-per_type;5;PÃ©riode scolaire zone B;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('B' in zones)>0))
-per_type;6;PÃ©riode scolaire zone C;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('C' in zones)>0))
+per_type;0;Tous les types de périodes;(SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates)
+per_type;4;Période scolaire zone A;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('A' in zones)>0))
+per_type;5;Période scolaire zone B;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('B' in zones)>0))
+per_type;6;Période scolaire zone C;((SELECT DISTINCT calendar_dates.date FROM tempus_gtfs.calendar_dates) EXCEPT (SELECT per_start + generate_series(0, per_end - per_start) as date FROM tempus_access.holidays WHERE position('C' in zones)>0))
 day_type;2;Mardi;{2}
 day_type;3;Mercredi;{3}
 day_type;4;Jeudi;{4}
 day_type;5;Vendredi;{5}
 day_type;6;Samedi;{6}
-per_type;7;Jours fÃ©riÃ©s;(SELECT date FROM tempus_access.jours_feries)
+per_type;7;Jours fériés;(SELECT date FROM tempus_access.jours_feries)
 day_type;1;Lundi;{1}
 road_format;1;Visum;
 road_format;2;Route500;
