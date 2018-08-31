@@ -294,6 +294,11 @@ class TempusAccess:
         self.DBConnectionDialog.ui.comboBoxDB.setModel(self.DBConnectionDialog.modelDB)
         self.db = QtSql.QSqlDatabase.addDatabase("QPSQL", connectionName="db")
         
+        cmd = [ "python", "-m", "pglite", "init" ]
+        r = subprocess.call( cmd )
+        cmd = [ "python", "-m", "pglite", "start" ]
+        r = subprocess.call( cmd )
+        
         self.DBConnectionDialog.firstDBConnection()
         self.DBConnectionDialog.refreshDBList()
         self.DBConnectionDialog.updateDBConnection()

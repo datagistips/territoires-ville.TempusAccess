@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_DBConnectionDialog.ui'
 #
-# Created: Fri Aug 03 13:19:24 2018
+# Created: Fri Aug 31 17:00:28 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -107,7 +107,7 @@ class Ui_Dialog(object):
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout_16.addWidget(self.label, 1, 0, 1, 1)
         self.groupBoxStats = QtGui.QGroupBox(Dialog)
-        self.groupBoxStats.setGeometry(QtCore.QRect(390, 70, 301, 181))
+        self.groupBoxStats.setGeometry(QtCore.QRect(390, 10, 301, 181))
         self.groupBoxStats.setObjectName(_fromUtf8("groupBoxStats"))
         self.layoutWidget_156 = QtGui.QWidget(self.groupBoxStats)
         self.layoutWidget_156.setGeometry(QtCore.QRect(20, 30, 261, 141))
@@ -142,9 +142,6 @@ class Ui_Dialog(object):
         self.label_3 = QtGui.QLabel(self.layoutWidget_156)
         self.label_3.setObjectName(_fromUtf8("label_3"))
         self.gridLayout_17.addWidget(self.label_3, 1, 0, 1, 1)
-        self.pushButtonInitCluster = QtGui.QPushButton(Dialog)
-        self.pushButtonInitCluster.setGeometry(QtCore.QRect(590, 10, 91, 23))
-        self.pushButtonInitCluster.setObjectName(_fromUtf8("pushButtonInitCluster"))
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -188,7 +185,6 @@ class Ui_Dialog(object):
         self.labelAuxDataSize.setText(_translate("Dialog", "...", None))
         self.label_196.setText(_translate("Dialog", "Taille base de données d\'indicateurs", None))
         self.label_3.setText(_translate("Dialog", "Taille base de données d\'offre routière", None))
-        self.pushButtonInitCluster.setText(_translate("Dialog", "Init cluster", None))
 
 
 if __name__ == "__main__":
