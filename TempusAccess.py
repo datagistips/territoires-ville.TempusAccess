@@ -594,115 +594,70 @@ class TempusAccess:
         
         if (ret == QMessageBox.Ok):
             dbstring = "host="+self.host+" dbname="+self.base+" port="+self.port
-        
-            # Import stops referential
-            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/ref_stops.shp",  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:4326", "-t_srs", "EPSG:4326","-nln", "tempus_access.stops"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write("Begin import SNCF Open-Data :\n")
-                log_file.write(str(cmd))
-                r = subprocess.call( cmd, shell=True )
-                log_file.write("\n    Stops referential imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
             
+            # Import stops referential
+            self.prog.setLabelText(u"Import du référentiel d'arrêts...")
+            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/ref_stops.shp",  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:4326", "-t_srs", "EPSG:4326","-nln", "tempus_access.stops"]
+            r= subprocess.call( cmd, shell=True )
+            self.prog.setLabelText(u"Import du GTFS TER...")
             self.prog.setValue(5)
             
             # Import TER and IC files
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                r = subprocess.call( cmd, shell=True )
-                log_file.write("\n    TER file imported... elapsed time = = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-
-            self.prog.setValue(25)
+            r= subprocess.call( cmd )
+            self.prog.setValue(30)
             
+            self.prog.setLabelText(u"Import du GTFS Intercités...")
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                r = subprocess.call( cmd, shell=True )
-                log_file.write("\n    IC file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")                
-            
+            r= subprocess.call( cmd )
             self.prog.setValue(45)
             
             # Data fusion
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_fusion_ter_ic.sql"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                r = subprocess.call( cmd, shell=True )   
-                log_file.write("\n    TER and IC data fusionned... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")              
-            
+            self.prog.setLabelText(u"Fusion des fichiers TER et Intercités...")
+            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_fusion_ter_ic.sql"] 
+            r= subprocess.call( cmd, shell=True )
             self.prog.setValue(55)
             
             # Correct stops and sections
+            self.prog.setLabelText(u"Import des données IGN Route500...")
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/NOEUD_FERRE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_noeud_ferre"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    IGN Route500 rail node file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r= subprocess.call( cmd, shell=True )
-            
+            r= subprocess.call( cmd, shell=True )
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/TRONCON_VOIE_FERREE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_troncon_voie_ferree"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    IGN Route500 rail section file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
+            r= subprocess.call( cmd, shell=True )
+            self.prog.setValue(60)
             
+            self.prog.setLabelText(u"Import du fichier d'appariement des arrêts IGN et SNCF...")
             cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/appariement_ign_arrets_fer.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.appariement_ign_arrets_fer"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    IGN Route500 - UIC node pairing file imported... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
-            
+            r= subprocess.call( cmd, shell=True )
             self.prog.setValue(65)
             
+            self.prog.setLabelText(u"Correction des tracés des lignes ferroviaires...")
             cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_corriger_traces_fer.sql"]
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    Stops and sections geometries corrected... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
-            
+            r= subprocess.call( cmd, shell=True )
             self.prog.setValue(75)
             
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"] 
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    Old road sections removed... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
-            
+            self.prog.setLabelText(u"Nettoyage du réseau...")
+            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"]
+            r= subprocess.call( cmd, shell=True )
             self.prog.setValue(85)
             
-            # Data export
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(self.time.elapsed()/1000)+" seconds\n    Fusionned data exported... elapsed time = ")
-            
+            # Data export            
+            self.prog.setLabelText(u"Export du GTFS fusionné...")
             self.exportGTFS(self.data_dir + "/demo_SNCF/cerema/gtfs_fusion_ter_ic.zip", "tempus_gtfs", "sncf")
-                                    
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"] 
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write(str(self.time.elapsed()/1000)+" seconds\n    Useless road nodes and sections deleted... elapsed time = ")
-                r = subprocess.call( cmd, shell=True )
-            
             self.prog.setValue(90)
             
             # Delete old feeds
+            self.prog.setLabelText(u"Suppression des GTFS initiaux...")
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    IC data deleted... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
-            
+            r= subprocess.call( cmd, shell=True )
             cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ter']
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd))
-                log_file.write("\n    TER data deleted... elapsed time = "+str(self.time.elapsed()/1000)+" seconds\n\n")
-                r = subprocess.call( cmd, shell=True )
-            
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(self.time.elapsed()/1000)+" seconds\nEnd import SNCF Open-Data...\n")
-            
+            r= subprocess.call( cmd, shell=True )
             self.prog.setValue(95)
             
             # Refresh list of GTFS data sources and materialized views for QGIS
             self.refreshPTData()
             self.refreshGTFSFeeds()
+            self.prog.setValue(100)
             
             # End
             box = QMessageBox()
