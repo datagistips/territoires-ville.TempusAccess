@@ -383,23 +383,27 @@ class DBConnectionDialog(QDialog):
                 # Import indicators file
                 cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.indicators FROM "+self.caller.data_dir + "/system/indicators.csv CSV HEADER DELIMITER ';'"]
                 r = subprocess.call( cmd, shell=True )
-            
-                s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param\
-                ORDER BY 2"
-                self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
                 
                 self.prog.setValue(90)
                 
-                for i in range(0,self.caller.modelAreaType.rowCount()):
-                    cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.caller.base+" host="+self.caller.host+" port="+self.caller.port, self.caller.data_dir + "/areas/" + self.caller.modelAreaType.record(i).value("file_name"), "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:"+str(self.caller.modelAreaType.record(i).value("from_srid")), "-t_srs", "EPSG:4326", "-nln", "tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code")), "-nlt", "PROMOTE_TO_MULTI"]
+                s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param\
+                ORDER BY 2"
+                q=QtSql.QSqlQuery(self.caller.db)
+                q.exec_(unicode(s))
+                
+                while q.next():
+                    cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.caller.base+" host="+self.caller.host+" port="+self.caller.port, self.caller.data_dir + "/areas/" + q.value(2), "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:"+str(q.value(5)), "-t_srs", "EPSG:4326", "-nln", "tempus_access.area_type"+str(q.value(1)), "-nlt", "PROMOTE_TO_MULTI"]
                     r = subprocess.call( cmd, shell=True )
                     # Uniformisation of field names and index creation
-                    t="ALTER TABLE tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" RENAME COLUMN "+self.caller.modelAreaType.record(i).value("name_field")+" TO lib; \
-                    ALTER TABLE tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" RENAME COLUMN "+self.caller.modelAreaType.record(i).value("id_field")+" TO char_id; \
-                    CREATE INDEX IF NOT EXISTS area_type"+str(self.caller.modelAreaType.record(i).value("code"))+"_lib_idx ON tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" USING gist (lib gist_trgm_ops); \
-                    CREATE INDEX IF NOT EXISTS area_type"+str(self.caller.modelAreaType.record(i).value("code"))+"_char_id_idx ON tempus_access.area_type"+str(self.caller.modelAreaType.record(i).value("code"))+" USING btree (char_id);"
+                    t="ALTER TABLE tempus_access.area_type"+str(q.value(1))+" RENAME COLUMN "+str(q.value(4))+" TO lib; \
+                    ALTER TABLE tempus_access.area_type"+str(q.value(1))+" RENAME COLUMN "+str(q.value(3))+" TO char_id; \
+                    CREATE INDEX IF NOT EXISTS area_type"+str(q.value(1))+"_lib_idx ON tempus_access.area_type"+str(q.value(1))+" USING gist (lib gist_trgm_ops); \
+                    CREATE INDEX IF NOT EXISTS area_type"+str(q.value(1))+"_char_id_idx ON tempus_access.area_type"+str(q.value(1))+" USING btree (char_id);"
                     r=QtSql.QSqlQuery(self.caller.db)
                     r.exec_(unicode(t)) 
+                
+                self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
+
             
                 self.prog.setValue(100)
             
