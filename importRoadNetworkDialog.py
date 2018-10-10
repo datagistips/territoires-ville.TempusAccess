@@ -75,18 +75,18 @@ class importRoadNetworkDialog(QDialog):
         
     
     def _slotPushButtonRoadNetworkClicked(self):
-        nomDossierComplet = ''
+        cheminComplet = ''
         if (self.format == 'visum') or (self.format == 'route500') or (self.format == 'navteq') or (self.format == 'tomtom'):
-            nomDossierComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
         elif (self.format == 'osm'):
-            nomDossierComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier .pbf", directory=self.caller.data_dir, filter = "PBF files (*.pbf)")
+            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier .pbf", directory=self.caller.data_dir, filter = "PBF files (*.pbf)")
         dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
         srid = self.ui.lineEditSRID.text()
         
         if (self.format=='visum'):
-            cmd2=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.road_network_turning_mov FROM '"+nomDossierComplet+"\\road_network_turning_mov.csv' CSV HEADER DELIMITER ';'"]
+            cmd1=["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', cheminComplet, '-d', dbstring, '-p', 'road_network_', '--visum-modes', 'P,B,V,T', '-W', 'LATIN1']
+            cmd2=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.road_network_turning_mov FROM '"+cheminComplet+"\\road_network_turning_mov.csv' CSV HEADER DELIMITER ';'"]
             cmd3=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.plugin_dir + "/sql/visum_import_turning_penalty.sql"]
-            cmd1=["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', nomDossierComplet, '-d', dbstring, '-p', 'road_network_', '--visum-modes', 'P,B,V,T', '-W', 'LATIN1']
             cmd4=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.plugin_dir + "/sql/update_road_network.sql"]
             
             with open(self.plugin_dir+"/log.txt", "a") as log_file:
@@ -103,7 +103,9 @@ class importRoadNetworkDialog(QDialog):
                 log_file.write("\n    Update road network...\n\n")
 
         else:
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', nomDossierComplet, '-d', dbstring, '-S', srid, '-W', 'LATIN1']
+            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', cheminComplet, '-d', dbstring, '-S', srid, '-W', 'LATIN1']
+            
+            
             with open(self.plugin_dir+"/log.txt", "a") as log_file: 
                 log_file.write(str(cmd))
                 r = subprocess.call( cmd, shell=True )
