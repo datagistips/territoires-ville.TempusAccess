@@ -3,6 +3,7 @@
 **/doc/*.odt
 **/doc/*.odt#
 **/doc/Thumbs.db
+**/doc/*.txt
 
 # Log files
 *.log

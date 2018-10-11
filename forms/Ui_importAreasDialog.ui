@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>582</width>
-    <height>221</height>
+    <width>580</width>
+    <height>192</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -103,19 +103,6 @@
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>410</x>
-     <y>190</y>
-     <width>156</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Close</set>
-   </property>
   </widget>
  </widget>
  <resources/>

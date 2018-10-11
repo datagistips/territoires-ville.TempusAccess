@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_importAreasDialog.ui'
 #
-# Created: Fri Jun 22 23:10:13 2018
+# Created: Thu Oct 11 19:13:03 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(582, 221)
+        Dialog.resize(580, 192)
         self.layoutWidget = QtGui.QWidget(Dialog)
         self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 561, 171))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
@@ -69,10 +69,6 @@ class Ui_Dialog(object):
         self.lineEditSRID = QtGui.QLineEdit(self.layoutWidget)
         self.lineEditSRID.setObjectName(_fromUtf8("lineEditSRID"))
         self.gridLayout.addWidget(self.lineEditSRID, 0, 1, 1, 1)
-        self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(410, 190, 156, 23))
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
-        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)

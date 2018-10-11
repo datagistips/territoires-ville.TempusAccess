@@ -41,10 +41,14 @@ class importAreasDialog(QDialog):
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
-        self.ui= Ui_Dialog()
+        self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         
         self.caller = caller
+        
+        self.debug = caller.debug
+        
+        self.plugin_dir = self.caller.plugin_dir
         
         # Connect signals and slots
         self._connectSlots()
@@ -79,20 +83,38 @@ class importAreasDialog(QDialog):
             cmd=["ogr2ogr", "-f", "PostgreSQL", "PG:dbname="+self.caller.base+" host="+self.caller.host+" port="+self.caller.port, NomFichierComplet,  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:"+self.ui.lineEditSRID.text(), "-t_srs", "EPSG:4326", "-nln", "tempus_access.area_type"+str(areaID), "-nlt", "PROMOTE_TO_MULTI"]
             r = subprocess.call( cmd ) 
             
-            if (self.ui.lineEditAreasID.text()!="char_id"):
-                s="ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasID.text()+" TO char_id;"
-                q=QtSql.QSqlQuery(self.caller.db)
-                q.exec_(unicode(s))
-            if (self.ui.lineEditAreasLib.text()!="lib"):
-                s="ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasLib.text()+" TO lib;"
-                q=QtSql.QSqlQuery(self.caller.db)
-                q.exec_(unicode(s))
-            s="INSERT INTO tempus_access.areas_param(code, lib, file_name, id_field, name_field, from_srid)\
-               VALUES ((SELECT max(code)+1 FROM tempus_access.areas_param), '"+self.ui.lineEditAreasName.text()+"', '"+QFileInfo(NomFichierComplet).fileName()+"','"+\
-                       self.ui.lineEditAreasID.text()+"', '"+self.ui.lineEditAreasLib.text()+"', "+self.ui.lineEditSRID.text()+");\
-               ALTER TABLE tempus_access.area_type"+str(areaID)+" DROP COLUMN ogc_fid"
+            t="ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasID.text()+" TO lib; \
+            ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasLib.text()+" TO char_id; \
+            CREATE INDEX IF NOT EXISTS area_type"+str(areaID)+"_lib_idx ON tempus_access.area_type"+str(areaID)+" USING gist (lib gist_trgm_ops); \
+            CREATE INDEX IF NOT EXISTS area_type"+str(areaID)+"_char_id_idx ON tempus_access.area_type"+str(areaID)+" USING btree (char_id);\
+            INSERT INTO tempus_access.areas_param(code, lib, file_name, id_field, name_field, from_srid)\
+            VALUES ((SELECT max(code)+1 FROM tempus_access.areas_param), '"+self.ui.lineEditAreasName.text()+"', '"+QFileInfo(NomFichierComplet).fileName()+"','"+\
+                       self.ui.lineEditAreasID.text()+"', '"+self.ui.lineEditAreasLib.text()+"', "+self.ui.lineEditSRID.text()+");  \
+            ALTER TABLE tempus_access.area_type"+str(areaID)+" DROP COLUMN ogc_fid"
             q=QtSql.QSqlQuery(self.caller.db)
-            q.exec_(unicode(s))            
+            q.exec_(unicode(t)) 
+
+            s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param WHERE code = "+str(areaID)+"\
+            ORDER BY 2"
+            q=QtSql.QSqlQuery(self.caller.db)
+            q.exec_(unicode(s))
+            
+            self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
+
+            uri=QgsDataSourceURI()
+            uri.setConnection(self.caller.host, self.caller.port, self.caller.base, self.caller.login, self.caller.pwd)
+            
+            for i in range(0,self.caller.modelAreaType.rowCount()):
+                if (self.caller.modelAreaType.record(i).value("code")==areaID):
+                    uri.setDataSource("tempus_access", "area_type"+str(areaID), "geom", "")
+                    layer = QgsVectorLayer(uri.uri(), self.caller.modelAreaType.record(i).value("lib"), "postgres")
+                    if (layer.isValid()):
+                        QgsMapLayerRegistry.instance().addMapLayer(layer, False)
+                        node_layer = QgsLayerTreeLayer(layer)
+                        self.caller.node_admin.insertChildNode(i, node_layer)
+                        self.caller.iface.legendInterface().setLayerVisible(layer, False)
+            
+            
             
             box = QMessageBox()
             box.setText(u"L'import du fichier de zonage est terminé. " )
