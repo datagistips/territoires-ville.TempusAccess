@@ -450,4 +450,6 @@ class DBConnectionDialog(QDialog):
             self.updateDBConnection()
     
     
-        
+
+    
+    
