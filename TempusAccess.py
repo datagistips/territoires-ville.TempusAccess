@@ -285,20 +285,17 @@ class TempusAccess:
         self.dlg = TempusAccessDockWidget()
         
         # Start database server
-        cmd = ['pglite', 'start']
-        r = subprocess.call( cmd, shell = True )
+        cmd = [ "python", "-m", "pglite", "init" ]
+        r = subprocess.call( cmd )
+        cmd = [ "python", "-m", "pglite", "start" ]
+        r = subprocess.call( cmd )
         
         # Keep reference to the database connexion parameters (pglite default connexion)
         self.DBConnectionDialog=DBConnectionDialog(self, self.iface)
         # First connection to "postgres" database to be able to request for the list of other available databases
         self.DBConnectionDialog.ui.comboBoxDB.setModel(self.DBConnectionDialog.modelDB)
         self.db = QtSql.QSqlDatabase.addDatabase("QPSQL", connectionName="db")
-        
-        cmd = [ "python", "-m", "pglite", "init" ]
-        r = subprocess.call( cmd )
-        cmd = [ "python", "-m", "pglite", "start" ]
-        r = subprocess.call( cmd )
-        
+                
         self.DBConnectionDialog.firstDBConnection()
         self.DBConnectionDialog.refreshDBList()
         self.DBConnectionDialog.updateDBConnection()
@@ -940,7 +937,7 @@ class TempusAccess:
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
             self.node_road_offer.insertChildNode(1, node_layer)
-            self.iface.legendInterface().setLayerVisible(layer, True)
+            self.iface.legendInterface().setLayerVisible(layer, False)
         
         # Road sections
         uri.setDataSource("tempus", "road_section_pedestrians", "geom", "", "id")
@@ -1542,20 +1539,7 @@ class TempusAccess:
         self.dlg.ui.Tabs.setCurrentIndex(0)
         
         self.dlg.ui.labelElapsedTime.setText("")
-    
-    
-    # def _slotPushButtonStopQueryClicked(self):
-        # self.thread.terminate()
-        # self.thread.resultAvailable.emit(False, self.thread.query_str)
-        
-        # s="SELECT pg_cancel_backend(pid)\
-        # FROM pg_stat_activity\
-        # WHERE usename = '"+os.getenv("USERNAME")+"' AND query LIKE '%tempus_access%';"
-        # q=QtSql.QSqlQuery(self.db)
-        # q.exec_(unicode(s))
-        
-        # self.dlg.ui.pushButtonStopQuery.setEnabled(False)
-        
+            
         
     def _slotUpdateTimer(self):
         self.dlg.ui.labelElapsedTime.setText(u"Temps d'exécution : "+str(self.time.elapsed()/1000)+" secondes")
@@ -1771,14 +1755,14 @@ class TempusAccess:
         s=""
         i=0
         if (self.node_type==0): # Stop areas
-            s="SELECT id::integer as id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
+            s="SELECT id as id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
                FROM tempus_gtfs.stops \
                WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+") \
                ORDER BY 2 \
                LIMIT 1"
             i=4
         elif (self.node_type==1): # Road nodes
-            s="SELECT id::integer, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
+            s="SELECT id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
                FROM tempus.road_node \
                ORDER BY 2 \
                LIMIT 1"
