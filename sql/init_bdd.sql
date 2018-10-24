@@ -38,7 +38,8 @@ CREATE MATERIALIZED VIEW tempus.penalized_movements AS
 -- tempus_gtfs schema modifications
 --------------------------------------------------------------------------------------------------
 
-ALTER TABLE tempus_gtfs.agency
+-- This part can be deleted with the new version of the loader
+/*ALTER TABLE tempus_gtfs.agency
 ADD COLUMN id serial UNIQUE NOT NULL;
 CREATE INDEX ON tempus_gtfs.agency(id); 
 
@@ -49,6 +50,7 @@ CREATE INDEX ON tempus_gtfs.sections(id);
 ALTER TABLE tempus_gtfs.routes
 ADD COLUMN id serial UNIQUE NOT NULL;
 CREATE INDEX ON tempus_gtfs.routes(id);
+--*/
 
 CREATE OR REPLACE FUNCTION tempus_gtfs.retrace_section_f()
   RETURNS TRIGGER AS
@@ -986,9 +988,9 @@ $BODY$
 $BODY$
 LANGUAGE sql; 
 
-
-
-CREATE OR REPLACE VIEW tempus.road_section_pedestrians AS 
+-----------------------------------------------------------------------------
+-- TO DELETE with the new version of the loader
+/*CREATE OR REPLACE VIEW tempus.road_section_pedestrians AS 
  SELECT road_section.id::integer AS id,
     road_section.vendor_id,
     road_section.road_type,
@@ -1052,7 +1054,7 @@ CREATE OR REPLACE VIEW tempus.road_section_pedestrians AS
     road_section.geom
    FROM tempus.road_section
   WHERE (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0;  
-  
+-- end of part to delete*/
 
   
 
