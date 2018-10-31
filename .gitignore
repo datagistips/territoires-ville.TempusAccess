@@ -25,3 +25,4 @@ scripts/*
 # This file
 .gitignore
 *.bat
+scripts/pyuic4.bat
