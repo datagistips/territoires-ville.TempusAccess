@@ -14,122 +14,37 @@ COMMENT ON SCHEMA tempus_gtfs
   IS 'Données de description des réseaux de transport collectif';
 CREATE SCHEMA IF NOT EXISTS tempus_access;
 COMMENT ON SCHEMA tempus_access
-  IS 'Données de référentiel, sources diverses';
-
---------------------------------------------------------------------------------------------------
--- tempus schema modifications
---------------------------------------------------------------------------------------------------
-
-CREATE MATERIALIZED VIEW tempus.penalized_movements AS 
- SELECT road_restriction.id,
-    road_restriction.sections,
-    st_union(road_section.geom) AS geom,
-    max(road_restriction_time_penalty.traffic_rules) AS traffic_rules,
-    max(road_restriction_time_penalty.time_value) AS time_penalty
-   FROM tempus.road_section,
-    tempus.road_restriction,
-    tempus.road_restriction_time_penalty
-  WHERE (road_section.id = ANY (road_restriction.sections)) AND road_restriction_time_penalty.restriction_id = road_restriction.id AND road_restriction_time_penalty.time_value< 'Infinity'::double precision
-  GROUP BY road_restriction.id, road_restriction.sections;  
-
-
-
---------------------------------------------------------------------------------------------------
--- tempus_gtfs schema modifications
---------------------------------------------------------------------------------------------------
-
--- This part can be deleted with the new version of the loader
-/*ALTER TABLE tempus_gtfs.agency
-ADD COLUMN id serial UNIQUE NOT NULL;
-CREATE INDEX ON tempus_gtfs.agency(id); 
-
-ALTER TABLE tempus_gtfs.sections
-ADD COLUMN id serial UNIQUE NOT NULL;
-CREATE INDEX ON tempus_gtfs.sections(id); 
-
-ALTER TABLE tempus_gtfs.routes
-ADD COLUMN id serial UNIQUE NOT NULL;
-CREATE INDEX ON tempus_gtfs.routes(id);
---*/
-
-CREATE OR REPLACE FUNCTION tempus_gtfs.retrace_section_f()
-  RETURNS TRIGGER AS
-$BODY$
-BEGIN
-    -- Update the stop_lat and stop_lon fields with values from the new geometry
-    UPDATE tempus_gtfs.stops
-    SET stop_lat = st_y(NEW.geom), stop_lon = st_x(NEW.geom)
-    WHERE NEW.stop_id = stops.stop_id AND NEW.feed_id = stops.feed_id;
-    
-    -- Update corresponding sections : they are retraced with a straight line joining origin and destination stops
-    UPDATE tempus_gtfs.sections
-    SET geom = st_makeline(NEW.geom, st_endpoint(sections.geom))
-    WHERE NEW.id = sections.stop_from; 
-    
-    UPDATE tempus_gtfs.sections
-    SET geom = st_makeline(st_startpoint(sections.geom), NEW.geom)
-    WHERE NEW.id = sections.stop_to; 
-
-    return NEW;
-END;
-$BODY$
-  LANGUAGE plpgsql;
-
-CREATE TRIGGER retrace_section AFTER UPDATE ON tempus_gtfs.stops
-FOR EACH ROW
-WHEN (OLD.geom IS DISTINCT FROM NEW.geom)
-EXECUTE PROCEDURE tempus_gtfs.retrace_section_f();
-
-ALTER TABLE tempus_gtfs.shapes
-ADD COLUMN geom_multi Geometry('MultiLinestring', 4326); 
-
--- Modification of the "delete_artificial_stop_road_section_f" trigger
--- Indeed, when gathering several GTFS feeds with redundant stops, we have sometimes several stops (belonging to the original and final feeds) which have the same artificial road section. 
--- The trigger is modified to avoid that when the original feeds are deleted, these sections are deleted even if they still have a stop on them. 
-/*CREATE OR REPLACE FUNCTION tempus.delete_artificial_stop_road_section_f()
-  RETURNS trigger AS
-$BODY$
-begin
-    delete from tempus.road_node where id in (
-        select node_from from tempus.road_section where id = OLD.road_section_id AND id NOT IN (SELECT DISTINCT road_section_id FROM tempus_gtfs.stops)
-        union all
-        select node_to from tempus.road_section where id = OLD.road_section_id AND id NOT IN (SELECT DISTINCT road_section_id FROM tempus_gtfs.stops)
-        )
-    ;
-    delete from tempus.road_section where id = OLD.road_section_id AND id NOT IN (SELECT DISTINCT road_section_id FROM tempus_gtfs.stops);
-    return OLD;
-end;
-$BODY$
-  LANGUAGE plpgsql;*/
+  IS 'Données et fonctions spécifiques au calcul d''accessibilité';
 
 --------------------------------------------------------------------------------------------------
 -- tempus_access schema
 --------------------------------------------------------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS tempus_access;
-COMMENT ON SCHEMA tempus_access
-  IS 'Accessibility calculations specific data and functions';
 
-CREATE TABLE tempus_access.holidays
+CREATE TABLE tempus_access.formats
 (
-  per_start date,
-  per_end date,
-  zones character varying(3),
-  CONSTRAINT holidays_pkey PRIMARY KEY (per_start, per_end)
-);
-COMMENT ON TABLE tempus_access.holidays
-  IS 'Holidays definition : can be modified to add new holidays periods. Take care to conform to the initial format. ';
+    format_type character varying,
+    format_id integer, 
+    format_name character varying,
+    format_short_name character varying,
+    model_version character varying,
+    default_encoding character varying,
+    default_srid integer, 
+    path_type character varying
+); 
+COMMENT ON TABLE tempus_access.formats
+  IS 'Plugin system table: do not modify!';
+
 
 CREATE TABLE tempus_access.agregates
 (
-	code integer, 
-	lib character varying,
-	func_name character varying, 
-	CONSTRAINT agregates_pkey PRIMARY KEY(code)
-);
+    code integer,
+    lib character varying,
+    func_name character varying
+); 
 COMMENT ON TABLE tempus_access.agregates
   IS 'Plugin system table: do not modify !';
 
--- Table containing the modalities used to fill the comboBoxes of the user interface in QGIS
+
 CREATE TABLE tempus_access.modalities
 (
     var character varying, 
@@ -185,97 +100,6 @@ CREATE TABLE tempus_access.areas_param
 COMMENT ON TABLE tempus_access.areas_param
   IS 'Areas definition : do not modify this table directly in the database. If you want to add a new area type, add a line in the corresponding CSV file, in the "data/areas" folder, add the areas SHP file in the same folder and reinit the database. ';
 
--- Materialized view containing stops, distinct by mode passing at the stop
--- If GTFS is correctly coded, there should be the same number of stops in that view than in the original table
-CREATE MATERIALIZED VIEW tempus_access.stops_by_mode AS 
-    SELECT row_number() OVER () AS gid,
-        q.id, 
-        q.feed_id,
-        q.stop_id,
-        q.stop_name,
-        q.zone_id,
-        q.stop_url,
-        q.location_type,
-        q.parent_station_id,
-        q.geom,
-        q.route_type
-       FROM ( 
-            SELECT DISTINCT 
-                stops.id, 
-                stops.feed_id,
-                stops.stop_id,
-                stops.stop_name,
-                stops.zone_id,
-                stops.stop_url,
-                stops.location_type,
-                stops.parent_station_id,
-                stops.geom,
-                routes.route_type
-               FROM tempus_gtfs.stops JOIN tempus_gtfs.stop_times ON (stops.feed_id = stop_times.feed_id AND stops.stop_id = stop_times.stop_id)
-                                      JOIN tempus_gtfs.trips ON (stop_times.feed_id = trips.feed_id AND stop_times.trip_id = trips.trip_id)
-                                      JOIN tempus_gtfs.routes ON (routes.feed_id = trips.feed_id AND trips.route_id = routes.route_id)
-              ORDER BY stops.id, routes.route_type 
-            ) q
-    ;
-    
-
-CREATE TABLE tempus_access.road_network_turning_mov
-(
-  numnoeudo integer,
-  numvianoeud integer,
-  numnoeudd integer,
-  t0ti smallint,
-  CONSTRAINT road_network_turning_mov_pkey PRIMARY KEY (numnoeudo, numvianoeud, numnoeudd)
-); 
-
-    
-    
-CREATE MATERIALIZED VIEW tempus_access.sections_by_mode AS
-    SELECT row_number() OVER () AS gid,
-           sections.id as section_id, 
-           stops1.feed_id, 
-           sections.stop_from,
-           stops1.stop_id as stop_id_from, 
-           stops1.stop_name as stop_name_from, 
-           sections.stop_to,
-           stops2.stop_id as stop_id_to, 
-           stops2.stop_name as stop_name_to,
-           t.route_type, 
-           sections.geom
-    FROM (
-        SELECT DISTINCT ON (st1.feed_id, st1.stop_id, st2.stop_id, routes.route_type)
-          st1.feed_id,
-          st1.stop_id as stop1, 
-          st2.stop_id as stop2, 
-          routes.route_type
-        FROM tempus_gtfs.stop_times st1 JOIN tempus_gtfs.stop_times st2 ON ((st1.trip_id = st2.trip_id) AND (st1.feed_id = st2.feed_id) AND (st2.stop_sequence = st1.stop_sequence + 1))
-                                        JOIN tempus_gtfs.trips ON (st2.trip_id = trips.trip_id) AND (st2.feed_id = trips.feed_id)
-                                        JOIN tempus_gtfs.routes ON (trips.route_id = routes.route_id) AND (trips.feed_id = routes.feed_id)
-    ) t
-    JOIN tempus_gtfs.sections ON sections.feed_id = (SELECT id FROM tempus_gtfs.feed_info WHERE feed_id = t.feed_id) AND (sections.stop_from = (SELECT id FROM tempus_gtfs.stops WHERE stop_id =t.stop1 AND feed_id = t.feed_id)) AND (sections.stop_to = (SELECT id FROM tempus_gtfs.stops WHERE stop_id = t.stop2 AND feed_id = t.feed_id))
-    JOIN tempus_gtfs.stops stops1 ON (sections.feed_id = (SELECT id FROM tempus_gtfs.feed_info WHERE feed_id = stops1.feed_id)) AND (stops1.id = sections.stop_from)
-    JOIN tempus_gtfs.stops stops2 ON (sections.feed_id = (SELECT id FROM tempus_gtfs.feed_info WHERE feed_id = stops2.feed_id)) AND (stops2.id = sections.stop_to)
-;
-
--- Materialized view containing trips, distinct by modes serving the trip
-CREATE MATERIALIZED VIEW IF NOT EXISTS tempus_access.trips_by_mode AS 
-(
-    SELECT row_number() over() as gid, q.feed_id, q.shape_id, q.trip_ids, q.route_type, shapes.geom_multi
-    FROM (
-        SELECT trips.feed_id, trips.shape_id, array_agg(trips.trip_id) as trip_ids, routes.route_type 
-        FROM tempus_gtfs.trips JOIN tempus_gtfs.routes ON (trips.feed_id = routes.feed_id AND trips.route_id = routes.route_id) 
-        GROUP BY trips.feed_id, shape_id, route_type 
-        ORDER BY trips.feed_id, shape_id, route_type 
-    ) q JOIN tempus_gtfs.shapes ON (q.feed_id = shapes.feed_id AND q.shape_id = shapes.shape_id)
-) ;
-
-CREATE MATERIALIZED VIEW IF NOT EXISTS tempus_access.transfers_geom AS
-(
-    SELECT row_number() over() as id, stop1.feed_id, stop1.id as stop_from, stop1.stop_id as stop_id_from, stop2.id as stop_to, stop2.stop_id as stop_id_to, transfer_type, min_transfer_time, st_makeline(stop1.geom, stop2.geom) as geom
-    FROM tempus_gtfs.stops stop1 JOIN tempus_gtfs.transfers ON (stop1.feed_id = transfers.feed_id AND stop1.stop_id = transfers.from_stop_id)
-                                 JOIN tempus_gtfs.stops stop2 ON (stop2.feed_id = transfers.feed_id AND stop2.stop_id = transfers.to_stop_id) 
-);
-
 -- Function that gives the last stop of a public transport trip
 CREATE FUNCTION tempus_access.end_trip_stops()
   RETURNS SETOF character varying AS
@@ -304,89 +128,6 @@ $BODY$
     WHERE s.stop_id=stops.stop_id
 $BODY$
 LANGUAGE sql; 
-
--- Function that is TRUE when the parameter date is a french bank holiday, FALSE otherwise
--- Algorithm based on the Easter day of each year
-CREATE OR REPLACE FUNCTION tempus_access.french_bank_holiday(pdate date)
-  RETURNS boolean AS
-$BODY$
-DECLARE
-    lgA INTEGER;
-    lG integer;
-    lC integer;
-    lD integer;
-    lE integer;
-    lH integer;
-    lK integer;
-    lP integer;
-    lQ integer;
-    lI integer;
-    lB integer;
-    lJ1 integer;
-    lJ2 integer;
-    lR integer;
-    stDate VARCHAR(10);
-    dtPaq DATE;
-    blFerie integer;
-    ferie boolean; 
-
-BEGIN
-    ferie = FALSE; 
-    stDate := TO_CHAR(pDate, 'DDMM');
-    -- Jours f곩고fixes (1er janvier, 1er mai, 8 mai, 14 juillet, ...)
-    IF stDate IN ('0101','0105','0805','1407','1508','0111','1111','2512') THEN
-        ferie=TRUE;
-    END IF;
-
-        -- Construction de la date du dimanche de P㲵es
-        lgA := TO_CHAR(pDate, 'YYYY');
-        lG := mod(lgA,19);
-        lC := trunc(lgA / 100);
-        lD := trunc(lC / 4);
-        lE := trunc((8 * lC + 13) / 25);
-        lH := mod((19 * lG + lC - lD - lE + 15),30);
-        lK := trunc(lH / 28);
-        lP := trunc(29 /(lH + 1));
-        lQ := trunc((21 - lG) / 11);
-        lI := (lK * lP * lQ - 1) * lK + lH;
-        lB := trunc(lgA / 4) + lgA;
-        lJ1 := lB + lI + 2 + lD - lC;
-        lJ2 := mod(lJ1,7);
-        lR := 28 + lI - lJ2;
-
-        IF lR > 31 THEN
-            dtPaq := to_date((lR-31)::character varying || '/04/' || lgA::character varying, 'dd/mm/yyyy');
-        ELSE
-            dtPaq := to_date(lR::character varying || '/03/' || lgA::character varying, 'dd/mm/yyyy');
-        END IF;
-
-    -- Jours fériés mobiles (lundi de pâques, ascension, lundi de pentec𴥩
-    -- Pâques et pentecôte exclus puisqu'ils tombent tous les deux un dimanche.
-
-        IF (pDate = dtPaq) OR (pDate = (dtPaq + 1)) OR (pDate = (dtPaq + 39)) OR (pDate = (dtPaq + 50)) THEN
-            ferie=TRUE;
-        END IF;
-    
-    RETURN ferie;
-END;
-$BODY$
-LANGUAGE plpgsql VOLATILE;
-
--- View containing all the french bank holidays corresponding to the period covered by the GTFS data
-CREATE OR REPLACE VIEW tempus_access.jours_feries AS 
-(
-    SELECT date
-    FROM
-    (
-        SELECT date_min + generate_series(0, date_max - date_min) AS date
-        FROM
-        (
-            SELECT min(date) as date_min, max(date) as date_max 
-            FROM tempus_gtfs.calendar_dates
-        ) q
-    ) r
-    WHERE tempus_access.french_bank_holiday(date)=True
-); 
 
 
 CREATE TABLE tempus_access.stops
@@ -988,73 +729,4 @@ $BODY$
 $BODY$
 LANGUAGE sql; 
 
------------------------------------------------------------------------------
--- TO DELETE with the new version of the loader
-/*CREATE OR REPLACE VIEW tempus.road_section_pedestrians AS 
- SELECT road_section.id::integer AS id,
-    road_section.vendor_id,
-    road_section.road_type,
-    road_section.node_from,
-    road_section.node_to,
-    (road_section.traffic_rules_ft::integer & 1) > 0 AS ft,
-    (road_section.traffic_rules_tf::integer & 1) > 0 AS tf,
-    road_section.length,
-    road_section.car_speed_limit,
-    road_section.road_name,
-    road_section.lane,
-    road_section.roundabout,
-    road_section.bridge,
-    road_section.tunnel,
-    road_section.ramp,
-    road_section.tollway,
-    road_section.geom
-   FROM tempus.road_section
-  WHERE (road_section.traffic_rules_ft::integer & 1) > 0 OR (road_section.traffic_rules_tf::integer & 1) > 0;
-
-
- CREATE OR REPLACE VIEW tempus.road_section_cyclists AS 
- SELECT road_section.id::integer AS id,
-    road_section.vendor_id,
-    road_section.road_type,
-    road_section.node_from,
-    road_section.node_to,
-    (road_section.traffic_rules_ft::integer & 1) > 0 AS ft,
-    (road_section.traffic_rules_tf::integer & 1) > 0 AS tf,
-    road_section.length,
-    road_section.car_speed_limit,
-    road_section.road_name,
-    road_section.lane,
-    road_section.roundabout,
-    road_section.bridge,
-    road_section.tunnel,
-    road_section.ramp,
-    road_section.tollway,
-    road_section.geom
-   FROM tempus.road_section
-  WHERE (road_section.traffic_rules_ft::integer & 2) > 0 OR (road_section.traffic_rules_tf::integer & 2) > 0;
-
-  
- CREATE OR REPLACE VIEW tempus.road_section_cars AS 
- SELECT road_section.id::integer AS id,
-    road_section.vendor_id,
-    road_section.road_type,
-    road_section.node_from,
-    road_section.node_to,
-    (road_section.traffic_rules_ft::integer & 1) > 0 AS ft,
-    (road_section.traffic_rules_tf::integer & 1) > 0 AS tf,
-    road_section.length,
-    road_section.car_speed_limit,
-    road_section.road_name,
-    road_section.lane,
-    road_section.roundabout,
-    road_section.bridge,
-    road_section.tunnel,
-    road_section.ramp,
-    road_section.tollway,
-    road_section.geom
-   FROM tempus.road_section
-  WHERE (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0;  
--- end of part to delete*/
-
-  
-
+-
