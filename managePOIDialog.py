@@ -35,46 +35,37 @@ import os
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
-from Ui_importPOIDialog import Ui_Dialog
+from Ui_managePOIDialog import Ui_Dialog
 
-class importPOIDialog(QDialog): 
+class managePOIDialog(QDialog): 
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
-        self.ui = Ui_Dialog()
+        self.ui= Ui_Dialog()
         self.ui.setupUi(self)
-        
         self.caller = caller
+        self.db = caller.db
+        self.iface = caller.iface
+                
+        self.ui.comboBoxSourceName.setModel(self.caller.modelPOISources)
         
-        self.debug = caller.debug
-        
-        self.plugin_dir = self.caller.plugin_dir
-        
-        # Connect signals and slots
         self._connectSlots()
-        self.format = ''
-        self.format_compl = ''
     
     
     def _connectSlots(self):
-        self.ui.comboBoxFormat.currentIndexChanged.connect(self._slotComboBoxFormatCurrentIndexChanged)
-        self.ui.pushButtonChoose.clicked.connect(self._slotPushButtonChooseClicked)
-        self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
-        
+        self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
+        self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
     
-    def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelPOIFormat.record(self.ui.comboBoxFormat.currentIndex()).value("format_short_name")
-        self.caller.modelPOIFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE format_short_name = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+    
+    def _slotPushButtonDeleteClicked(self):
+        ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
 
+        if (ret == QMessageBox.Ok): 
+            pass
     
-    def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
-        self.model = self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
-        self.ui.spinBoxSRID.setValue(self.caller.modelPOIFormatVersion.record(indexChosenLine).value("default_srid"))
-        self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("default_encoding")))
+    def _slotExportClicked(self):
+        # Open a window to choose path to the GTFS source file 
+        NomDossierComplet = QFileDialog.getSaveFileName(caption = "Choisir un dossier", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
         
-    
-    def _slotPushButtonChooseClicked(self):
-        pass
-            
-            
-            
+        
+        

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_importAreasDialog.ui'
 #
-# Created: Thu Oct 11 19:13:03 2018
+# Created: Wed Oct 31 09:08:37 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

@@ -6,18 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>473</width>
-    <height>218</height>
+    <width>467</width>
+    <height>254</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Importer un réseau routier</string>
+   <string>Importer des points d'intérêt</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
      <x>380</x>
-     <y>180</y>
+     <y>210</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -32,21 +32,11 @@
      <x>10</x>
      <y>11</y>
      <width>451</width>
-     <height>161</height>
+     <height>191</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>Version du modèle de données</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
+    <item row="4" column="1">
      <widget class="QSpinBox" name="spinBoxSRID">
       <property name="maximum">
        <number>9999</number>
@@ -56,8 +46,8 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
-     <widget class="QPushButton" name="pushButtonChooseDir">
+    <item row="6" column="1">
+     <widget class="QPushButton" name="pushButtonChoose">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -75,36 +65,46 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="3" column="1">
      <widget class="QLineEdit" name="lineEditPrefix"/>
     </item>
-    <item row="3" column="0">
+    <item row="4" column="0">
      <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>SRID</string>
+       <string>SRID *</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
+    <item row="2" column="1">
      <widget class="QComboBox" name="comboBoxFormatVersion"/>
     </item>
-    <item row="0" column="1">
+    <item row="1" column="1">
      <widget class="QComboBox" name="comboBoxFormat"/>
     </item>
-    <item row="0" column="0">
+    <item row="1" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Type données source</string>
+       <string>Type données source *</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Version du modèle de données</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
      <widget class="QComboBox" name="comboBoxEncoding">
       <property name="editable">
        <bool>true</bool>
@@ -112,6 +112,16 @@
      </widget>
     </item>
     <item row="5" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Encodage de caractères *</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
      <widget class="QLabel" name="labelPath">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -130,7 +140,7 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <widget class="QLabel" name="label_4">
       <property name="text">
        <string>Préfixe fichiers</string>
@@ -140,15 +150,18 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_5">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_6">
       <property name="text">
-       <string>Encodage de caractères</string>
+       <string>Nom de la source *</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEditSourceName"/>
     </item>
    </layout>
   </widget>

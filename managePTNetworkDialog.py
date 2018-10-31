@@ -35,9 +35,9 @@ import os
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
-from Ui_manageGTFSDialog import Ui_Dialog
+from Ui_managePTNetworkDialog import Ui_Dialog
 
-class manageGTFSDialog(QDialog): 
+class managePTNetworkDialog(QDialog): 
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
@@ -47,18 +47,18 @@ class manageGTFSDialog(QDialog):
         self.db = caller.db
         self.iface = caller.iface
                 
-        self.ui.comboBoxGTFSFeeds.setModel(self.caller.modelGTFSFeeds)
+        self.ui.comboBoxSourceName.setModel(self.caller.modelPTNetworkSources)
         
         self._connectSlots()
     
     
     def _connectSlots(self):
-        self.ui.pushButtonDeleteGTFSFeed.clicked.connect(self._slotPushButtonDeleteGTFSFeedClicked)
-        self.ui.pushButtonExportGTFSFeed.clicked.connect(self._slotExportGTFSFeedClicked)
+        self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
+        self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
     
     
-    def _slotPushButtonDeleteGTFSFeedClicked(self):
-        ret = QMessageBox.question(self, "TempusAccess", u"La source de données GTFS sélectionnée va être supprimée. \n Confirmez-vous vouloir faire cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
+    def _slotPushButtonDeleteClicked(self):
+        ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
 
         if (ret == QMessageBox.Ok): 
             s="UPDATE tempus_gtfs.stops\
@@ -69,7 +69,7 @@ class manageGTFSDialog(QDialog):
             q.exec_(unicode(s))
             
             dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', self.ui.comboBoxGTFSFeeds.currentText()]
+            cmd = ["python", self.caller.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', self.ui.comboBoxGTFSFeeds.currentText()]
             r = subprocess.call( cmd, shell=True )
             
             s="REFRESH MATERIALIZED VIEW tempus_access.stops_by_mode;\
@@ -82,7 +82,7 @@ class manageGTFSDialog(QDialog):
             self.caller.refreshPTData()
             self.caller.refreshGTFSFeeds()
     
-    def _slotExportGTFSFeedClicked(self):
+    def _slotExportClicked(self):
         # Open a window to choose path to the GTFS source file 
         NomFichierComplet = QFileDialog.getSaveFileName(caption = "Choisir un nom de fichier", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
         

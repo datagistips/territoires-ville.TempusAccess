@@ -20,10 +20,7 @@ day_type;5;Vendredi;{5}
 day_type;6;Samedi;{6}
 per_type;7;Jours fériés;(SELECT date FROM tempus_access.jours_feries)
 day_type;1;Lundi;{1}
-road_format;1;Visum;
-road_format;2;Route500;
-road_format;3;Navteq - Navstreets;
-road_format;4;TomTom;
-road_format;5;OSM;
 rep_meth;1;Alpha shapes;
 rep_meth;2;Enveloppes concaves;
+encoding;1;LATIN1;
+encoding;2;UTF-8;

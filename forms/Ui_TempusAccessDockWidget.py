@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccessDockWidget.ui'
 #
-# Created: Fri Aug 03 13:19:12 2018
+# Created: Wed Oct 31 09:08:34 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

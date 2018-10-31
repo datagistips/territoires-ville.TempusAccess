@@ -1,10 +1,13 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.20" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.24" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="vendor_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="network_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="road_type">
@@ -31,7 +34,10 @@
     <edittype widgetv2type="TextEdit" name="road_name">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="lane">
+    <edittype widgetv2type="TextEdit" name="lane_ft">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="lane_tf">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="roundabout">
@@ -49,33 +55,46 @@
     <edittype widgetv2type="TextEdit" name="tollway">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
+    <edittype widgetv2type="TextEdit" name="chk">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
     <rules key="{808d0135-4f27-4436-ab4f-b322ba0959da}">
-      <rule filter="&quot;road_type&quot; = 1" key="{7a33c242-fc32-4433-8eca-352ee16b76a4}" symbol="0" label="Réseau de niveau 1">
+      <rule filter="network_id > 0 AND &quot;road_type&quot; = 1" key="{7a33c242-fc32-4433-8eca-352ee16b76a4}" symbol="0" label="Réseau de niveau 1">
         <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{46bb6ecc-dfeb-49d5-953e-cab8f8ab3df1}" symbol="1" label="Sens positif"/>
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{aa067e5e-7bfb-4251-917d-a57a25e3228c}" symbol="2" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{7cfa1299-dcc0-49e6-8be7-02c0c60d89dc}" label="Double sens"/>
       </rule>
-      <rule filter="&quot;road_type&quot; = 2" key="{76494783-f382-4a8c-bc38-fb46e26f640f}" symbol="3" label="Réseau de niveau 2">
+      <rule filter="network_id > 0 AND &quot;road_type&quot; = 2" key="{76494783-f382-4a8c-bc38-fb46e26f640f}" symbol="3" label="Réseau de niveau 2">
         <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{a3a28d51-4c3b-4647-accd-d74f974be8a3}" symbol="4" label="Sens positif"/>
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{8416bf26-4d00-45f3-b467-74f04c8a6054}" symbol="5" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{51f55348-62a5-4d6f-b888-35be6ca341dc}" label="Double sens"/>
       </rule>
-      <rule filter="&quot;road_type&quot; = 3" key="{f11c364d-6a61-43b6-a11e-788689dbdde0}" symbol="6" label="Réseau de niveau 3">
+      <rule filter="network_id > 0 AND &quot;road_type&quot; = 3" key="{f11c364d-6a61-43b6-a11e-788689dbdde0}" symbol="6" label="Réseau de niveau 3">
         <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{dc9c7eba-5ea8-4760-be10-79ecfdafcf17}" symbol="7" label="Sens positif"/>
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{660bdae3-2348-41bf-b340-57172c7c8d73}" symbol="8" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{5c876d34-395e-4c42-9048-4e1a7415cab8}" label="Double sens"/>
       </rule>
-      <rule filter="&quot;road_type&quot; = 4" key="{e9769830-5f84-461d-9db0-92138bee3cbb}" symbol="9" label="Réseau de niveau 4">
+      <rule filter="network_id > 0 AND &quot;road_type&quot; = 4" key="{e9769830-5f84-461d-9db0-92138bee3cbb}" symbol="9" label="Réseau de niveau 4">
         <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{1ed75705-be8c-49ae-99d1-59c2141ccfcd}" symbol="10" label="Sens positif"/>
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{187bcef9-dd1f-4c9d-a069-a8f445e984ab}" symbol="11" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{e8ae3dc3-2ef7-4e2c-bc1d-5859658fc76b}" label="Double sens"/>
       </rule>
-      <rule filter="&quot;road_type&quot; >=5 OR road_type IS NULL" key="{e319aa04-912c-407f-a4d3-55199ad360b6}" symbol="12" label="Réseau de niveau 5+">
-        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{d2d7ffdb-0cb1-4727-8974-28b0f7110ff1}" symbol="13" label="Sens positif"/>
-        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{dfdaec7f-bd68-4bc7-86af-7b2f74aa53b0}" symbol="14" label="Sens négatif"/>
-        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{9bca8fe2-9626-47cd-b562-00501b946e38}" label="Double sens"/>
+      <rule filter="network_id > 0 AND road_type IS NULL" key="{bf6c5382-7d5a-4a8e-b21f-0497d576eb4f}" symbol="12" label="Réseau non hiérarchisé">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{dadf4a96-6e28-4457-a09d-b1e52b59dea4}" symbol="13" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{aa5a6447-56ec-495b-930a-6523b373eac8}" symbol="14" label="Sens négatif"/>
+        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{f1150514-418c-4c41-91a8-0a98164e0929}" label="Double sens"/>
+      </rule>
+      <rule checkstate="0" filter="network_id > 0 AND &quot;road_type&quot; =5" key="{89cb829e-ca45-4820-90de-dc658fb14ac8}" symbol="15" label="Arcs de transfert entre arrêts / POI">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{0035c8ae-a13e-4c34-b8c6-44f144e7045d}" symbol="16" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{afa552d4-ac75-4846-9777-f2b8ab248f05}" symbol="17" label="Sens négatif"/>
+        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{666971e0-2ffb-4dd2-b9e2-282321a20de3}" label="Double sens"/>
+      </rule>
+      <rule filter="network_id=0" key="{43e1982d-fa28-47c1-86aa-5c5529f8f786}" symbol="18" label="Réseau virtuel">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{d75f697d-9ba2-4bf3-9cd8-469b54a4079e}" symbol="19" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{536fee3d-b873-4f58-8450-149c54182d91}" symbol="20" label="Sens négatif"/>
+        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{47e7496a-757e-4338-b29b-6534ed1e897c}" label="Double sens"/>
       </rule>
     </rules>
     <symbols>
@@ -115,7 +134,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="227,26,28,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -151,7 +170,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="102,103,105,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -187,7 +206,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="102,103,105,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -214,9 +233,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="127,128,126,255"/>
+          <prop k="line_color" v="0,0,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.46"/>
+          <prop k="line_width" v="0.26"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -242,7 +261,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="0,0,0,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -278,7 +297,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="0,0,0,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -290,6 +309,152 @@
               <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="outline_width_unit" v="MM"/>
               <prop k="size" v="4"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="15">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="128,2,2,255"/>
+          <prop k="line_style" v="dot"/>
+          <prop k="line_width" v="0.26"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="16">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="5.55112e-17"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@16@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v=">"/>
+              <prop k="color" v="128,2,2,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="miter"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,255,255,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="17">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@17@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v="&lt;"/>
+              <prop k="color" v="128,2,2,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="bevel"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,127,0,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="18">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="102,103,105,255"/>
+          <prop k="line_style" v="dot"/>
+          <prop k="line_width" v="0.26"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="19">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="5.55112e-17"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@19@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v=">"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="miter"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,255,255,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
               <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="size_unit" v="MM"/>
               <prop k="vertical_anchor_point" v="1"/>
@@ -314,7 +479,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="227,26,28,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -326,6 +491,42 @@
               <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="outline_width_unit" v="MM"/>
               <prop k="size" v="4"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="20">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@20@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v="&lt;"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="bevel"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,127,0,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
               <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="size_unit" v="MM"/>
               <prop k="vertical_anchor_point" v="1"/>
@@ -460,7 +661,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="253,191,111,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -496,7 +697,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="255,127,0,255"/>
+              <prop k="color" v="253,191,111,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -738,20 +939,23 @@
   <aliases>
     <alias field="id" index="0" name=""/>
     <alias field="vendor_id" index="1" name=""/>
-    <alias field="road_type" index="2" name=""/>
-    <alias field="node_from" index="3" name=""/>
-    <alias field="node_to" index="4" name=""/>
-    <alias field="ft" index="5" name=""/>
-    <alias field="tf" index="6" name=""/>
-    <alias field="length" index="7" name=""/>
-    <alias field="car_speed_limit" index="8" name=""/>
-    <alias field="road_name" index="9" name=""/>
-    <alias field="lane" index="10" name=""/>
-    <alias field="roundabout" index="11" name=""/>
-    <alias field="bridge" index="12" name=""/>
-    <alias field="tunnel" index="13" name=""/>
-    <alias field="ramp" index="14" name=""/>
-    <alias field="tollway" index="15" name=""/>
+    <alias field="network_id" index="2" name=""/>
+    <alias field="road_type" index="3" name=""/>
+    <alias field="node_from" index="4" name=""/>
+    <alias field="node_to" index="5" name=""/>
+    <alias field="ft" index="6" name=""/>
+    <alias field="tf" index="7" name=""/>
+    <alias field="length" index="8" name=""/>
+    <alias field="car_speed_limit" index="9" name=""/>
+    <alias field="road_name" index="10" name=""/>
+    <alias field="lane_ft" index="11" name=""/>
+    <alias field="lane_tf" index="12" name=""/>
+    <alias field="roundabout" index="13" name=""/>
+    <alias field="bridge" index="14" name=""/>
+    <alias field="tunnel" index="15" name=""/>
+    <alias field="ramp" index="16" name=""/>
+    <alias field="tollway" index="17" name=""/>
+    <alias field="chk" index="18" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -768,13 +972,16 @@
       <column width="-1" hidden="0" type="field" name="length"/>
       <column width="-1" hidden="0" type="field" name="car_speed_limit"/>
       <column width="-1" hidden="0" type="field" name="road_name"/>
-      <column width="-1" hidden="0" type="field" name="lane"/>
       <column width="-1" hidden="0" type="field" name="roundabout"/>
       <column width="-1" hidden="0" type="field" name="bridge"/>
       <column width="-1" hidden="0" type="field" name="tunnel"/>
       <column width="-1" hidden="0" type="field" name="ramp"/>
       <column width="-1" hidden="0" type="field" name="tollway"/>
       <column width="-1" hidden="1" type="actions"/>
+      <column width="-1" hidden="0" type="field" name="network_id"/>
+      <column width="-1" hidden="0" type="field" name="lane_ft"/>
+      <column width="-1" hidden="0" type="field" name="lane_tf"/>
+      <column width="-1" hidden="0" type="field" name="chk"/>
     </columns>
   </attributetableconfig>
   <editform></editform>
@@ -807,6 +1014,7 @@ def my_form_open(dialog, layer, feature):
   <defaults>
     <default field="id" expression=""/>
     <default field="vendor_id" expression=""/>
+    <default field="network_id" expression=""/>
     <default field="road_type" expression=""/>
     <default field="node_from" expression=""/>
     <default field="node_to" expression=""/>
@@ -815,12 +1023,14 @@ def my_form_open(dialog, layer, feature):
     <default field="length" expression=""/>
     <default field="car_speed_limit" expression=""/>
     <default field="road_name" expression=""/>
-    <default field="lane" expression=""/>
+    <default field="lane_ft" expression=""/>
+    <default field="lane_tf" expression=""/>
     <default field="roundabout" expression=""/>
     <default field="bridge" expression=""/>
     <default field="tunnel" expression=""/>
     <default field="ramp" expression=""/>
     <default field="tollway" expression=""/>
+    <default field="chk" expression=""/>
   </defaults>
   <previewExpression>COALESCE( "road_name", '&lt;NULL>' )</previewExpression>
   <layerGeometryType>1</layerGeometryType>

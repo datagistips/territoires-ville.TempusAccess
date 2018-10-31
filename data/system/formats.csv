@@ -12,5 +12,7 @@ road;6;TomTom - Multinet;road_tomtom;;LATIN1;4326;directory
 road;6;TomTom - Multinet;road_tomtom;1409;LATIN1;4326;directory
 road;7;OSM;road_osm;;UTF-8;4326;.pbf
 road;8;Visum;road_visum;;LATIN1;4326;directory
-poi;1;Tempus;poi_tempus;;LATIN1;4326;.shp
-poi;2;INSEE - BPE;poi_insee_bpe;;LATIN1;2154;directory
+poi;9;Tempus;poi_tempus;;LATIN1;4326;.shp
+poi;10;INSEE - BPE;poi_insee_bpe;;LATIN1;2154;directory
+pt;11;GTFS;pt_gtfs;;UTF-8;4326;.zip
+pt;12;GTFS open-data SNCF (TER et IC);pt_sncf;;UTF-8;4326;.zip

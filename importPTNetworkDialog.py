@@ -35,46 +35,54 @@ import os
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
-from Ui_importPOIDialog import Ui_Dialog
+from Ui_importPTNetworkDialog import Ui_Dialog
 
-class importPOIDialog(QDialog): 
+class importPTNetworkDialog(QDialog): 
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
-        self.ui = Ui_Dialog()
+        self.ui= Ui_Dialog()
         self.ui.setupUi(self)
         
         self.caller = caller
         
-        self.debug = caller.debug
-        
-        self.plugin_dir = self.caller.plugin_dir
-        
         # Connect signals and slots
         self._connectSlots()
-        self.format = ''
-        self.format_compl = ''
     
     
     def _connectSlots(self):
         self.ui.comboBoxFormat.currentIndexChanged.connect(self._slotComboBoxFormatCurrentIndexChanged)
-        self.ui.pushButtonChoose.clicked.connect(self._slotPushButtonChooseClicked)
-        self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
-        
+        self.ui.pushButtonChoose1.clicked.connect(self._slotPushButtonChoose1Clicked)
+        self.ui.pushButtonChoose2.clicked.connect(self._slotPushButtonChoose2Clicked)
+        self.ui.pushButtonChoose3.clicked.connect(self._slotPushButtonChoose3Clicked)
+        self.ui.pushButtonImport.clicked.connect(self._slotPushButtonImportClicked)
+        self.ui.lineEditSourceName.textChanged.connect(self._slotLineEditSourceNameTextChanged)
     
-    def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelPOIFormat.record(self.ui.comboBoxFormat.currentIndex()).value("format_short_name")
-        self.caller.modelPOIFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE format_short_name = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+    
+    def _slotLineEditSourceNameTextChanged(self):
+        if (self.ui.lineEditSourceName.text()==""): 
+            self.ui.pushButtonImport.setEnabled(False)
+        else: 
+            self.ui.pushButtonImport.setEnabled(True)
 
-    
-    def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
-        self.model = self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
-        self.ui.spinBoxSRID.setValue(self.caller.modelPOIFormatVersion.record(indexChosenLine).value("default_srid"))
-        self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("default_encoding")))
-        
-    
-    def _slotPushButtonChooseClicked(self):
+
+    def _slotPushButtonImportClicked(self):
         pass
             
-            
-            
+        
+    def _slotPushButtonChoose1Clicked(self):
+        pass
+    
+    
+    def _slotPushButtonChoose2Clicked(self):
+        pass
+    
+    
+    def _slotPushButtonChoose3Clicked(self):
+        pass
+    
+    
+    def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
+        pass
+        
+    

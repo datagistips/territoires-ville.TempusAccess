@@ -35,11 +35,13 @@ import resources
 # import the code for the dialogs
 from TempusAccessDockWidget import TempusAccessDockWidget
 from DBConnectionDialog import DBConnectionDialog
-from importGTFSDialog import importGTFSDialog
+from importPTNetworkDialog import importPTNetworkDialog
 from importRoadNetworkDialog import importRoadNetworkDialog
-#from importSNCFOpenDataDialog import importSNCFOpenDataDialog
+from importPOIDialog import importPOIDialog
 from importAreasDialog import importAreasDialog
-from manageGTFSDialog import manageGTFSDialog
+from manageRoadNetworkDialog import manageRoadNetworkDialog
+from managePTNetworkDialog import managePTNetworkDialog
+from managePOIDialog import managePOIDialog
 
 import subprocess
 import datetime
@@ -267,6 +269,7 @@ class TempusAccess:
         self.sql_dir = self.plugin_dir + "/sql"
         self.icon_dir = self.plugin_dir + "/icons"
         self.last_dir = self.plugin_dir
+        self.load_tempus_path = "C:/OSGeo4W64/apps/Python27/lib/site-packages/tempusloader-1.2.2-py2.7.egg/tempusloader/load_tempus.py"
         
         self.debug = False # True when the box "Ecrire dans le log" is checked
                 
@@ -281,14 +284,15 @@ class TempusAccess:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
         
-        # Create main dock widget and keep reference to the main dock widget and to the QGIS legend interface
-        self.dlg = TempusAccessDockWidget()
-        
+                
         # Start database server
         cmd = [ "python", "-m", "pglite", "init" ]
         r = subprocess.call( cmd )
         cmd = [ "python", "-m", "pglite", "start" ]
         r = subprocess.call( cmd )
+        
+        # Create main dock widget and keep reference to the main dock widget and to the QGIS legend interface
+        self.dlg = TempusAccessDockWidget()
         
         # Keep reference to the database connexion parameters (pglite default connexion)
         self.DBConnectionDialog=DBConnectionDialog(self, self.iface)
@@ -340,8 +344,10 @@ class TempusAccess:
         self.dlg.ui.tableViewAgencies.setModel(self.modelAgencies)
         self.dlg.ui.tableViewAgencies.verticalHeader().setVisible(False)
         
-        self.modelGTFSFeeds = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewGTFSFeeds.setModel(self.modelGTFSFeeds)
+        self.modelPTNetworkSources = QtSql.QSqlQueryModel()
+        self.dlg.ui.listViewGTFSFeeds.setModel(self.modelPTNetworkSources)
+        
+        
         
         self.modelIModes = QtSql.QSqlQueryModel()
         self.dlg.ui.listViewIModes.setModel(self.modelIModes)
@@ -385,15 +391,34 @@ class TempusAccess:
         self.modelRepMeth = QtSql.QSqlQueryModel()
         self.dlg.ui.comboBoxRepMeth.setModel(self.modelRepMeth)
         
+        self.modelRoadNetworkSources = QtSql.QSqlQueryModel()
+        self.modelPOISources = QtSql.QSqlQueryModel()
+        
+        self.importPTNetworkDialog=importPTNetworkDialog(self, self.iface)
+        self.modelPTFormat = QtSql.QSqlQueryModel()
+        self.importPTNetworkDialog.ui.comboBoxFormat.setModel(self.modelPTFormat)
+                
         self.importRoadNetworkDialog=importRoadNetworkDialog(self, self.iface)
         self.modelRoadFormat = QtSql.QSqlQueryModel()
-        self.importRoadNetworkDialog.ui.comboBoxRoadFormat.setModel(self.modelRoadFormat)
+        self.importRoadNetworkDialog.ui.comboBoxFormat.setModel(self.modelRoadFormat)
+        self.modelRoadFormatVersion = QtSql.QSqlQueryModel()
+        self.importRoadNetworkDialog.ui.comboBoxFormatVersion.setModel(self.modelRoadFormatVersion)
+        self.modelRoadEncoding = QtSql.QSqlQueryModel()
+        self.importRoadNetworkDialog.ui.comboBoxEncoding.setModel(self.modelRoadEncoding)
         
-        # Keep reference to secondary dialogs
-        #self.importOtherDataDialog=importOtherDataDialog(self, self.iface)
-        self.importGTFSDialog=importGTFSDialog(self, self.iface)
+        self.importPOIDialog=importPOIDialog(self, self.iface)
+        self.modelPOIFormat = QtSql.QSqlQueryModel()
+        self.importPOIDialog.ui.comboBoxFormat.setModel(self.modelPOIFormat)
+        self.modelPOIFormatVersion = QtSql.QSqlQueryModel()
+        self.importPOIDialog.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
+        self.modelPOIEncoding = QtSql.QSqlQueryModel()
+        self.importPOIDialog.ui.comboBoxEncoding.setModel(self.modelPOIEncoding)
+                
         self.importAreasDialog=importAreasDialog(self, self.iface)
-        self.manageGTFSDialog=manageGTFSDialog(self, self.iface)
+        
+        self.managePTNetworkDialog=managePTNetworkDialog(self, self.iface)
+        
+        self.manageRoadNetworkDialog=manageRoadNetworkDialog(self, self.iface)
         
         self.clickTool = QgsMapToolEmitPoint(self.iface.mapCanvas()) # Outil permettant l'émission d'un QgsPoint à chaque clic sur le canevas 
         self.toolPan = QgsMapToolPan(self.iface.mapCanvas()) # Outil "main" utilisé pour se déplacer dans la fenêtre
@@ -414,50 +439,47 @@ class TempusAccess:
         # Create actions that will start plugin configuration 
         self.action = QAction(QIcon(self.icon_dir + "/icon_main.png"), u"Gérer les bases de données",self.iface.mainWindow())
         self.actionImportRoadNetwork = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
-        self.actionImportGTFS = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une source GTFS", self.iface.mainWindow())
-        self.actionImportSNCFOpenData = QAction(QIcon(self.icon_dir + "/icon_sncf.png"), u"Importer l'open-data SNCF", self.iface.mainWindow())
-        self.actionManageGTFS = QAction(QIcon(self.icon_dir + "/icon_gomme.png"), u"Gérer les sources GTFS", self.iface.mainWindow())
+        self.actionImportPTNetwork = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
+        self.actionImportPOI = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
         self.actionImportAreas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Importer un zonage", self.iface.mainWindow())
+        self.actionManageRoadNetwork = QAction(QIcon(self.icon_dir + "/icon_gomme.png"), u"Gérer les réseaux routiers", self.iface.mainWindow())
+        self.actionManagePTNetwork = QAction(QIcon(self.icon_dir + "/icon_gomme.png"), u"Gérer les réseaux de transport en commun", self.iface.mainWindow())
         
         self.action.setToolTip(u"Gérer les bases de données")
         self.actionImportRoadNetwork.setToolTip(u"Importer un réseau routier")
-        self.actionImportGTFS.setToolTip(u"Importer une source GTFS")
-        self.actionImportSNCFOpenData.setToolTip(u"Importer l'open-data SNCF")
+        self.actionImportPTNetwork.setToolTip(u"Importer une offre de transport en commun")
+        self.actionImportPOI.setToolTip(u"Importer des points d'intérêt")
         self.actionImportAreas.setToolTip(u"Importer un zonage")
-        self.actionManageGTFS.setToolTip(u"Gérer les sources GTFS")
-        #self.actionImportOtherData.setToolTip(u"Ajouter des données complémentaires")
-        
-        #self.keyAction = QAction("Interrompre les requêtes en cours", self.iface.mainWindow())
-        #self.iface.registerMainWindowAction(self.keyAction, "F5") 
+        self.actionManageRoadNetwork.setToolTip(u"Gérer les réseaux routiers")
+        self.actionManagePTNetwork.setToolTip(u"Gérer les réseaux de transport en commun")
         
         # Connect the actions to the methods
         self.action.triggered.connect(self.run)
         self.actionImportRoadNetwork.triggered.connect(self.importRoadNetwork)
-        self.actionImportGTFS.triggered.connect(self.importGTFS)
-        self.actionImportSNCFOpenData.triggered.connect(self.importSNCFOpenData)
+        self.actionImportPTNetwork.triggered.connect(self.importPTNetwork)
+        self.actionImportPOI.triggered.connect(self.importPOI)
         self.actionImportAreas.triggered.connect(self.importAreas)
-        self.actionManageGTFS.triggered.connect(self.manageGTFS)
-        #self.actionImportOtherData.triggered.connect(self.importOtherData)
-        #self.keyAction.triggered.connect(self._slotPushButtonStopQueryClicked)
-
+        self.actionManageRoadNetwork.triggered.connect(self.manageRoadNetwork)
+        self.actionManagePTNetwork.triggered.connect(self.managePTNetwork)
         
         # Add toolbar buttons and menu items
         self.iface.addPluginToMenu(u"&Tempus Access",self.action)
         self.iface.addPluginToMenu(u"&Tempus Access", self.actionImportRoadNetwork)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportGTFS)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportSNCFOpenData)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportPTNetwork)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportPOI)
         self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportAreas)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionManageGTFS)
-        #self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportOtherData)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.actionManageRoadNetwork)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.actionManagePTNetwork)
                 
         m = self.toolButton.menu()
         m.addAction(self.action)
         m.addAction(self.actionImportRoadNetwork)
-        m.addAction(self.actionImportGTFS)
-        m.addAction(self.actionImportSNCFOpenData)
+        m.addAction(self.actionImportPTNetwork)
+        m.addAction(self.actionImportPOI)
         m.addAction(self.actionImportAreas)
-        m.addAction(self.actionManageGTFS)
-        #m.addAction(self.actionImportOtherData)
+        m.addAction(self.actionManageRoadNetwork)
+        m.addAction(self.actionManagePTNetwork)
+        
         self.toolButton.setDefaultAction(self.action)
             
     
@@ -482,22 +504,22 @@ class TempusAccess:
         root.removeChildNode(node_group)
         
         # Remove the plugin menu items and icons
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportSNCFOpenData)
+        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportPOI)
         self.iface.removePluginMenu(u"&Tempus Access",self.actionImportRoadNetwork)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportGTFS)
+        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportPTNetwork)
         self.iface.removePluginMenu(u"&Tempus Access",self.actionImportAreas)
-        #self.iface.removePluginMenu(u"&Tempus Access",self.actionImportOtherData)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionManageGTFS)
+        self.iface.removePluginMenu(u"&Tempus Access",self.actionManageRoadNetwork)
+        self.iface.removePluginMenu(u"&Tempus Access",self.actionManagePTNetwork)
         self.iface.removePluginMenu(u"&Tempus Access",self.action)
         
         #self.iface.unregisterMainWindowAction(self.keyAction)   
         
         self.iface.removeToolBarIcon(self.actionImportRoadNetwork)
-        self.iface.removeToolBarIcon(self.actionImportSNCFOpenData)
-        self.iface.removeToolBarIcon(self.actionImportGTFS)
+        self.iface.removeToolBarIcon(self.actionImportPTNetwork)
+        self.iface.removeToolBarIcon(self.actionImportPOI)
         self.iface.removeToolBarIcon(self.actionImportAreas)
-        #self.iface.removeToolBarIcon(self.actionImportOtherData)
-        self.iface.removeToolBarIcon(self.actionManageGTFS)
+        self.iface.removeToolBarIcon(self.actionManageRoadNetwork)
+        self.iface.removeToolBarIcon(self.actionManagePTNetwork)
         self.iface.removeToolBarIcon(self.action)
         del self.toolButton
                 
@@ -507,23 +529,40 @@ class TempusAccess:
         
         # Close dialogs which would stay opened
         self.dlg.hide()
-        self.importGTFSDialog.hide()
+        self.importPTNetworkDialog.hide()
         self.importRoadNetworkDialog.hide()
         self.importAreasDialog.hide() 
-        #self.importOtherDataDialog.hide()
-        self.manageGTFSDialog.hide()
+        self.importPOIDialog.hide()
+        self.managePTNetworkDialog.hide()
+        self.manageRoadNetworkDialog.hide()
             
     
     def importRoadNetwork(self):
         self.importRoadNetworkDialog.show()
     
     
-    def importGTFS(self):
-        self.importGTFSDialog.show()
+    def importPTNetwork(self):
+        self.importPTNetworkDialog.show()
+    
+    
+    def importPOI(self):
+        self.importPOIDialog.show()
     
     
     def importAreas(self):
         self.importAreasDialog.show()
+        
+        
+    def manageRoadNetwork(self):
+        self.manageRoadNetworkDialog.show()
+    
+    
+    def managePTNetwork(self):
+        self.managePTNetworkDialog.show()
+    
+    
+    def managePOI(self):
+        self.managePOIDialog.show()
     
     
     def exportGTFS(self, file_name, schema_name, feed_id):
@@ -600,12 +639,12 @@ class TempusAccess:
             self.prog.setValue(5)
             
             # Import TER and IC files
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
+            cmd = ["python", self.load_tempus_path, '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
             r= subprocess.call( cmd )
             self.prog.setValue(30)
             
             self.prog.setLabelText(u"Import du GTFS Intercités...")
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
+            cmd = ["python", self.load_tempus_path, '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
             r= subprocess.call( cmd )
             self.prog.setValue(45)
             
@@ -645,9 +684,9 @@ class TempusAccess:
             
             # Delete old feeds
             self.prog.setLabelText(u"Suppression des GTFS initiaux...")
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
+            cmd = ["python", self.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
             r= subprocess.call( cmd, shell=True )
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-d', dbstring, '--pt-delete', '--pt-network', 'ter']
+            cmd = ["python", self.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', 'ter']
             r= subprocess.call( cmd, shell=True )
             self.prog.setValue(95)
             
@@ -702,11 +741,7 @@ class TempusAccess:
                 
                 self.iface.mapCanvas().refreshMap()
 
-    
-    def manageGTFS(self):
-        self.manageGTFSDialog.show()
-    
-    
+
     def manageStoredQueries(self):
         self.manageStoredQueriesDialog.show()
     
@@ -718,12 +753,12 @@ class TempusAccess:
     def refreshGTFSFeeds(self):    
         # Populate the listView containing GTFS data sources
         s="SELECT distinct feed_id, id FROM tempus_gtfs.feed_info"
-        self.modelGTFSFeeds.setQuery(unicode(s), self.db)
+        self.modelPTNetworkSources.setQuery(unicode(s), self.db)
         
         # Each update of the model must be accompanied by a new connexion of signal and slot on the listView selection
         self.dlg.ui.listViewGTFSFeeds.selectionModel().selectionChanged.connect(self._slotListViewGTFSFeedsSelectionChanged)
         
-        sel = QItemSelection(self.modelGTFSFeeds.index(0,0), self.modelGTFSFeeds.index(0,1))
+        sel = QItemSelection(self.modelPTNetworkSources.index(0,0), self.modelPTNetworkSources.index(0,1))
         self.dlg.ui.listViewGTFSFeeds.selectionModel().select(sel, QItemSelectionModel.ClearAndSelect)
     
     
@@ -808,10 +843,7 @@ class TempusAccess:
         self.modelColorIndic.setQuery( s,self.db)
         
         
-    def loadLayers(self):        
-        # Rectangle used to define the zoom level
-        r=QgsRectangle()
-        
+    def loadLayers(self):
         from_proj = QgsCoordinateReferenceSystem()
         from_proj.createFromSrid(4326)
         to_proj = QgsCoordinateReferenceSystem()
@@ -819,12 +851,11 @@ class TempusAccess:
         crd=QgsCoordinateTransform(from_proj, to_proj)
         
         # # Adding data tables/views in the layer manager
-
         uri=QgsDataSourceURI()
         uri.setConnection(self.host, self.port, self.base, self.login, self.pwd)
         
         # Holidays table
-        uri.setDataSource("tempus_access", "holidays", None, "") 
+        uri.setDataSource("tempus", "holidays", None, "") 
         layer = QgsVectorLayer(uri.uri(), "Vacances scolaires", "postgres")
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
@@ -832,7 +863,7 @@ class TempusAccess:
             self.node_vacances.insertChildNode(0, node_layer)
                 
         # Bank holidays view
-        uri.setDataSource("tempus_access", "jours_feries", None, "", "date") 
+        uri.setDataSource("tempus", "view_french_bank_holiday", None, "", "date") 
         layer = QgsVectorLayer(uri.uri(), u"Jours fériés", "postgres")
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
@@ -851,7 +882,7 @@ class TempusAccess:
                     self.iface.legendInterface().setLayerVisible(layer, False)
                 
         # Stops by mode (view)
-        uri.setDataSource("tempus_access", "stops_by_mode", "geom", "", "gid") 
+        uri.setDataSource("tempus_gtfs", "stops_by_mode", "geom", "", "gid") 
         layer = QgsVectorLayer(uri.uri(), u"Arrêts par mode", "postgres")
         layer.loadNamedStyle(self.styles_dir + '/stops_by_mode.qml')
         if (layer.isValid()):
@@ -862,7 +893,7 @@ class TempusAccess:
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
                 
         # Sections by mode (view)
-        uri.setDataSource("tempus_access", "sections_by_mode", "geom", "", "gid")
+        uri.setDataSource("tempus_gtfs", "sections_by_mode", "geom", "", "gid")
         layer = QgsVectorLayer(uri.uri(), "Sections par mode", "postgres")
         layer.loadNamedStyle(self.styles_dir + '/sections_by_mode.qml')
         if (layer.isValid()):
@@ -873,7 +904,7 @@ class TempusAccess:
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
         
         # Trips by mode (view)
-        uri.setDataSource("tempus_access", "trips_by_mode", "geom_multi", "", "gid")
+        uri.setDataSource("tempus_gtfs", "trips_by_mode", "geom_multi", "", "gid")
         layer = QgsVectorLayer(uri.uri(), u"Itinéraires de ligne par mode", "postgres")
         layer.loadNamedStyle(self.styles_dir + '/trips_by_mode.qml')
         if (layer.isValid()):
@@ -1046,7 +1077,7 @@ class TempusAccess:
         self.GTFSFeeds = []
         if (self.dlg.ui.listViewGTFSFeeds.selectionModel().hasSelection()):
             for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-                self.GTFSFeeds.append(self.modelGTFSFeeds.record(item.row()).value("id"))
+                self.GTFSFeeds.append(self.modelPTNetworkSources.record(item.row()).value("id"))
         else:
             box = QMessageBox()
             box.setText(u"Sélectionnez au moins une source de données GTFS (onglet n°2)")
@@ -2000,7 +2031,7 @@ class TempusAccess:
     def _slotListViewGTFSFeedsSelectionChanged(self, selected, deselected):
         self.GTFSFeeds = []
         for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-            self.GTFSFeeds.append(self.modelGTFSFeeds.record(item.row()).value("id"))
+            self.GTFSFeeds.append(self.modelPTNetworkSources.record(item.row()).value("id"))
         
         # Update of the dialog widgets with the selected feeds
         
@@ -2121,7 +2152,6 @@ class TempusAccess:
     
     
     def _slotComboBoxTimeConstraintIndexChanged(self, indexChosenLine):
-        print indexChosenLine
         if (indexChosenLine==0): # Sur l'heure de départ
             self.constraint_date_after=True
             self.dlg.ui.labelTimeConstraint.setText(u"Partir après")
@@ -2277,8 +2307,8 @@ class TempusAccess:
             # "gtfs_feeds" field
             if (self.modelReq.record(indexChosenLine).isNull("gtfs_feeds")==False):
                 for feed in ((str(self.modelReq.record(indexChosenLine).value("gtfs_feeds"))).translate(None, "{}").split(",")):
-                    row = self.modelGTFSFeeds.match(self.modelIndic.index(0,1), 0, feed, 1)[0].row()
-                    self.dlg.ui.listViewGTFSFeeds.selectionModel().select(self.modelGTFSFeeds.index(row,0), QItemSelectionModel.Select)
+                    row = self.modelPTNetworkSources.match(self.modelIndic.index(0,1), 0, feed, 1)[0].row()
+                    self.dlg.ui.listViewGTFSFeeds.selectionModel().select(self.modelPTNetworkSources.index(row,0), QItemSelectionModel.Select)
             
             # "pt_modes" field
             if (self.modelReq.record(indexChosenLine).isNull("pt_modes")==False):

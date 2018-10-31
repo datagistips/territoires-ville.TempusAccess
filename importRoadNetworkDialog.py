@@ -53,63 +53,93 @@ class importRoadNetworkDialog(QDialog):
         # Connect signals and slots
         self._connectSlots()
         self.format = ''
-        self.format_compl = ''
+        self.path_type = ''
+        self.prefix = ''
+        self.visum_modes = ''
+        self.source_name = ''
         
         
     def _connectSlots(self):
-        self.ui.comboBoxRoadFormat.currentIndexChanged.connect(self._slotComboBoxRoadFormatCurrentIndexChanged)
-        self.ui.pushButtonImportRoadNetwork.clicked.connect(self._slotPushButtonRoadNetworkClicked)
+        self.ui.comboBoxFormat.currentIndexChanged.connect(self._slotComboBoxFormatCurrentIndexChanged)
+        self.ui.pushButtonChoose.clicked.connect(self._slotPushButtonChooseClicked)
+        self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
+        self.ui.lineEditSourceName.textChanged.connect(self._slotLineEditSourceNameTextChanged)
         
-    
-    def _slotComboBoxRoadFormatCurrentIndexChanged(self):
-        if (self.ui.comboBoxRoadFormat.currentText()=="Visum"):
-            self.format = 'visum'
-        elif (self.ui.comboBoxRoadFormat.currentText()=="Route500"):
-            self.format = 'route500'
-        elif (self.ui.comboBoxRoadFormat.currentText()=="OSM"):
-            self.format = 'osm'
-        elif (self.ui.comboBoxRoadFormat.currentText()=="Navteq - Navstreets"):
-            self.format = 'navteq'
-        elif (self.ui.comboBoxRoadFormat.currentText()=="TomTom"):
-            self.format = 'tomtom'
-        
-    
-    def _slotPushButtonRoadNetworkClicked(self):
-        cheminComplet = ''
-        if (self.format == 'visum') or (self.format == 'route500') or (self.format == 'navteq') or (self.format == 'tomtom'):
-            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
-        elif (self.format == 'osm'):
-            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier .pbf", directory=self.caller.data_dir, filter = "PBF files (*.pbf)")
-        dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
-        srid = self.ui.lineEditSRID.text()
-        
-        if (self.format=='visum'):
-            cmd1=["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', cheminComplet, '-d', dbstring, '-p', 'road_network_', '--visum-modes', 'P,B,V,T', '-W', 'LATIN1']
-            cmd2=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.road_network_turning_mov FROM '"+cheminComplet+"\\road_network_turning_mov.csv' CSV HEADER DELIMITER ';'"]
-            cmd3=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.plugin_dir + "/sql/visum_import_turning_penalty.sql"]
-            cmd4=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.plugin_dir + "/sql/update_road_network.sql"]
-            
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(str(cmd1))
-                r = subprocess.call( cmd1, shell=True )
-                log_file.write("\n    Import road network in the "+self.format+" format...\n\n")
-                log_file.write(str(cmd2))
-                r = subprocess.call( cmd2, shell=True )
-                log_file.write(str(cmd3))
-                r = subprocess.call( cmd3, shell=True )
-                log_file.write("\n    Import Visum turning movements file...\n\n")
-                log_file.write(str(cmd4))
-                r = subprocess.call( cmd4, shell=True )               
-                log_file.write("\n    Update road network...\n\n")
-
+    def _slotLineEditSourceNameTextChanged(self, text):
+        if (self.ui.lineEditSourceName.text()!=""):
+            self.ui.pushButtonChoose.setEnabled(True)
         else:
-            cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", '-t', self.format, '-s', cheminComplet, '-d', dbstring, '-S', srid, '-W', 'LATIN1']
+            self.ui.pushButtonChoose.setEnabled(False)
+        
+    
+    def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
+        self.format = self.caller.modelRoadFormat.record(indexChosenLine).value("format_short_name")
+        self.caller.modelRoadFormatVersion.setQuery("SELECT model_version, default_encoding, default_srid, path_type FROM tempus_access.formats WHERE format_id = "+str(self.caller.modelRoadFormat.record(indexChosenLine).value("format_id"))+" ORDER BY model_version DESC", self.caller.db)
+        
+    
+    def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
+        if (indexChosenLine>=0):
+            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_encoding")))
+            self.ui.spinBoxSRID.setValue(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_srid"))
+            self.path_type = self.caller.modelRoadFormatVersion.record(indexChosenLine).value("path_type")
+            if (self.format == "road_visum"):
+                self.ui.lineEditVisumModes.setText('P,B,V,T')
+                self.ui.lineEditVisumModes.setEnabled(True)
+                self.ui.labelVisumModes1.setEnabled(True)
+                self.ui.labelVisumModes2.setEnabled(True)
+            else:
+                self.ui.lineEditVisumModes.setText('')
+                self.ui.lineEditVisumModes.setEnabled(False)
+                self.ui.labelVisumModes1.setEnabled(False)
+                self.ui.labelVisumModes2.setEnabled(False)
+    
+    
+    def _slotPushButtonChooseClicked(self):
+        cheminComplet = ''
+        if (self.path_type=="directory"):
+            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+        else:
+            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+        dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
+        self.srid = self.ui.spinBoxSRID.value()
+        self.prefix = self.ui.lineEditPrefix.text()
+        self.encoding = self.caller.modelRoadEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+        self.source_name = self.ui.lineEditSourceName.text()
+        self.model_version = self.caller.modelRoadFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
+        self.visum_modes = self.ui.lineEditVisumModes.text()
+        
+        prefix_string=''
+        if (self.prefix != ""):
+            prefix_string = "-p "+self.prefix 
+        
+        version_string=''
+        if (str(self.model_version) != 'NULL'):
+            version_string = '-m ' + str(self.model_version)
             
-            
-            with open(self.plugin_dir+"/log.txt", "a") as log_file: 
-                log_file.write(str(cmd))
-                r = subprocess.call( cmd, shell=True )
-                log_file.write("\n    Import road network in the "+self.format+" format...\n\n")
+        visum_modes_string=''
+        if (self.visum_modes != ''):
+            visum_modes_string = '--visum-modes '+self.visum_modes
+        
+        cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--road-network', self.source_name, '-s', cheminComplet, '-d', dbstring, '-W', self.encoding, '-S', str(self.srid)]
+        print cmd
+        r = subprocess.call( cmd )
+        
+        from_proj = QgsCoordinateReferenceSystem()
+        from_proj.createFromSrid(4326)
+        to_proj = QgsCoordinateReferenceSystem()
+        to_proj.createFromSrid(self.caller.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
+        crd=QgsCoordinateTransform(from_proj, to_proj)
+        
+        self.caller.iface.mapCanvas().refreshMap() 
+        
+        # Zoom the map on one of the three road subnetworks (individual walking, cycling or driving)
+        # for lyr in QgsMapLayerRegistry.instance().mapLayers().values():
+            # if (lyr.name() == u"Réseau voiture"):
+                # self.caller.iface.mapCanvas().setExtent(crd.transform(lyr.extent()))
+                # break
+        
+           
+        
             
             
             

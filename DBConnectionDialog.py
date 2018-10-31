@@ -195,30 +195,31 @@ class DBConnectionDialog(QDialog):
             self.caller.modelDayType.setQuery("SELECT mod_lib, mod_code, mod_data FROM tempus_access.modalities WHERE var = 'day_type' ORDER BY mod_code", self.caller.db)
             self.caller.modelCriterion.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'opt_crit' ORDER BY mod_code", self.caller.db)
             self.caller.modelRepMeth.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'rep_meth' ORDER BY mod_code", self.caller.db)
-            self.caller.modelRoadFormat.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'road_format' ORDER BY mod_code", self.caller.db)
-                        
+            self.caller.modelRoadEncoding.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'encoding' ORDER BY mod_code", self.caller.db)
+            self.caller.modelPOIEncoding.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'encoding' ORDER BY mod_code", self.caller.db)
+            self.caller.modelRoadFormat.setQuery("SELECT distinct format_name, format_short_name, format_id FROM tempus_access.formats WHERE format_type = 'road' ORDER BY format_id", self.caller.db)
+            self.caller.modelPTFormat.setQuery("SELECT distinct format_name, format_short_name, format_id FROM tempus_access.formats WHERE format_type = 'pt' ORDER BY format_id", self.caller.db)
+            self.caller.modelPOIFormat.setQuery("SELECT distinct format_name, format_short_name, format_id FROM tempus_access.formats WHERE format_type = 'poi' ORDER BY format_id", self.caller.db)
+            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
+            
             # Individual modes model
             s="SELECT name, id FROM tempus.transport_mode WHERE gtfs_feed_id IS NULL"
             self.caller.modelIModes.setQuery(unicode(s), self.caller.db)
             self.caller.dlg.ui.listViewIModes.selectAll()            
-            
-            # Rectangle used to define the zoom level
-            r=QgsRectangle()
-                    
+                                
             self.caller.modelAreaType.setQuery("(SELECT lib, code FROM tempus_access.areas_param UNION SELECT '', -1) ORDER BY 2", self.caller.db)
             self.caller.refreshGTFSFeeds()
                             
             # Already calculated queries model
             self.caller.refreshReq()
-                               
+            
+            # Update the map window
             self.caller.loadLayers()
-            
-            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
-
-            self.caller.iface.mapCanvas().refreshMap()
-            
+                        
+            # Set object type on "stop areas"
             self.caller._slotComboBoxObjTypeIndexChanged(0)
-
+            
+            # Close current window
             self.hide()
     
     
@@ -285,6 +286,10 @@ class DBConnectionDialog(QDialog):
             
             self.prog.setValue(5)
             
+            root = QgsProject.instance().layerTreeRoot()
+            node_group=root.findGroup("Analyse de l'offre de transport collectif")
+            root.removeChildNode(node_group)
+            
             # Restart database server to be sure deleting "TempusAccess" database will be allowed (avoids still connected applications)
             cmd = [ "python", "-m", "pglite", "stop" ]
             r = subprocess.call( cmd, shell=True )
@@ -319,7 +324,7 @@ class DBConnectionDialog(QDialog):
             else: 
                 # Create data schema "tempus" and "tempus_gtfs"
                 dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
-                cmd = ["python", "C:\\OSGeo4W64\\apps\\Python27\\lib\\site-packages\\tempusloader-1.2.2-py2.7.egg\\tempusloader\\load_tempus.py", "-t", "osm", "-d", dbstring, "-R"]
+                cmd = ["python", self.caller.load_tempus_path, "-t", "osm", "-d", dbstring, "-R"]
                 r = subprocess.call( cmd, shell=True )
                 
                 self.prog.setValue(50)
@@ -358,7 +363,7 @@ class DBConnectionDialog(QDialog):
                 cmd = ["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-f", self.caller.sql_dir + "/function_create_isosurfaces_indicator_layer.sql"]
                 r = subprocess.call( cmd, shell=True )
                 
-                self.prog.setValue(80)
+                self.prog.setValue(60)
                 
                 # Import holidays definition file
                 cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.holidays FROM "+self.caller.data_dir + "/others/holidays.csv CSV HEADER DELIMITER ';'"]
@@ -368,6 +373,10 @@ class DBConnectionDialog(QDialog):
                 cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.modalities FROM "+self.caller.data_dir + "/system/modalities.csv CSV HEADER DELIMITER ';'"]
                 r = subprocess.call( cmd, shell=True )
             
+                # Import formats definition file
+                cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.formats FROM "+self.caller.data_dir + "/system/formats.csv CSV HEADER DELIMITER ';'"]
+                r = subprocess.call( cmd, shell=True )
+                
                 # Import agregates definition file
                 cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.agregates FROM "+self.caller.data_dir + "/system/agregates.csv CSV HEADER DELIMITER ';'"]
                 r = subprocess.call( cmd, shell=True )
@@ -384,7 +393,7 @@ class DBConnectionDialog(QDialog):
                 cmd=["psql", "-h", self.caller.host, "-p", self.caller.port, "-d", self.caller.base, "-c", "\copy tempus_access.indicators FROM "+self.caller.data_dir + "/system/indicators.csv CSV HEADER DELIMITER ';'"]
                 r = subprocess.call( cmd, shell=True )
                 
-                self.prog.setValue(90)
+                self.prog.setValue(70)
                 
                 s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param\
                 ORDER BY 2"
@@ -402,8 +411,7 @@ class DBConnectionDialog(QDialog):
                     r=QtSql.QSqlQuery(self.caller.db)
                     r.exec_(unicode(t)) 
                 
-                self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
-
+                #self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
             
                 self.prog.setValue(100)
             
