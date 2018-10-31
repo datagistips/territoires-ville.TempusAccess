@@ -24,3 +24,4 @@ scripts/*
 
 # This file
 .gitignore
+*.bat
