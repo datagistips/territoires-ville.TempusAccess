@@ -67,22 +67,49 @@ class importPTNetworkDialog(QDialog):
 
 
     def _slotPushButtonImportClicked(self):
-        pass
+        dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
+        self.srid = self.ui.spinBoxSRID.value()
+        self.prefix = self.ui.lineEditPrefix.text()
+        self.encoding = self.caller.modelRoadEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+        self.source_name = self.ui.lineEditSourceName.text()
+        
+        prefix_string=''
+        if (self.prefix != ""):
+            prefix_string = "-p "+self.prefix
+        
+        cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--pt-network', self.source_name, '-s', cheminComplet, '-d', dbstring, '-W', self.encoding, '-S', str(self.srid), prefix_string]
+        r = subprocess.call( cmd )
+               
+        self.caller.iface.mapCanvas().refreshMap() 
             
         
     def _slotPushButtonChoose1Clicked(self):
-        pass
+        cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*.zip)")
     
     
     def _slotPushButtonChoose2Clicked(self):
-        pass
+        cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*.zip)")
     
     
     def _slotPushButtonChoose3Clicked(self):
-        pass
+        cheminComplet = QFileDialog.getExistingDirectory(caption = "Choisir le répertoire Route500", options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
     
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        pass
+        self.format = self.caller.modelRoadFormat.record(indexChosenLine).value("format_short_name")
+        if (self.format == 'pt_gtfs'):
+            self.ui.pushButtonChoose2.setEnabled(False)
+            self.ui.pushButtonChoose3.setEnabled(False)
+            self.ui.labelChoose1.setText('Choisir le fichier .zip')
+            self.ui.labelChoose2.setText('')
+            self.ui.labelChoose3.setText('')
+        elif (self.format == 'pt_sncf'):
+            self.ui.pushButtonChoose2.setEnabled(True)
+            self.ui.pushButtonChoose3.setEnabled(True)
+            self.ui.labelChoose1.setText('Choisir le GTFS TER (.zip)')
+            self.ui.labelChoose2.setText('Choisir le GTFS Intercités (.zip)')
+            self.ui.labelChoose3.setText('Choisir le répertoire contenant le réseau ferré Route500')
+            
+        
         
     

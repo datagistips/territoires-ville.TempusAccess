@@ -52,9 +52,13 @@ class DBConnectionDialog(QDialog):
         self.ui.lineEdit_login.setText(os.getenv("USERNAME"))
         self.modelDB = QtSql.QSqlQueryModel()
         self.plugin_dir = self.caller.plugin_dir
+        
+        self.ui.comboBoxDB.setModel(self.modelDB)
                 
         # Connexion des signaux et des slots
         self._connectSlots()
+        self.firstDBConnection()
+        self.refreshDBList()
     
     
     def _connectSlots(self):
@@ -175,7 +179,6 @@ class DBConnectionDialog(QDialog):
         self.caller.node_admin=self.caller.node_group.insertGroup(4, u"Zonages")
         self.caller.node_admin.setExpanded(False)
         
-        # Program database connection
         self.updateDBConnection()
         
         if (self.caller.db.open() == False):

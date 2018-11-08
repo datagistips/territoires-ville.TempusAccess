@@ -121,17 +121,15 @@ class importRoadNetworkDialog(QDialog):
             visum_modes_string = '--visum-modes '+self.visum_modes
         
         cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--road-network', self.source_name, '-s', cheminComplet, '-d', dbstring, '-W', self.encoding, '-S', str(self.srid)]
-        print cmd
         r = subprocess.call( cmd )
-        
-        from_proj = QgsCoordinateReferenceSystem()
-        from_proj.createFromSrid(4326)
-        to_proj = QgsCoordinateReferenceSystem()
-        to_proj.createFromSrid(self.caller.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
-        crd=QgsCoordinateTransform(from_proj, to_proj)
-        
+               
         self.caller.iface.mapCanvas().refreshMap() 
         
+        # from_proj = QgsCoordinateReferenceSystem()
+        # from_proj.createFromSrid(4326)
+        # to_proj = QgsCoordinateReferenceSystem()
+        # to_proj.createFromSrid(self.caller.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
+        # crd=QgsCoordinateTransform(from_proj, to_proj)
         # Zoom the map on one of the three road subnetworks (individual walking, cycling or driving)
         # for lyr in QgsMapLayerRegistry.instance().mapLayers().values():
             # if (lyr.name() == u"Réseau voiture"):

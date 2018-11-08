@@ -251,17 +251,22 @@ class pathIndicThread(QThread):
 
 class TempusAccess:
 
-    def __init__(self, iface):
+    def __init__(self, iface):        
         # Keep reference to QGIS interface
         self.iface = iface
         self.legend=self.iface.legendInterface()
         self.toolButton = QToolButton()
         self.toolButton.setMenu(QMenu())
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
-        self.iface.addToolBarWidget(self.toolButton)
-    
+        self.iface.addToolBarWidget(self.toolButton)    
     
     def initGui(self):
+        # Start database server
+        cmd = [ "python", "-m", "pglite", "init" ]
+        r = subprocess.call( cmd )
+        cmd = [ "python", "-m", "pglite", "start" ]
+        r = subprocess.call( cmd )
+        
         # Keep reference to paths to the plugin storage directory and to the default directory for data recording and loading
         self.plugin_dir = os.path.dirname(__file__)
         self.data_dir = self.plugin_dir + "/data"
@@ -284,26 +289,13 @@ class TempusAccess:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
         
-                
-        # Start database server
-        cmd = [ "python", "-m", "pglite", "init" ]
-        r = subprocess.call( cmd )
-        cmd = [ "python", "-m", "pglite", "start" ]
-        r = subprocess.call( cmd )
-        
         # Create main dock widget and keep reference to the main dock widget and to the QGIS legend interface
         self.dlg = TempusAccessDockWidget()
+        self.db = QtSql.QSqlDatabase.addDatabase("QPSQL", connectionName="db")
         
         # Keep reference to the database connexion parameters (pglite default connexion)
         self.DBConnectionDialog=DBConnectionDialog(self, self.iface)
-        # First connection to "postgres" database to be able to request for the list of other available databases
-        self.DBConnectionDialog.ui.comboBoxDB.setModel(self.DBConnectionDialog.modelDB)
-        self.db = QtSql.QSqlDatabase.addDatabase("QPSQL", connectionName="db")
-                
-        self.DBConnectionDialog.firstDBConnection()
-        self.DBConnectionDialog.refreshDBList()
-        self.DBConnectionDialog.updateDBConnection()
-        
+            
         # Declare data models used by widgets
         # 1st tab
         self.modelObjType = QtSql.QSqlQueryModel()
