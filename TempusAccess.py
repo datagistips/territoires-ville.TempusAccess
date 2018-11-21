@@ -32,16 +32,20 @@ from qgis.utils import iface
 import osgeo.ogr
 # Initialize Qt resources from file resources.py
 import resources
+import config
+
 # import the code for the dialogs
-from TempusAccessDockWidget import TempusAccessDockWidget
-from DBConnectionDialog import DBConnectionDialog
-from importPTNetworkDialog import importPTNetworkDialog
-from importRoadNetworkDialog import importRoadNetworkDialog
-from importPOIDialog import importPOIDialog
-from importAreasDialog import importAreasDialog
-from manageRoadNetworkDialog import manageRoadNetworkDialog
-from managePTNetworkDialog import managePTNetworkDialog
-from managePOIDialog import managePOIDialog
+from TempusAccess_dock_widget import TempusAccess_dock_widget
+from set_db_connection_dialog import set_db_connection_dialog
+from manage_db_dialog import manage_db_dialog
+from import_pt_dialog import import_pt_dialog
+from export_delete_pt_dialog import export_delete_pt_dialog
+from import_road_dialog import import_road_dialog
+from export_delete_road_dialog import export_delete_road_dialog
+from import_poi_dialog import import_poi_dialog
+from export_delete_poi_dialog import export_delete_poi_dialog
+from import_areas_dialog import import_areas_dialog
+from export_delete_areas_dialog import export_delete_areas_dialog
 
 import subprocess
 import datetime
@@ -49,7 +53,6 @@ import os
 import sys
 import string
 import csv
-import zipfile
 
 # Thread for general indicators building (no path calculation)
 class genIndicThread(QThread):
@@ -260,6 +263,7 @@ class TempusAccess:
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.iface.addToolBarWidget(self.toolButton)    
     
+    
     def initGui(self):
         # Start database server
         cmd = [ "python", "-m", "pglite", "init" ]
@@ -274,7 +278,6 @@ class TempusAccess:
         self.sql_dir = self.plugin_dir + "/sql"
         self.icon_dir = self.plugin_dir + "/icons"
         self.last_dir = self.plugin_dir
-        self.load_tempus_path = "C:/OSGeo4W64/apps/Python27/lib/site-packages/tempusloader-1.2.2-py2.7.egg/tempusloader/load_tempus.py"
         
         self.debug = False # True when the box "Ecrire dans le log" is checked
                 
@@ -290,13 +293,80 @@ class TempusAccess:
                 QCoreApplication.installTranslator(self.translator)
         
         # Create main dock widget and keep reference to the main dock widget and to the QGIS legend interface
-        self.dlg = TempusAccessDockWidget()
+        self.dlg = TempusAccess_dock_widget()
         self.db = QtSql.QSqlDatabase.addDatabase("QPSQL", connectionName="db")
         
-        # Keep reference to the database connexion parameters (pglite default connexion)
-        self.DBConnectionDialog=DBConnectionDialog(self, self.iface)
-            
-        # Declare data models used by widgets
+        self.modelEncoding = QtSql.QSqlQueryModel()
+        
+        ## Database dialogs
+        self.modelDB = QtSql.QSqlQueryModel()
+        
+        # Set connection
+        self.set_db_connection_dialog = set_db_connection_dialog(self, self.iface)
+        
+        # Import and create
+        self.manage_db_dialog=manage_db_dialog(self, self.iface)
+        
+        ## PT networks dialogs
+        self.modelPTSources = QtSql.QSqlQueryModel()
+        self.modelPTFormat = QtSql.QSqlQueryModel()
+        self.modelPTFormatVersion = QtSql.QSqlQueryModel()
+        self.PTSources = []
+        
+        # Import
+        self.import_pt_dialog=import_pt_dialog(self, self.iface)
+        self.import_pt_dialog.ui.comboBoxFormat.setModel(self.modelPTFormat)
+        
+        # Manage
+        self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
+
+        ## Road networks dialogs
+        self.modelRoadSources = QtSql.QSqlQueryModel()
+        self.modelRoadFormat = QtSql.QSqlQueryModel()
+        self.modelRoadFormatVersion = QtSql.QSqlQueryModel()
+        
+        # Import
+        self.import_road_dialog=import_road_dialog(self, self.iface)
+        self.import_road_dialog.ui.comboBoxFormat.setModel(self.modelRoadFormat)
+        self.import_road_dialog.ui.comboBoxFormatVersion.setModel(self.modelRoadFormatVersion)
+        self.import_road_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
+        
+        # Manage
+        self.export_delete_road_dialog=export_delete_road_dialog(self, self.iface)
+        
+        ## POI dialogs
+        self.modelPOISources = QtSql.QSqlQueryModel()
+        self.modelPOIType = QtSql.QSqlQueryModel()
+        self.modelPOIFormat = QtSql.QSqlQueryModel()
+        self.modelPOIFormatVersion = QtSql.QSqlQueryModel()
+        
+        
+        # Import
+        self.import_poi_dialog=import_poi_dialog(self, self.iface)
+        self.import_poi_dialog.ui.comboBoxFormat.setModel(self.modelPOIFormat)
+        self.import_poi_dialog.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
+        self.import_poi_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
+        self.import_poi_dialog.ui.comboBoxPOIType.setModel(self.modelPOIType)
+        
+        # Manage
+        self.export_delete_poi_dialog=export_delete_poi_dialog(self, self.iface)
+        
+        ## Areas dialogs
+        self.modelAreaSources = QtSql.QSqlQueryModel()
+        self.modelAreaFormat = QtSql.QSqlQueryModel()
+        self.modelAreaFormatVersion = QtSql.QSqlQueryModel()
+        
+        # Import
+        self.import_areas_dialog=import_areas_dialog(self, self.iface)
+        self.import_areas_dialog.ui.comboBoxFormat.setModel(self.modelAreaFormat)
+        self.import_areas_dialog.ui.comboBoxFormatVersion.setModel(self.modelAreaFormatVersion)
+        self.import_areas_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
+        
+        # Manage
+        self.export_delete_areas_dialog=export_delete_areas_dialog(self, self.iface)
+        
+        
+        # Main dock widget
         # 1st tab
         self.modelObjType = QtSql.QSqlQueryModel()
         self.dlg.ui.comboBoxObjType.setModel(self.modelObjType)
@@ -335,11 +405,8 @@ class TempusAccess:
         self.modelAgencies = QtSql.QSqlQueryModel()
         self.dlg.ui.tableViewAgencies.setModel(self.modelAgencies)
         self.dlg.ui.tableViewAgencies.verticalHeader().setVisible(False)
-        
-        self.modelPTNetworkSources = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewGTFSFeeds.setModel(self.modelPTNetworkSources)
-        
-        
+                
+        self.dlg.ui.listViewGTFSFeeds.setModel(self.modelPTSources)
         
         self.modelIModes = QtSql.QSqlQueryModel()
         self.dlg.ui.listViewIModes.setModel(self.modelIModes)
@@ -383,35 +450,7 @@ class TempusAccess:
         self.modelRepMeth = QtSql.QSqlQueryModel()
         self.dlg.ui.comboBoxRepMeth.setModel(self.modelRepMeth)
         
-        self.modelRoadNetworkSources = QtSql.QSqlQueryModel()
-        self.modelPOISources = QtSql.QSqlQueryModel()
-        
-        self.importPTNetworkDialog=importPTNetworkDialog(self, self.iface)
-        self.modelPTFormat = QtSql.QSqlQueryModel()
-        self.importPTNetworkDialog.ui.comboBoxFormat.setModel(self.modelPTFormat)
-                
-        self.importRoadNetworkDialog=importRoadNetworkDialog(self, self.iface)
-        self.modelRoadFormat = QtSql.QSqlQueryModel()
-        self.importRoadNetworkDialog.ui.comboBoxFormat.setModel(self.modelRoadFormat)
-        self.modelRoadFormatVersion = QtSql.QSqlQueryModel()
-        self.importRoadNetworkDialog.ui.comboBoxFormatVersion.setModel(self.modelRoadFormatVersion)
-        self.modelRoadEncoding = QtSql.QSqlQueryModel()
-        self.importRoadNetworkDialog.ui.comboBoxEncoding.setModel(self.modelRoadEncoding)
-        
-        self.importPOIDialog=importPOIDialog(self, self.iface)
-        self.modelPOIFormat = QtSql.QSqlQueryModel()
-        self.importPOIDialog.ui.comboBoxFormat.setModel(self.modelPOIFormat)
-        self.modelPOIFormatVersion = QtSql.QSqlQueryModel()
-        self.importPOIDialog.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
-        self.modelPOIEncoding = QtSql.QSqlQueryModel()
-        self.importPOIDialog.ui.comboBoxEncoding.setModel(self.modelPOIEncoding)
-                
-        self.importAreasDialog=importAreasDialog(self, self.iface)
-        
-        self.managePTNetworkDialog=managePTNetworkDialog(self, self.iface)
-        
-        self.manageRoadNetworkDialog=manageRoadNetworkDialog(self, self.iface)
-        
+            
         self.clickTool = QgsMapToolEmitPoint(self.iface.mapCanvas()) # Outil permettant l'émission d'un QgsPoint à chaque clic sur le canevas 
         self.toolPan = QgsMapToolPan(self.iface.mapCanvas()) # Outil "main" utilisé pour se déplacer dans la fenêtre
         self.iface.mapCanvas().setMapTool(self.toolPan)
@@ -419,7 +458,7 @@ class TempusAccess:
         self.chooseOrig = False
         self.chooseDest = False
         self.chooseNode = False
-        self.GTFSFeeds = []
+
         
         self.timer = QTimer()
         self.timer.setInterval(1000)
@@ -429,66 +468,88 @@ class TempusAccess:
         self._connectSlots()
         
         # Create actions that will start plugin configuration 
-        self.action = QAction(QIcon(self.icon_dir + "/icon_main.png"), u"Gérer les bases de données",self.iface.mainWindow())
-        self.actionImportRoadNetwork = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
-        self.actionImportPTNetwork = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
-        self.actionImportPOI = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
-        self.actionImportAreas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.actionManageRoadNetwork = QAction(QIcon(self.icon_dir + "/icon_gomme.png"), u"Gérer les réseaux routiers", self.iface.mainWindow())
-        self.actionManagePTNetwork = QAction(QIcon(self.icon_dir + "/icon_gomme.png"), u"Gérer les réseaux de transport en commun", self.iface.mainWindow())
+        self.action = QAction(QIcon(self.icon_dir + "/icon_main.png"), u"Lancer le plugin",self.iface.mainWindow())
+        self.action_set_db_connection = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Définir la connexion à la base de données", self.iface.mainWindow())
+        self.action_manage_db = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Gérer les bases de données", self.iface.mainWindow())
+        self.action_import_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
+        self.action_export_delete_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Exporter ou supprimer un réseau routier", self.iface.mainWindow())
+        self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
+        self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
+        self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
+        self.action_export_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
+        self.action_import_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Importer un zonage", self.iface.mainWindow())
+        self.action_export_delete_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
         
-        self.action.setToolTip(u"Gérer les bases de données")
-        self.actionImportRoadNetwork.setToolTip(u"Importer un réseau routier")
-        self.actionImportPTNetwork.setToolTip(u"Importer une offre de transport en commun")
-        self.actionImportPOI.setToolTip(u"Importer des points d'intérêt")
-        self.actionImportAreas.setToolTip(u"Importer un zonage")
-        self.actionManageRoadNetwork.setToolTip(u"Gérer les réseaux routiers")
-        self.actionManagePTNetwork.setToolTip(u"Gérer les réseaux de transport en commun")
+        self.action.setToolTip(u"Lancer le plugin")
+        self.action_set_db_connection.setToolTip(u"Définir la connexion à la base de données")
+        self.action_manage_db.setToolTip(u"Gérer les bases de données")
+        self.action_import_road.setToolTip(u"Importer un réseau routier")
+        self.action_export_delete_road.setToolTip(u"Exporter ou supprimer un réseau routier")
+        self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
+        self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
+        self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
+        self.action_export_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
+        self.action_import_areas.setToolTip(u"Importer un zonage")
+        self.action_export_delete_areas.setToolTip(u"Exporter ou supprimer un zonage")
         
         # Connect the actions to the methods
-        self.action.triggered.connect(self.run)
-        self.actionImportRoadNetwork.triggered.connect(self.importRoadNetwork)
-        self.actionImportPTNetwork.triggered.connect(self.importPTNetwork)
-        self.actionImportPOI.triggered.connect(self.importPOI)
-        self.actionImportAreas.triggered.connect(self.importAreas)
-        self.actionManageRoadNetwork.triggered.connect(self.manageRoadNetwork)
-        self.actionManagePTNetwork.triggered.connect(self.managePTNetwork)
+        self.action.triggered.connect(self.load)
+        self.action_set_db_connection.triggered.connect(self.set_db_connection)
+        self.action_manage_db.triggered.connect(self.manage_db)
+        self.action_import_road.triggered.connect(self.import_road)
+        self.action_export_delete_road.triggered.connect(self.export_delete_road)
+        self.action_import_pt.triggered.connect(self.import_pt)
+        self.action_export_delete_pt.triggered.connect(self.export_delete_pt)
+        self.action_import_poi.triggered.connect(self.import_poi)
+        self.action_export_delete_poi.triggered.connect(self.export_delete_poi)
+        self.action_import_areas.triggered.connect(self.import_areas)
+        self.action_export_delete_areas.triggered.connect(self.export_delete_areas)
         
         # Add toolbar buttons and menu items
         self.iface.addPluginToMenu(u"&Tempus Access",self.action)
-        self.iface.addPluginToMenu(u"&Tempus Access", self.actionImportRoadNetwork)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportPTNetwork)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportPOI)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionImportAreas)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionManageRoadNetwork)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.actionManagePTNetwork)
+        self.iface.addPluginToMenu(u"&Tempus Access", self.action_set_db_connection)
+        self.iface.addPluginToMenu(u"&Tempus Access", self.action_manage_db)
+        self.iface.addPluginToMenu(u"&Tempus Access", self.action_import_road)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_road)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_pt)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_pt)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_poi)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_poi)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_areas)
+        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_areas)
                 
         m = self.toolButton.menu()
         m.addAction(self.action)
-        m.addAction(self.actionImportRoadNetwork)
-        m.addAction(self.actionImportPTNetwork)
-        m.addAction(self.actionImportPOI)
-        m.addAction(self.actionImportAreas)
-        m.addAction(self.actionManageRoadNetwork)
-        m.addAction(self.actionManagePTNetwork)
+        m.addAction(self.action_set_db_connection)
+        m.addAction(self.action_manage_db)
+        m.addAction(self.action_import_road)
+        m.addAction(self.action_export_delete_road)
+        m.addAction(self.action_import_pt)
+        m.addAction(self.action_export_delete_pt)
+        m.addAction(self.action_import_poi)
+        m.addAction(self.action_export_delete_poi)
+        m.addAction(self.action_import_areas)
+        m.addAction(self.action_export_delete_areas)
         
         self.toolButton.setDefaultAction(self.action)
-            
+        self.first = False
     
-    def run(self):        
-        # Set on-the-fly projection        
+    
+    def load(self):
+        # Set on-the-fly projection
         self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True) # Enable on the fly reprojections
         self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(2154, QgsCoordinateReferenceSystem.PostgisCrsId))
         
+        # Prepare main dock widget
         self.dlg.ui.radioButtonDayType.setChecked(True)
         self.dlg.ui.radioButtonPreciseDate.setChecked(True)
         self.dlg.ui.radioButtonTimePeriod.setChecked(True)
         self.node_type=0
-        
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
-        self.DBConnectionDialog.show()
-        self.DBConnectionDialog.updateDBConnection()
-    
+        
+        # Show DBConnectionDialog
+        self.set_db_connection_dialog.show()
+        
     
     def unload(self):
         root = QgsProject.instance().layerTreeRoot()
@@ -496,208 +557,96 @@ class TempusAccess:
         root.removeChildNode(node_group)
         
         # Remove the plugin menu items and icons
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportPOI)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportRoadNetwork)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportPTNetwork)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionImportAreas)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionManageRoadNetwork)
-        self.iface.removePluginMenu(u"&Tempus Access",self.actionManagePTNetwork)
-        self.iface.removePluginMenu(u"&Tempus Access",self.action)
-        
-        #self.iface.unregisterMainWindowAction(self.keyAction)   
-        
-        self.iface.removeToolBarIcon(self.actionImportRoadNetwork)
-        self.iface.removeToolBarIcon(self.actionImportPTNetwork)
-        self.iface.removeToolBarIcon(self.actionImportPOI)
-        self.iface.removeToolBarIcon(self.actionImportAreas)
-        self.iface.removeToolBarIcon(self.actionManageRoadNetwork)
-        self.iface.removeToolBarIcon(self.actionManagePTNetwork)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_areas)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_areas)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_poi)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_poi)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_pt)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_pt)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_road)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_road)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_set_db_connection)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action_manage_db)
+        self.iface.removePluginMenu(u"&Tempus Access", self.action)
+
+        self.iface.removeToolBarIcon(self.action_import_areas)
+        self.iface.removeToolBarIcon(self.action_export_delete_areas)
+        self.iface.removeToolBarIcon(self.action_import_poi)
+        self.iface.removeToolBarIcon(self.action_export_delete_poi)
+        self.iface.removeToolBarIcon(self.action_import_pt)
+        self.iface.removeToolBarIcon(self.action_export_delete_pt)
+        self.iface.removeToolBarIcon(self.action_import_road)
+        self.iface.removeToolBarIcon(self.action_export_delete_road)
+        self.iface.removeToolBarIcon(self.action_set_db_connection)
+        self.iface.removeToolBarIcon(self.action_manage_db)
         self.iface.removeToolBarIcon(self.action)
         del self.toolButton
-                
-        # Stop database server
-        # cmd = ['pglite', 'stop']
-        # r = subprocess.call( cmd, shell = True )
         
         # Close dialogs which would stay opened
         self.dlg.hide()
-        self.importPTNetworkDialog.hide()
-        self.importRoadNetworkDialog.hide()
-        self.importAreasDialog.hide() 
-        self.importPOIDialog.hide()
-        self.managePTNetworkDialog.hide()
-        self.manageRoadNetworkDialog.hide()
-            
-    
-    def importRoadNetwork(self):
-        self.importRoadNetworkDialog.show()
-    
-    
-    def importPTNetwork(self):
-        self.importPTNetworkDialog.show()
+        self.import_areas_dialog.hide()
+        self.export_delete_areas_dialog.hide()
+        self.import_poi_dialog.hide()
+        self.export_delete_poi_dialog.hide()
+        self.import_pt_dialog.hide()
+        self.export_delete_pt_dialog.hide()
+        self.import_road_dialog.hide()
+        self.export_delete_road_dialog.hide() 
+        self.set_db_connection_dialog.hide()
+        self.manage_db_dialog.hide()
     
     
-    def importPOI(self):
-        self.importPOIDialog.show()
+    def set_db_connection(self):
+        self.set_db_connection_dialog.show()
     
     
-    def importAreas(self):
-        self.importAreasDialog.show()
-        
-        
-    def manageRoadNetwork(self):
-        self.manageRoadNetworkDialog.show()
+    def manage_db(self):
+        self.manage_db_dialog.show()
     
     
-    def managePTNetwork(self):
-        self.managePTNetworkDialog.show()
+    def import_road(self):
+        self.import_road_dialog.show()
+
+
+    def export_delete_road(self):
+        self.export_delete_road_dialog.show()
+        
+    
+    def import_pt(self):
+        self.import_pt_dialog.show()
+        self.import_pt_dialog.ui.labelFile1.setText('...')
+        self.import_pt_dialog.ui.labelFile2.setText('...')
+        self.import_pt_dialog.ui.labelFile3.setText('...')
+        self.import_pt_dialog.cheminFichierComplet1=""
+        self.import_pt_dialog.cheminFichierComplet2=""
+        self.import_pt_dialog.cheminFichierComplet2=""
     
     
-    def managePOI(self):
-        self.managePOIDialog.show()
+    def export_delete_pt(self):
+        self.export_delete_pt_dialog.show()
     
     
-    def exportGTFS(self, file_name, schema_name, feed_id):
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT agency_id,agency_name,agency_url,agency_timezone,agency_lang FROM "+schema_name+".agency WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/agency.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-            
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT 'service_id','monday','tuesday','wednesday','thursday','friday','saturday','sunday','start_date','end_date') TO "+os.path.dirname(file_name)+"/calendar.txt DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT service_id,to_char(date, 'YYYYMMDD') as date,1 as exception_type FROM "+schema_name+".calendar_dates WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/calendar_dates.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color FROM "+schema_name+".routes WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/routes.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT trip_id,(arrival_time::character varying || ' seconds')::interval as arrival_time,(departure_time::character varying || ' seconds')::interval as departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled FROM "+schema_name+".stop_times WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/stop_times.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT stop_id,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station_id as parent_station FROM "+schema_name+".stops WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/stops.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT from_stop_id,to_stop_id,transfer_type,min_transfer_time FROM "+schema_name+".transfers WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/transfers.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id FROM "+schema_name+".trips WHERE feed_id = '"+feed_id+"') TO "+os.path.dirname(file_name)+"/trips.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-c", "\copy (SELECT shape_id, shape_pt_lat, shape_pt_lon, row_number() over(partition by shape_id) as shape_pt_sequence FROM (SELECT shape_id, st_y(st_transform((st_dumppoints(geom_multi)).geom, 4326)) as shape_pt_lat, st_x(st_transform((st_dumppoints(geom_multi)).geom, 4326)) as shape_pt_lon FROM "+schema_name+".shapes WHERE feed_id = '"+feed_id+"' ORDER BY shape_id, (st_dumppoints(geom_multi)).path) q) TO "+os.path.dirname(file_name)+"/shapes.txt CSV HEADER DELIMITER ',' ENCODING 'UTF-8'"]
-        r = subprocess.call( cmd )
-        
-        f=zipfile.ZipFile(file_name,'w',zipfile.ZIP_DEFLATED)
-        f.write(os.path.dirname(file_name)+"/agency.txt", "agency.txt")
-        os.remove(os.path.dirname(file_name)+"/agency.txt")
-        f.write(os.path.dirname(file_name)+"/calendar.txt", "calendar.txt")
-        os.remove(os.path.dirname(file_name)+"/calendar.txt")
-        f.write(os.path.dirname(file_name)+"/calendar_dates.txt", "calendar_dates.txt")
-        os.remove(os.path.dirname(file_name)+"/calendar_dates.txt")
-        f.write(os.path.dirname(file_name)+"/routes.txt", "routes.txt")
-        os.remove(os.path.dirname(file_name)+"/routes.txt")
-        f.write(os.path.dirname(file_name)+"/stop_times.txt", "stop_times.txt")
-        os.remove(os.path.dirname(file_name)+"/stop_times.txt")
-        f.write(os.path.dirname(file_name)+"/stops.txt", "stops.txt")
-        os.remove(os.path.dirname(file_name)+"/stops.txt")
-        f.write(os.path.dirname(file_name)+"/transfers.txt", "transfers.txt")
-        os.remove(os.path.dirname(file_name)+"/transfers.txt")
-        f.write(os.path.dirname(file_name)+"/trips.txt", "trips.txt")
-        os.remove(os.path.dirname(file_name)+"/trips.txt")
-        f.write(os.path.dirname(file_name)+"/shapes.txt", "shapes.txt")
-        os.remove(os.path.dirname(file_name)+"/shapes.txt")
-        f.close()
-        
-   
-    def importSNCFOpenData(self):
-        ret = QMessageBox.question(self.dlg, "TempusAccess", u"L'opération d'import dans la base de données des fichiers de l'open-data SNCF va être lancée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
-        
-        self.prog = QProgressDialog(self.dlg)
-        self.prog.setCancelButton(None)
-        self.prog.setMinimum(0)
-        self.prog.setMaximum(100)
-        self.prog.setAutoClose(True)
-        self.prog.setWindowTitle(u"En cours...")
-        self.prog.show()
-        
-        self.time.start()
-        
-        if (ret == QMessageBox.Ok):
-            dbstring = "host="+self.host+" dbname="+self.base+" port="+self.port
-            
-            # Import stops referential
-            self.prog.setLabelText(u"Import du référentiel d'arrêts...")
-            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/ref_stops.shp",  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:4326", "-t_srs", "EPSG:4326","-nln", "tempus_access.stops"]
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setLabelText(u"Import du GTFS TER...")
-            self.prog.setValue(5)
-            
-            # Import TER and IC files
-            cmd = ["python", self.load_tempus_path, '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-ter-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ter']
-            r= subprocess.call( cmd )
-            self.prog.setValue(30)
-            
-            self.prog.setLabelText(u"Import du GTFS Intercités...")
-            cmd = ["python", self.load_tempus_path, '-t', 'gtfs', '-s', self.data_dir + "/demo_SNCF/open_data/export-intercites-gtfs-last.zip", '-S', '4326', '-d', dbstring, '--pt-network', 'ic']
-            r= subprocess.call( cmd )
-            self.prog.setValue(45)
-            
-            # Data fusion
-            self.prog.setLabelText(u"Fusion des fichiers TER et Intercités...")
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_fusion_ter_ic.sql"] 
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(55)
-            
-            # Correct stops and sections
-            self.prog.setLabelText(u"Import des données IGN Route500...")
-            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/NOEUD_FERRE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_noeud_ferre"]
-            r= subprocess.call( cmd, shell=True )
-            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/IGN_Route500/RESEAU_FERRE/TRONCON_VOIE_FERREE.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.ign_rte500_troncon_voie_ferree"]
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(60)
-            
-            self.prog.setLabelText(u"Import du fichier d'appariement des arrêts IGN et SNCF...")
-            cmd=["ogr2ogr.exe", "-f", "PostgreSQL", "PG:dbname="+self.base+" host="+self.host+" port="+self.port, self.data_dir + "/demo_SNCF/cerema/appariement_ign_arrets_fer.shp", "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:2154", "-t_srs", "EPSG:2154","-nln", "tempus_access.appariement_ign_arrets_fer"]
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(65)
-            
-            self.prog.setLabelText(u"Correction des tracés des lignes ferroviaires...")
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_sncf_corriger_traces_fer.sql"]
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(75)
-            
-            self.prog.setLabelText(u"Nettoyage du réseau...")
-            cmd = ["psql", "-h", self.host, "-p", self.port, "-d", self.base, "-f", self.plugin_dir + "/sql/gtfs_post_insert_no_road_network.sql"]
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(85)
-            
-            # Data export            
-            self.prog.setLabelText(u"Export du GTFS fusionné...")
-            self.exportGTFS(self.data_dir + "/demo_SNCF/cerema/gtfs_fusion_ter_ic.zip", "tempus_gtfs", "sncf")
-            self.prog.setValue(90)
-            
-            # Delete old feeds
-            self.prog.setLabelText(u"Suppression des GTFS initiaux...")
-            cmd = ["python", self.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', 'ic']
-            r= subprocess.call( cmd, shell=True )
-            cmd = ["python", self.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', 'ter']
-            r= subprocess.call( cmd, shell=True )
-            self.prog.setValue(95)
-            
-            # Refresh list of GTFS data sources and materialized views for QGIS
-            self.refreshPTData()
-            self.refreshGTFSFeeds()
-            self.prog.setValue(100)
-            
-            # End
-            box = QMessageBox()
-            box.setText(u"L'import et la construction de la base open-data de la SNCF sont terminés. Un fichier GTFS fusion_ter_ic.zip contenant la fusion des données TER et IC a été créé dans le répertoire data/demo_SNCF/open_data du plugin. " )
-            box.exec_()
-            
+    def import_poi(self):
+        self.import_poi_dialog.show()
     
+    
+    def export_delete_poi(self):
+        self.export_delete_poi_dialog.show()
+    
+    
+    def import_areas(self):
+        self.import_areas_dialog.show()
+        
+    
+    def export_delete_areas(self):
+        self.export_delete_areas_dialog.show()
+    
+
     def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
         if (layer_name!=''):
             
             uri=QgsDataSourceURI()
-            uri.setConnection(self.host, self.port, self.base, self.login, self.pwd)
+            uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
             uri.setDataSource("indic", layer_name, col_geom, "", col_id) 
             
             layer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
@@ -738,19 +687,15 @@ class TempusAccess:
         self.manageStoredQueriesDialog.show()
     
     
-    def DBConnection(self):
-        self.DBConnectionDialog.show()
-    
-    
     def refreshGTFSFeeds(self):    
         # Populate the listView containing GTFS data sources
         s="SELECT distinct feed_id, id FROM tempus_gtfs.feed_info"
-        self.modelPTNetworkSources.setQuery(unicode(s), self.db)
+        self.modelPTSources.setQuery(unicode(s), self.db)
         
         # Each update of the model must be accompanied by a new connexion of signal and slot on the listView selection
         self.dlg.ui.listViewGTFSFeeds.selectionModel().selectionChanged.connect(self._slotListViewGTFSFeedsSelectionChanged)
         
-        sel = QItemSelection(self.modelPTNetworkSources.index(0,0), self.modelPTNetworkSources.index(0,1))
+        sel = QItemSelection(self.modelPTSources.index(0,0), self.modelPTSources.index(0,1))
         self.dlg.ui.listViewGTFSFeeds.selectionModel().select(sel, QItemSelectionModel.ClearAndSelect)
     
     
@@ -844,7 +789,7 @@ class TempusAccess:
         
         # # Adding data tables/views in the layer manager
         uri=QgsDataSourceURI()
-        uri.setConnection(self.host, self.port, self.base, self.login, self.pwd)
+        uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
         
         # Holidays table
         uri.setDataSource("tempus", "holidays", None, "") 
@@ -882,7 +827,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(0, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True) 
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
                 
         # Sections by mode (view)
         uri.setDataSource("tempus_gtfs", "sections_by_mode", "geom", "", "gid")
@@ -893,7 +838,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(1, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
         
         # Trips by mode (view)
         uri.setDataSource("tempus_gtfs", "trips_by_mode", "geom_multi", "", "gid")
@@ -904,7 +849,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(2, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
         
         # Stops
         uri.setDataSource("tempus_gtfs", "stops", "geom", "", "id") 
@@ -918,7 +863,7 @@ class TempusAccess:
             # Center map on this layer
             if (layer.extent().isEmpty==False): 
                 self.iface.mapCanvas().setExtent(crd.transform(layer.extent()))
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
         
         # Sections
         uri.setDataSource("tempus_gtfs", "sections", "geom", "", "id")
@@ -929,7 +874,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(4, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[]")
+            layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTSources)+"::integer[]")
         
         # Transfer arcs
         uri.setDataSource("tempus_access", "transfers_geom", "geom", "", "id")
@@ -940,7 +885,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(5, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
 
         # Car/Bicycle parks and user POIs
         uri.setDataSource("tempus", "poi", "geom", "", "id")
@@ -1066,10 +1011,10 @@ class TempusAccess:
             box.exec_()
         
         # GTFS feeds
-        self.GTFSFeeds = []
+        self.PTSources = []
         if (self.dlg.ui.listViewGTFSFeeds.selectionModel().hasSelection()):
             for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-                self.GTFSFeeds.append(self.modelPTNetworkSources.record(item.row()).value("id"))
+                self.PTSources.append(self.modelPTSources.record(item.row()).value("id"))
         else:
             box = QMessageBox()
             box.setText(u"Sélectionnez au moins une source de données GTFS (onglet n°2)")
@@ -1140,7 +1085,7 @@ class TempusAccess:
             # Build stop indicators
             if (self.obj_def_name=="stop_areas"):
                 self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.GTFSFeeds)+",\
+                                                                            ARRAY"+str(self.PTSources)+",\
                                                                             ARRAY"+str(self.route_types)+",\
                                                                             ARRAY"+str(self.agencies)+",\
                                                                             1, \
@@ -1158,7 +1103,7 @@ class TempusAccess:
             
             elif (self.obj_def_name=="stops"):
                 self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.GTFSFeeds)+",\
+                                                                            ARRAY"+str(self.PTSources)+",\
                                                                             ARRAY"+str(self.route_types)+",\
                                                                             ARRAY"+str(self.agencies)+",\
                                                                             0, \
@@ -1177,7 +1122,7 @@ class TempusAccess:
             # Build sections indicators
             elif (self.obj_def_name=="sections"):
                 self.query="SELECT tempus_access.create_pt_section_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                          ARRAY"+str(self.GTFSFeeds)+",\
+                                                                          ARRAY"+str(self.PTSources)+",\
                                                                           ARRAY"+str(self.route_types)+",\
                                                                           ARRAY"+str(self.agencies)+",\
                                                                           "+self.day+"::date,\
@@ -1197,7 +1142,7 @@ class TempusAccess:
             # Build trips indicators
             elif (self.obj_def_name=="trips"):
                 self.query="SELECT tempus_access.create_pt_trip_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.GTFSFeeds)+",\
+                                                                       ARRAY"+str(self.PTSources)+",\
                                                                        ARRAY"+str(self.route_types)+",\
                                                                        ARRAY"+str(self.agencies)+",\
                                                                        "+self.day+"::date,\
@@ -1217,7 +1162,7 @@ class TempusAccess:
             # Build routes indicators
             elif (self.obj_def_name=="routes"):
                 self.query="SELECT tempus_access.create_pt_route_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.GTFSFeeds)+",\
+                                                                       ARRAY"+str(self.PTSources)+",\
                                                                        ARRAY"+str(self.route_types)+",\
                                                                        ARRAY"+str(self.agencies)+",\
                                                                        "+self.day+"::date,\
@@ -1235,7 +1180,7 @@ class TempusAccess:
         # Build agencies indicators
         if (self.obj_def_name=="agencies"):
             self.query="SELECT tempus_access.create_pt_agency_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                   ARRAY"+str(self.GTFSFeeds)+",\
+                                                                   ARRAY"+str(self.PTSources)+",\
                                                                    ARRAY"+str(self.route_types)+",\
                                                                    "+self.day+"::date,\
                                                                    "+str(self.day_type)+"::integer, \
@@ -1481,7 +1426,7 @@ class TempusAccess:
             if (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees"):
                 path_tree=True
             
-            dbstring="host="+self.host+" dbname="+self.base+" port="+self.port
+            dbstring="host="+self.db.hostName()+" dbname="+self.db.databaseName()+" port="+str(self.db.port())
             
             self.path_indic_thread = pathIndicThread(
                                                         self.query, \
@@ -1754,7 +1699,7 @@ class TempusAccess:
         
         
         if (self.node_type==0): # Stops area
-            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.GTFSFeeds) + ") ORDER BY 1"
+            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") ORDER BY 1"
             self.modelNode.setQuery(unicode(s), self.db)
             
         elif (self.node_type==1): # Road nodes
@@ -1780,7 +1725,7 @@ class TempusAccess:
         if (self.node_type==0): # Stop areas
             s="SELECT id as id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
                FROM tempus_gtfs.stops \
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+") \
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+") \
                ORDER BY 2 \
                LIMIT 1"
             i=4
@@ -1807,9 +1752,9 @@ class TempusAccess:
     
     def addODLayers(self):
         uriOrigines=QgsDataSourceURI()
-        uriOrigines.setConnection(self.host, self.port, self.base, self.login, self.pwd)
+        uriOrigines.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
         uriDestinations=QgsDataSourceURI()
-        uriDestinations.setConnection(self.host, self.port, self.base, self.login, self.pwd)
+        uriDestinations.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
         
         subset_o = "id is null"
         subset_d = "id is null"  
@@ -1858,7 +1803,7 @@ class TempusAccess:
                 subset_d = s
             if (self.node_type==0): # Stop areas
                 t="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
-                   WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.GTFSFeeds) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
+                   WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                    ORDER BY 1"
             elif (self.node_type==1): # Road nodes
                 t="SELECT id FROM tempus.road_node WHERE ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"::bigint[]\
@@ -1931,7 +1876,7 @@ class TempusAccess:
         
         if (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==0): # Stop areas
             s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.GTFSFeeds) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                ORDER BY 1"
         elif (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==1): # Road nodes
             s="SELECT id FROM tempus.road_node WHERE ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
@@ -2021,17 +1966,17 @@ class TempusAccess:
     # Slots of the 2nd tab
     
     def _slotListViewGTFSFeedsSelectionChanged(self, selected, deselected):
-        self.GTFSFeeds = []
+        self.PTSources = []
         for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-            self.GTFSFeeds.append(self.modelPTNetworkSources.record(item.row()).value("id"))
+            self.PTSources.append(self.modelPTSources.record(item.row()).value("id"))
         
         # Update of the dialog widgets with the selected feeds
         
-        if (len(self.GTFSFeeds)>0):
+        if (len(self.PTSources)>0):
             # Agencies
             s="SELECT feed_id, agency_id, agency_name, id \
                FROM tempus_gtfs.agency \
-               WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.GTFSFeeds) + ") ORDER BY feed_id, agency_id"
+               WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ") ORDER BY feed_id, agency_id"
             self.modelAgencies.setQuery(unicode(s), self.db)
             self.dlg.ui.tableViewAgencies.selectAll()
             self.dlg.ui.tableViewAgencies.resizeRowsToContents()
@@ -2041,7 +1986,7 @@ class TempusAccess:
             # PT modes
             s="SELECT name, id, gtfs_feed_id, gtfs_route_type \
                FROM tempus.transport_mode \
-               WHERE ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.GTFSFeeds) 
+               WHERE ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.PTSources) 
             self.modelPTModes.setQuery(unicode(s), self.db)
             self.dlg.ui.listViewPTModes.selectAll()
             
@@ -2051,7 +1996,7 @@ class TempusAccess:
             # PT stops
             s="SELECT DISTINCT stop_name || '-' || stop_id as stop, id, feed_id, stop_id, stop_name \
                FROM tempus_gtfs.stops\
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.GTFSFeeds) + ")\
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")\
                UNION SELECT '', -1, '', '', ''\
                ORDER BY 1"
             self.modelStop.setQuery(unicode(s), self.db)
@@ -2059,7 +2004,7 @@ class TempusAccess:
             # PT routes
             s="SELECT route_long_name as route_name, id, feed_id, route_id \
                FROM tempus_gtfs.routes \
-               WHERE  feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.GTFSFeeds) + ")\
+               WHERE  feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")\
                UNION SELECT '', -1, null, null ORDER BY 1; "
             self.dlg.ui.comboBoxForcRoute.setModelColumn(0)
             self.modelRoute.setQuery(s, self.db)
@@ -2067,14 +2012,14 @@ class TempusAccess:
             # PT sections
             s="SELECT DISTINCT id, stop_from, stop_to \
                  FROM tempus_gtfs.sections \
-                 WHERE ARRAY[feed_id] <@ ARRAY" + str(self.GTFSFeeds) + "\
+                 WHERE ARRAY[feed_id] <@ ARRAY" + str(self.PTSources) + "\
                  UNION SELECT -1, null, null ORDER BY 1;"
             
             # Calendar and date edition widgets : updated with the minimum and maximum dates in the selected data sources
             if (len(self.dlg.ui.listViewGTFSFeeds.selectionModel().selection().indexes())>0):
                 s="SELECT min(date), max(date) \
                    FROM tempus_gtfs.calendar_dates \
-                   WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.GTFSFeeds) + ")"
+                   WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")"
                 q=QtSql.QSqlQuery(unicode(s), self.db)
                 q.next()
                 self.dlg.ui.calendarWidget.setDateRange(q.value(0), q.value(1))
@@ -2091,7 +2036,7 @@ class TempusAccess:
             
             layerList = [lyr for lyr in QgsMapLayerRegistry.instance().mapLayers().values() if lyr.name() == u"Sections"]
             if layerList: 
-                layerList[0].setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.GTFSFeeds))
+                layerList[0].setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTSources))
                 if (layerList[0].extent().isEmpty()==False): 
                     self.iface.mapCanvas().setExtent(crd.transform(layerList[0].extent()))
             
@@ -2099,7 +2044,7 @@ class TempusAccess:
                                                                                                 or (layer.name()==u"Arrêts") or (layer.name()==u"Arrêts par mode") \
                                                                                                 or (layer.name()=="Sections par mode"))]
             for lyr in layerList:
-                lyr.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.GTFSFeeds)+")")
+                lyr.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+")")
             self.iface.mapCanvas().refreshMap()
     
 
@@ -2299,8 +2244,8 @@ class TempusAccess:
             # "gtfs_feeds" field
             if (self.modelReq.record(indexChosenLine).isNull("gtfs_feeds")==False):
                 for feed in ((str(self.modelReq.record(indexChosenLine).value("gtfs_feeds"))).translate(None, "{}").split(",")):
-                    row = self.modelPTNetworkSources.match(self.modelIndic.index(0,1), 0, feed, 1)[0].row()
-                    self.dlg.ui.listViewGTFSFeeds.selectionModel().select(self.modelPTNetworkSources.index(row,0), QItemSelectionModel.Select)
+                    row = self.modelPTSources.match(self.modelIndic.index(0,1), 0, feed, 1)[0].row()
+                    self.dlg.ui.listViewGTFSFeeds.selectionModel().select(self.modelPTSources.index(row,0), QItemSelectionModel.Select)
             
             # "pt_modes" field
             if (self.modelReq.record(indexChosenLine).isNull("pt_modes")==False):
