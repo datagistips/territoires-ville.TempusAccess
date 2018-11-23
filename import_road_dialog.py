@@ -48,8 +48,6 @@ class import_road_dialog(QDialog):
         
         self.caller = caller
         
-        self.debug = caller.debug
-        
         self.plugin_dir = self.caller.plugin_dir
         
         # Connect signals and slots

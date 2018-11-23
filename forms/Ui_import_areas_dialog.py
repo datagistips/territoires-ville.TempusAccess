@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_areas_dialog.ui'
 #
-# Created: Wed Nov 21 16:27:04 2018
+# Created: Thu Nov 22 13:16:55 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,9 +26,9 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(469, 345)
+        Dialog.resize(534, 355)
         self.layoutWidget = QtGui.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 451, 291))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 511, 291))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout.setMargin(0)
@@ -113,9 +113,22 @@ class Ui_Dialog(object):
         self.comboBoxFormat.setObjectName(_fromUtf8("comboBoxFormat"))
         self.gridLayout.addWidget(self.comboBoxFormat, 1, 1, 1, 1)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(380, 310, 81, 31))
+        self.buttonBox.setGeometry(QtCore.QRect(440, 310, 81, 41))
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
+        self.layoutWidget_2 = QtGui.QWidget(Dialog)
+        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 320, 421, 22))
+        self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_2)
+        self.horizontalLayout.setMargin(0)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.label_10 = QtGui.QLabel(self.layoutWidget_2)
+        self.label_10.setObjectName(_fromUtf8("label_10"))
+        self.horizontalLayout.addWidget(self.label_10)
+        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
+        self.lineEditCommand.setEnabled(False)
+        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
+        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -136,6 +149,7 @@ class Ui_Dialog(object):
         self.label_5.setText(_translate("Dialog", "Champ libellé", None))
         self.label.setText(_translate("Dialog", "SRID *", None))
         self.label_6.setText(_translate("Dialog", "Choisir le fichier", None))
+        self.label_10.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

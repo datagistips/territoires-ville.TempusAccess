@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_pt_dialog.ui'
 #
-# Created: Tue Nov 20 10:50:24 2018
+# Created: Thu Nov 22 13:16:56 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,14 +26,14 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(537, 228)
+        Dialog.resize(534, 230)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(440, 190, 81, 31))
+        self.buttonBox.setGeometry(QtCore.QRect(440, 190, 81, 41))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.layoutWidget_2 = QtGui.QWidget(Dialog)
-        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 10, 521, 171))
+        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 10, 511, 171))
         self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget_2)
         self.gridLayout.setMargin(0)
@@ -116,6 +116,23 @@ class Ui_Dialog(object):
         self.pushButtonChoose3.setEnabled(False)
         self.pushButtonChoose3.setObjectName(_fromUtf8("pushButtonChoose3"))
         self.gridLayout.addWidget(self.pushButtonChoose3, 4, 1, 1, 1)
+        self.labelFile3 = QtGui.QLabel(self.layoutWidget_2)
+        self.labelFile3.setEnabled(False)
+        self.labelFile3.setObjectName(_fromUtf8("labelFile3"))
+        self.gridLayout.addWidget(self.labelFile3, 4, 2, 1, 1)
+        self.widget = QtGui.QWidget(Dialog)
+        self.widget.setGeometry(QtCore.QRect(10, 200, 421, 22))
+        self.widget.setObjectName(_fromUtf8("widget"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.widget)
+        self.horizontalLayout.setMargin(0)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.label_5 = QtGui.QLabel(self.widget)
+        self.label_5.setObjectName(_fromUtf8("label_5"))
+        self.horizontalLayout.addWidget(self.label_5)
+        self.lineEditCommand = QtGui.QLineEdit(self.widget)
+        self.lineEditCommand.setEnabled(False)
+        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
+        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -135,6 +152,8 @@ class Ui_Dialog(object):
         self.pushButtonChoose1.setText(_translate("Dialog", "Parcourir...", None))
         self.lineEditSourceName.setToolTip(_translate("Dialog", "<html><head/><body><p>Le préfixe sera accolé aux identifiants des objets de la source (arrêts, services, lignes, etc.).</p><p>Il est obligatoire pour pouvoir charger une source et doit être différents des préfixes des sources déjà chargées dans la base (voir ci-dessous). </p></body></html>", None))
         self.pushButtonChoose3.setText(_translate("Dialog", "Parcourir...", None))
+        self.labelFile3.setText(_translate("Dialog", "...", None))
+        self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

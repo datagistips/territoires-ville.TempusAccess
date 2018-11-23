@@ -46,6 +46,7 @@ from import_poi_dialog import import_poi_dialog
 from export_delete_poi_dialog import export_delete_poi_dialog
 from import_areas_dialog import import_areas_dialog
 from export_delete_areas_dialog import export_delete_areas_dialog
+from manage_indicators_dialog import manage_indicators_dialog
 
 import subprocess
 import datetime
@@ -58,23 +59,18 @@ import csv
 class genIndicThread(QThread):
     resultAvailable = pyqtSignal(bool, str)
 
-    def __init__(self, query_str, db, debug, parent = None):
+    def __init__(self, query_str, db, parent = None):
         super(genIndicThread, self).__init__(parent)
         
         self.query_str = query_str
         self.db = db
         self.plugin_dir = os.path.dirname(__file__)
-        self.debug = debug
-    
     
     def __del__(self):
         self.wait()
 
 
     def run(self): 
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(unicode(self.query_str.replace("  ", ""))+"\n")
         r=QtSql.QSqlQuery(self.db)
         done=r.exec_(self.query_str)
         self.resultAvailable.emit(done, self.query_str)
@@ -84,7 +80,7 @@ class genIndicThread(QThread):
 class pathIndicThread(QThread):
     resultAvailable = pyqtSignal(bool, str)
     
-    def __init__(self, query_str, db, dbstring, road_node_from, road_node_to, road_nodes, time_start, time_end, time_ag, time_point, time_interval, all_services, days, tran_modes, path_tree, max_cost, walking_speed, cycling_speed, constraint_date_after, debug, parent = None):
+    def __init__(self, query_str, db, dbstring, road_node_from, road_node_to, road_nodes, time_start, time_end, time_ag, time_point, time_interval, all_services, days, tran_modes, path_tree, max_cost, walking_speed, cycling_speed, constraint_date_after, parent = None):
         super(pathIndicThread, self).__init__(parent)
         
         self.query_str = query_str
@@ -106,7 +102,6 @@ class pathIndicThread(QThread):
         self.walking_speed = walking_speed
         self.cycling_speed = cycling_speed
         self.constraint_date_after = constraint_date_after
-        self.debug = debug
         self.plugin_dir = os.path.dirname(__file__)
         
         
@@ -120,10 +115,6 @@ class pathIndicThread(QThread):
         else:
             s="DELETE FROM tempus_access.tempus_paths_results; SELECT init_multimodal_plugin('"+self.dbstring+"');"
         
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(s+"\n")
-        
         q=QtSql.QSqlQuery(self.db)
         q.exec_(unicode(s))
     
@@ -135,31 +126,17 @@ class pathIndicThread(QThread):
             if (self.time_point != "NULL"): # Simple time constraint
                 if (self.path_tree==False): 
                     s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                    if self.debug:
-                        with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                            log_file.write("Simple path calculation with a time point constraint\n")
-                            log_file.write(s+"\n")
                     q=QtSql.QSqlQuery(self.db)
                     q.exec_(unicode(s))
                 elif (self.path_tree==True): 
-                    if self.debug:
-                        with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                            log_file.write("Isochron calculation for all source nodes with a time point constraint\n")
-
                     for node in self.road_nodes: # For each source node
                         s = "SELECT tempus_access.shortest_paths_tree(("+str(node)+"), ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+d \
                             + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write(s+"\n")
                         q=QtSql.QSqlQuery(self.db)
                         q.exec_(unicode(s))
             
             else: # Time period constraint
                 if (self.all_services==True): # All possible services of the period - only fo simple paths 
-                    if self.debug:
-                        with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                            log_file.write("Simple path calculation with a time period constraint, all available services are searched\n")
                     current_timestamp=""
                     bound_timestamp=""
                     bound_time=""
@@ -174,16 +151,10 @@ class pathIndicThread(QThread):
                 
                     while (current_timestamp != bound_timestamp):
                         s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write(s+"\n")
                         q=QtSql.QSqlQuery(self.db)
                         q.exec_(unicode(s))
                             
                         s1 = "SELECT next_pt_timestamp::character varying FROM tempus_access.next_pt_timestamp("+bound_time+"::time, '"+str(d)+"'::date, "+str(self.constraint_date_after)+")"
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write(s1+"\n")
                         q1=QtSql.QSqlQuery(self.db)
                         q1.exec_(unicode(s1))
                         while q1.next():
@@ -206,37 +177,19 @@ class pathIndicThread(QThread):
                         bound_timestamp = d + " " + self.time_start[1:len(self.time_start)-1]
                         bound_time = self.time_start
                     
-                    if (self.path_tree==False): # Simple path calculation
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write("Simple path calculation with time period constraint, a path is searched at a regular time interval\n")
-                    elif (self.path_tree==True): 
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write("Isochron calculation for all source/target nodes, a paths tree is searched at a regular time interval\n")
-                    
                     while (current_timestamp != bound_timestamp):
                         if (self.path_tree==False): 
                             s = "SELECT tempus_access.shortest_path(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                            if self.debug:
-                                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                    log_file.write(s+"\n")
                             q=QtSql.QSqlQuery(self.db)
                             q.exec_(unicode(s))
                             
                         elif (self.path_tree==True):
                             for node in self.road_nodes: # For each source/target node
                                 s = "SELECT tempus_access.shortest_paths_tree("+str(node)+", ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                                if self.debug:
-                                    with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                        log_file.write(s+"\n")
                                 q=QtSql.QSqlQuery(self.db)
                                 q.exec_(unicode(s))
                         
                         s1 = "SELECT next_timestamp::character varying FROM tempus_access.next_timestamp('"+current_timestamp+"'::timestamp, "+str(self.time_interval)+", '"+bound_timestamp+"'::timestamp, "+str(self.constraint_date_after)+")"
-                        if self.debug:
-                            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                                log_file.write(s1+"\n")
                         q1=QtSql.QSqlQuery(self.db)
                         q1.exec_(unicode(s1))
                         while q1.next():
@@ -245,9 +198,6 @@ class pathIndicThread(QThread):
         r=QtSql.QSqlQuery(self.db)
         done=r.exec_(self.query_str)
         
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(self.query_str+"\n")
         self.resultAvailable.emit(done, self.query_str)
 
 
@@ -279,8 +229,6 @@ class TempusAccess:
         self.icon_dir = self.plugin_dir + "/icons"
         self.last_dir = self.plugin_dir
         
-        self.debug = False # True when the box "Ecrire dans le log" is checked
-                
         # Initialize locale (default code)
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(self.plugin_dir,'i18n','TempusAccess_{}.qm'.format(locale))
@@ -365,6 +313,9 @@ class TempusAccess:
         # Manage
         self.export_delete_areas_dialog=export_delete_areas_dialog(self, self.iface)
         
+        ## Indicators dialogs
+        self.manage_indicators_dialog=manage_indicators_dialog(self, self.iface)
+        
         
         # Main dock widget
         # 1st tab
@@ -372,13 +323,13 @@ class TempusAccess:
         self.dlg.ui.comboBoxObjType.setModel(self.modelObjType)
         self.obj_def_name="stop_areas"
         
-        self.modelIndic = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewIndic.setModel(self.modelIndic)
-        
         self.modelNode = QtSql.QSqlQueryModel()
         self.dlg.ui.comboBoxOrig.setModel(self.modelNode)
         self.dlg.ui.comboBoxDest.setModel(self.modelNode)
         self.dlg.ui.comboBoxPathsTreeRootNode.setModel(self.modelNode)
+        
+        self.modelIndic = QtSql.QSqlQueryModel()
+        self.dlg.ui.listViewIndic.setModel(self.modelIndic)        
         
         self.modelSelectedNodes = QtSql.QSqlQueryModel()
         self.dlg.ui.listViewNodes.setModel(self.modelSelectedNodes)
@@ -429,26 +380,27 @@ class TempusAccess:
         self.dlg.ui.comboBoxCriterion.setModel(self.modelCriterion)
         
         # 5th tab
+        
         self.modelSizeIndic = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxSizeIndic.setModel(self.modelSizeIndic)
+        self.manage_indicators_dialog.ui.comboBoxSizeIndic.setModel(self.modelSizeIndic)
         
         self.modelColorIndic = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxColorIndic.setModel(self.modelColorIndic)
+        self.manage_indicators_dialog.ui.comboBoxColorIndic.setModel(self.modelColorIndic)
         
         self.modelDerivedRepIndic = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxDerivedRepIndic.setModel(self.modelDerivedRepIndic)
+        self.manage_indicators_dialog.ui.comboBoxDerivedRepIndic.setModel(self.modelDerivedRepIndic)
         
         self.modelReq = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxReq.setModel(self.modelReq)
+        self.manage_indicators_dialog.ui.comboBoxReq.setModel(self.modelReq)
         
         self.modelDerivedRep=QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxDerivedRep.setModel(self.modelDerivedRep)
+        self.manage_indicators_dialog.ui.comboBoxDerivedRep.setModel(self.modelDerivedRep)
         
         self.modelPathID = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxPathID.setModel(self.modelPathID)
+        self.manage_indicators_dialog.ui.comboBoxPathID.setModel(self.modelPathID)
         
         self.modelRepMeth = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxRepMeth.setModel(self.modelRepMeth)
+        self.manage_indicators_dialog.ui.comboBoxRepMeth.setModel(self.modelRepMeth)
         
             
         self.clickTool = QgsMapToolEmitPoint(self.iface.mapCanvas()) # Outil permettant l'émission d'un QgsPoint à chaque clic sur le canevas 
@@ -468,7 +420,7 @@ class TempusAccess:
         self._connectSlots()
         
         # Create actions that will start plugin configuration 
-        self.action = QAction(QIcon(self.icon_dir + "/icon_main.png"), u"Lancer le plugin",self.iface.mainWindow())
+        self.action = QAction(QIcon(self.icon_dir + "/icon_tempus.jpg"), u"Lancer le plugin",self.iface.mainWindow())
         self.action_set_db_connection = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Définir la connexion à la base de données", self.iface.mainWindow())
         self.action_manage_db = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Gérer les bases de données", self.iface.mainWindow())
         self.action_import_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
@@ -479,6 +431,7 @@ class TempusAccess:
         self.action_export_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
         self.action_import_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Importer un zonage", self.iface.mainWindow())
         self.action_export_delete_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
+        self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
         self.action.setToolTip(u"Lancer le plugin")
         self.action_set_db_connection.setToolTip(u"Définir la connexion à la base de données")
@@ -491,6 +444,7 @@ class TempusAccess:
         self.action_export_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
         self.action_import_areas.setToolTip(u"Importer un zonage")
         self.action_export_delete_areas.setToolTip(u"Exporter ou supprimer un zonage")
+        self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
         
         # Connect the actions to the methods
         self.action.triggered.connect(self.load)
@@ -504,19 +458,21 @@ class TempusAccess:
         self.action_export_delete_poi.triggered.connect(self.export_delete_poi)
         self.action_import_areas.triggered.connect(self.import_areas)
         self.action_export_delete_areas.triggered.connect(self.export_delete_areas)
+        self.action_manage_indicators.triggered.connect(self.manage_indicators)
         
         # Add toolbar buttons and menu items
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action)
-        self.iface.addPluginToMenu(u"&Tempus Access", self.action_set_db_connection)
-        self.iface.addPluginToMenu(u"&Tempus Access", self.action_manage_db)
-        self.iface.addPluginToMenu(u"&Tempus Access", self.action_import_road)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_road)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_pt)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_pt)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_poi)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_poi)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_import_areas)
-        self.iface.addPluginToMenu(u"&Tempus Access",self.action_export_delete_areas)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action)
+        self.iface.addPluginToMenu(u"&TempusAccess", self.action_set_db_connection)
+        self.iface.addPluginToMenu(u"&TempusAccess", self.action_manage_db)
+        self.iface.addPluginToMenu(u"&TempusAccess", self.action_import_road)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_road)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_pt)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_pt)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_poi)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_areas)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_areas)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_indicators)
                 
         m = self.toolButton.menu()
         m.addAction(self.action)
@@ -530,6 +486,7 @@ class TempusAccess:
         m.addAction(self.action_export_delete_poi)
         m.addAction(self.action_import_areas)
         m.addAction(self.action_export_delete_areas)
+        m.addAction(self.action_manage_indicators)
         
         self.toolButton.setDefaultAction(self.action)
         self.first = False
@@ -557,18 +514,20 @@ class TempusAccess:
         root.removeChildNode(node_group)
         
         # Remove the plugin menu items and icons
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_areas)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_areas)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_poi)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_poi)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_pt)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_pt)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_import_road)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_export_delete_road)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_set_db_connection)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action_manage_db)
-        self.iface.removePluginMenu(u"&Tempus Access", self.action)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_indicators) 
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_areas)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_areas)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_poi)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_pt)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_road)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_road)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_set_db_connection)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_db)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action)
 
+        self.iface.removeToolBarIcon(self.action_manage_indicators)
         self.iface.removeToolBarIcon(self.action_import_areas)
         self.iface.removeToolBarIcon(self.action_export_delete_areas)
         self.iface.removeToolBarIcon(self.action_import_poi)
@@ -584,6 +543,7 @@ class TempusAccess:
         
         # Close dialogs which would stay opened
         self.dlg.hide()
+        self.manage_indicators_dialog.hide()
         self.import_areas_dialog.hide()
         self.export_delete_areas_dialog.hide()
         self.import_poi_dialog.hide()
@@ -640,6 +600,10 @@ class TempusAccess:
     
     def export_delete_areas(self):
         self.export_delete_areas_dialog.show()
+        
+      
+    def manage_indicators(self):
+        self.manage_indicators_dialog.show()
     
 
     def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
@@ -1198,9 +1162,6 @@ class TempusAccess:
         elif ((self.obj_def_name=="paths") or (self.obj_def_name=="paths_details") or (self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")):
             self.days = []
             s1="SELECT unnest(days)::character varying FROM tempus_access.days("+self.day+"::date,"+str(self.day_type)+"::integer,"+str(self.per_type)+"::integer,"+self.per_start+"::date,"+self.per_end+"::date);"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(s1+"\n")
             q1=QtSql.QSqlQuery(self.db)
             q1.exec_(unicode(s1))
             while q1.next():
@@ -1217,9 +1178,6 @@ class TempusAccess:
                     self.road_node_to = self.to_node
                 
                 s1="DELETE FROM tempus_access.tempus_paths_results;"
-                if self.debug:
-                    with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                        log_file.write(s1+"\n")
                 q1=QtSql.QSqlQuery(self.db)
                 q1.exec_(unicode(s1))
                 
@@ -1346,9 +1304,7 @@ class TempusAccess:
         # General interface
         self.dlg.ui.pushButtonIndicCalculate.clicked.connect(self._slotPushButtonIndicCalculateClicked)
         self.dlg.ui.pushButtonReinitCalc.clicked.connect(self._slotPushButtonReinitCalcClicked)
-        #self.dlg.ui.pushButtonStopQuery.clicked.connect(self._slotPushButtonStopQueryClicked)
         self.timer.timeout.connect(self._slotUpdateTimer) 
-        self.dlg.ui.checkBoxVerbose.stateChanged.connect(self._slotCheckBoxVerboseStateChanged)
         
         # 1st tab
         self.dlg.ui.comboBoxObjType.currentIndexChanged.connect(self._slotComboBoxObjTypeIndexChanged)
@@ -1381,25 +1337,6 @@ class TempusAccess:
         self.dlg.ui.comboBoxTimeConstraint.currentIndexChanged.connect(self._slotComboBoxTimeConstraintIndexChanged)
         self.dlg.ui.radioButtonTimeInterval.toggled.connect(self._slotRadioButtonTimeIntervalToggled)
         
-        
-        # 4th tab
-        
-        
-        
-        # 5th tab
-        self.dlg.ui.pushButtonReqDelete.clicked.connect(self._slotPushButtonReqDeleteClicked)
-        self.dlg.ui.pushButtonReqRename.clicked.connect(self._slotPushButtonReqRenameClicked)
-        self.dlg.ui.pushButtonDerivedRepDelete.clicked.connect(self._slotPushButtonDerivedRepDeleteClicked)
-        self.dlg.ui.pushButtonDerivedRepRename.clicked.connect(self._slotPushButtonDerivedRepRenameClicked)
-        self.dlg.ui.pushButtonSaveComments.clicked.connect(self._slotPushButtonSaveCommentsClicked)
-        self.dlg.ui.pushButtonDerivedRepGenerate.clicked.connect(self._slotPushButtonDerivedRepGenerateClicked)
-        self.dlg.ui.comboBoxPathID.currentIndexChanged.connect(self._slotComboBoxPathIDIndexChanged)
-        self.dlg.ui.pushButtonReqDisplay.clicked.connect(self._slotpushButtonReqDisplayClicked)
-        self.dlg.ui.comboBoxSizeIndic.currentIndexChanged.connect(self._slotComboBoxSizeIndicIndexChanged)
-        self.dlg.ui.comboBoxColorIndic.currentIndexChanged.connect(self._slotComboBoxColorIndicIndexChanged)
-        self.dlg.ui.comboBoxDerivedRep.currentIndexChanged.connect(self._slotComboBoxDerivedRepIndexChanged)
-        self.dlg.ui.comboBoxDerivedRepIndic.currentIndexChanged.connect(self._slotComboBoxDerivedRepIndicIndexChanged)
-        self.dlg.ui.comboBoxReq.currentIndexChanged.connect(self._slotComboBoxReqIndexChanged)
     
     
     # Slots of the general interface
@@ -1414,8 +1351,7 @@ class TempusAccess:
         
         if ((self.obj_def_name == "stop_areas") or (self.obj_def_name == "stops") or (self.obj_def_name=="sections") or (self.obj_def_name == "trips") or (self.obj_def_name == "routes") or (self.obj_def_name == "agencies")):
             self.gen_indic_thread = genIndicThread(self.query, \
-                                                    self.db, \
-                                                    self.debug \
+                                                    self.db \
                                                   )
             self.gen_indic_thread.finished.connect(self._slotDone)
             self.gen_indic_thread.resultAvailable.connect(self._slotResultAvailable)
@@ -1447,8 +1383,7 @@ class TempusAccess:
                                                         self.max_cost, \
                                                         self.walking_speed, \
                                                         self.cycling_speed, \
-                                                        self.constraint_date_after, \
-                                                        self.debug\
+                                                        self.constraint_date_after\
                                                     )
                                                     
             self.path_indic_thread.finished.connect(self._slotDone)
@@ -1459,9 +1394,6 @@ class TempusAccess:
     def _slotResultAvailable(self, done, query_str): 
         if (done==True):
             s="UPDATE tempus_access.indic_catalog SET calc_time = "+str(self.time.elapsed()/1000)+" WHERE layer_name = '"+self.obj_def_name+"';"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(s+"\n")
             q=QtSql.QSqlQuery(self.db)
             q.exec_(unicode(s))
             
@@ -1488,10 +1420,7 @@ class TempusAccess:
                 box.exec_()
         else:
             box = QMessageBox()
-            if self.debug:
-                box.setText(u"La requête a échoué. Rendez-vous dans le fichier 'log.txt' du plugin pour en savoir plus. ")
-            else:
-                box.setText(u"La requête a échoué. Cochez la case 'Ecrire dans le log', puis rendez-vous dans le fichier 'log.txt' du plugin pour en savoir plus. ")
+            box.setText(u"La requête a échoué. ")
             box.exec_()
             
             
@@ -1511,14 +1440,7 @@ class TempusAccess:
         
     def _slotUpdateTimer(self):
         self.dlg.ui.labelElapsedTime.setText(u"Temps d'exécution : "+str(self.time.elapsed()/1000)+" secondes")
-    
-    
-    def _slotCheckBoxVerboseStateChanged(self):
-        if self.dlg.ui.checkBoxVerbose.isChecked():
-            self.debug =True
-        else:
-            self.debug = False
-    
+        
     
     # Slots of the 1st tab
     
@@ -1569,7 +1491,7 @@ class TempusAccess:
             self.dlg.ui.radioButtonAllServices.setEnabled(False)
             
             # 4th tab
-            self.dlg.ui.toolBoxDisplay.setItemEnabled(1,False) # Isochron representations
+            self.manage_indicators_dialog.ui.toolBoxDisplay.setItemEnabled(1,False) # Isochron representations
         
             if (self.obj_def_name=="stops" or self.obj_def_name=="stop_areas"):
                 # 1st tab
@@ -1626,7 +1548,7 @@ class TempusAccess:
             self._slotComboBoxTimeConstraintIndexChanged(self.dlg.ui.comboBoxTimeConstraint.currentIndex())
             
             # 4th tab
-            self.dlg.ui.toolBoxDisplay.setItemEnabled(1,False) # Isochron representations
+            self.manage_indicators_dialog.ui.toolBoxDisplay.setItemEnabled(1,False) # Isochron representations
         
             if (self.obj_def_name=="paths" or self.obj_def_name=="paths_details"):
                 # 1st tab
@@ -2104,541 +2026,4 @@ class TempusAccess:
             self.dlg.ui.timeEditTimeInterval.setEnabled(True)
         else:
             self.dlg.ui.timeEditTimeInterval.setEnabled(False)
-    
-    
-    
-    # Slots of the 4th tab
-    
-    def _slotComboBoxReqIndexChanged(self, indexChosenLine):
-        self.parent_layer=""
-        if (indexChosenLine == 0):
-            # General interface
-            self.dlg.ui.pushButtonIndicCalculate.setEnabled(True)
-            self.dlg.ui.pushButtonReinitCalc.setEnabled(True)
-            self.comments = ""
-            
-            # 1st tab
-            self.dlg.ui.groupBoxObjType.setEnabled(True)
-            self.dlg.ui.groupBoxIndicators.setEnabled(True)
-            self.dlg.ui.toolBoxPaths.setEnabled(False)
-            self.dlg.ui.groupBoxPerimetre.setEnabled(True)
-            self.updateSelectedNodes()
-            
-            # 2nd tab
-            self.dlg.ui.groupBoxGTFSFeeds.setEnabled(True)
-            self.dlg.ui.groupBoxAgencies.setEnabled(True)
-            self.dlg.ui.groupBoxTransportModes.setEnabled(True)
-            self.dlg.ui.groupBoxForcStop.setEnabled(True)
-            self.dlg.ui.groupBoxForcRoute.setEnabled(True)
-            
-            # 3rd tab
-            self.dlg.ui.toolBoxDays.setEnabled(True)
-            self.dlg.ui.toolBoxTime.setEnabled(True)
-            self.dlg.ui.radioButtonTimePoint.setEnabled(False)
-            
-            # 4th tab
-            
-            self.dlg.ui.groupBoxSize.setEnabled(False)
-            self.dlg.ui.groupBoxColor.setEnabled(False)
-            self.dlg.ui.toolBoxDisplay.setItemEnabled(1, False)
-            self.dlg.ui.pushButtonReqDisplay.setEnabled(False)
-            self.dlg.ui.pushButtonReqRename.setEnabled(False)
-            self.dlg.ui.pushButtonReqDelete.setEnabled(False)
-            self.dlg.ui.pushButtonSaveComments.setEnabled(False)
-            self.dlg.ui.comboBoxPathID.setEnabled(False)
-            
-            self.dlg.ui.textEditComments.setPlainText("")  
-                    
-        elif (indexChosenLine > 0):
-            # 1st tab
-            #####
-            # "obj_type" field
-            self.dlg.ui.comboBoxObjType.setCurrentIndex(self.modelObjType.match(self.modelObjType.index(0,1), 0, self.modelReq.record(indexChosenLine).value("obj_type"))[0].row())
-            self.obj_def_name = self.modelObjType.record(self.dlg.ui.comboBoxObjType.currentIndex()).value("def_name")
-                        
-            # Disables the groupBox since they should not be modified when an already calculated indicator is displayed
-            self.dlg.ui.groupBoxObjType.setEnabled(False)
-            self.dlg.ui.groupBoxPaths.setEnabled(False)
-            self.dlg.ui.groupBoxIndicators.setEnabled(False)
-            self.dlg.ui.groupBoxPerimetre.setEnabled(False)
-            self.dlg.ui.pushButtonIndicCalculate.setEnabled(False)
-            
-            # "area_type" and "areas" fields
-            if (self.modelReq.record(indexChosenLine).isNull("area_type")==True):
-                self.dlg.ui.comboBoxAreaType.setCurrentIndex(0)
-            else:
-                self.dlg.ui.comboBoxAreaType.setCurrentIndex(self.modelAreaType.match(self.modelAreaType.index(0,1), 0, self.modelReq.record(indexChosenLine).value("area_type"))[0].row())
-            
-            self.dlg.ui.comboBoxArea.setCurrentIndex(0)
-            if (self.modelReq.record(indexChosenLine).isNull("areas")==False):
-                for char_id in ((str(self.modelReq.record(indexChosenLine).value("areas"))).translate(None, "{}").split(",")):
-                    self.dlg.ui.comboBoxArea.setCurrentIndex(self.modelArea.match(self.modelArea.index(0,1), 0, char_id)[0].row())
-            
-            # "indics" field
-            for indic in ((str(self.modelReq.record(indexChosenLine).value("indics"))).translate(None, "{}").split(",")):
-                row = self.modelIndic.match(self.modelIndic.index(0,1), 0, indic, 1)[0].row()
-                self.dlg.ui.listViewIndic.selectionModel().select(self.modelIndic.index(row,0), QItemSelectionModel.Select)
-            
-            # origin and destination nodes
-            if (self.modelReq.record(indexChosenLine).isNull("node_type")==False):
-                self.node_type=self.modelReq.record(indexChosenLine).value("node_type")
-                self.dlg.ui.comboBoxNodeType.setCurrentIndex(self.modelNodeType.match(self.modelNodeType.index(0,1), 0, self.node_type)[0].row())
-                i=0
-                if (self.node_type==0): # Stop areas
-                    i=4
-            
-            if (self.obj_def_name=="paths" or self.obj_def_name=="paths_details"):
-                if (self.modelReq.record(indexChosenLine).isNull("o_node")==False) and (self.modelReq.record(indexChosenLine).isNull("d_node")==False):
-                    self.dlg.ui.comboBoxOrig.setCurrentIndex(self.modelNode.match(self.modelNode.index(0,i), 0, self.modelReq.record(indexChosenLine).value("o_node"),1)[0].row())
-                    self.dlg.ui.comboBoxDest.setCurrentIndex(self.modelNode.match(self.modelNode.index(0,i), 0, self.modelReq.record(indexChosenLine).value("d_node"),1)[0].row())
-                        
-            if (self.obj_def_name=="paths_tree"):
-                if (self.modelReq.record(indexChosenLine).isNull("o_node")==False):
-                    self.dlg.ui.comboBoxPathsTreeRootNode.setCurrentIndex(self.modelNode.match(self.modelNode.index(0,i), 0, self.modelReq.record(indexChosenLine).value("o_node"),1)[0].row())
-                    self.dlg.ui.comboBoxPathsTreeOD.setCurrentIndex(0)
-                elif (self.modelReq.record(indexChosenLine).isNull("d_node")==False):
-                    self.dlg.ui.comboBoxPathsTreeRootNode.setCurrentIndex(self.modelNode.match(self.modelNode.index(0,i), 0, self.modelReq.record(indexChosenLine).value("d_node"),1)[0].row())
-                    self.dlg.ui.comboBoxPathsTreeOD.setCurrentIndex(1)
-            
-                        
-            if (self.obj_def_name=="comb_paths_trees"):
-                if (self.modelReq.record(indexChosenLine).isNull("nodes_ag")==False):
-                    self.nodes_ag = self.modelReq.record(indexChosenLine).value("nodes_ag")
-                    self.dlg.ui.comboBoxNodeAg.setCurrentIndex(self.modelAgreg.match(self.modelAgreg.index(0,1), 0, self.nodes_ag)[0].row())
-                else:
-                    self.dlg.ui.comboBoxNodeAg.setCurrentIndex(0)
-                if (self.modelReq.record(indexChosenLine).isNull("o_nodes")==False):
-                    nodes=self.modelReq.record(indexChosenLine).value("o_nodes")
-                elif (self.modelReq.record(indexChosenLine).isNull("d_nodes")==False):
-                    nodes=self.modelReq.record(indexChosenLine).value("d_nodes")
-                
-                self.root_nodes=[]
-                for node in ((str(nodes)).translate(None, "{}").split(",")):
-                    self.root_nodes.append(node)
-                self.updateSelectedNodes()
-            
-            # 2nd tab
-            #####
-            self.dlg.ui.groupBoxGTFSFeeds.setEnabled(False)
-            self.dlg.ui.groupBoxAgencies.setEnabled(False)
-            self.dlg.ui.groupBoxTransportModes.setEnabled(False)
-            self.dlg.ui.groupBoxForcStop.setEnabled(False)
-            self.dlg.ui.groupBoxForcRoute.setEnabled(False)
-                        
-            # "stop" field
-            if (self.modelReq.record(indexChosenLine).isNull("stop")==False):
-                self.dlg.ui.comboBoxForcStop.setCurrentIndex(self.modelStop.match(self.modelStop.index(0,1), 0, self.modelReq.record(indexChosenLine).value("stop"))[0].row())
-            
-            # "route" field
-            if (self.modelReq.record(indexChosenLine).isNull("route")==False):
-                self.dlg.ui.comboBoxForcRoute.setCurrentIndex(self.modelRoute.match(self.modelRoute.index(0,1), 0, self.modelReq.record(indexChosenLine).value("route"))[0].row())
-            
-            # "agencies" field
-            if (self.modelReq.record(indexChosenLine).isNull("agencies")==False):
-                for i in ((str(self.modelReq.record(indexChosenLine).value("agencies"))).translate(None, "{}").split(",")):
-                    row = self.modelAgencies.match(self.modelAgencies.index(0,3), 0, i, 1)[0].row()
-                    self.dlg.ui.tableViewAgencies.selectionModel().select(self.modelAgencies.index(row,0), QItemSelectionModel.Select)
-            else:
-                self.dlg.ui.tableViewAgencies.clearSelection()
-            
-            # "gtfs_feeds" field
-            if (self.modelReq.record(indexChosenLine).isNull("gtfs_feeds")==False):
-                for feed in ((str(self.modelReq.record(indexChosenLine).value("gtfs_feeds"))).translate(None, "{}").split(",")):
-                    row = self.modelPTSources.match(self.modelIndic.index(0,1), 0, feed, 1)[0].row()
-                    self.dlg.ui.listViewGTFSFeeds.selectionModel().select(self.modelPTSources.index(row,0), QItemSelectionModel.Select)
-            
-            # "pt_modes" field
-            if (self.modelReq.record(indexChosenLine).isNull("pt_modes")==False):
-                for i in ((str(self.modelReq.record(indexChosenLine).value("pt_modes"))).translate(None, "{}").split(",")):
-                    if (i!="NULL"):
-                        row = self.modelPTModes.match(self.modelPTModes.index(0,1), 0, i, 1)[0].row()
-                        self.dlg.ui.listViewPTModes.selectionModel().select(self.modelPTModes.index(row,0), QItemSelectionModel.Select)
-            
-            # "i_modes" field
-            for i in ((str(self.modelReq.record(indexChosenLine).value("i_modes"))).translate(None, "{}").split(",")):
-                if (i!="NULL"):
-                    row = self.modelIModes.match(self.modelIModes.index(0,1), 0, i, 1)[0].row()
-                    self.dlg.ui.listViewIModes.selectionModel().select(self.modelIModes.index(row,0), QItemSelectionModel.Select)
-            
-            # 3rd tab
-            #####
-            self.dlg.ui.toolBoxDays.setEnabled(False)
-            self.dlg.ui.toolBoxTime.setEnabled(False)
-            self.dlg.ui.radioButtonTimePoint.setEnabled(False)
-            
-            # "day" / "day_type", "per_start", "per_end", "day_ag" fields
-            if (self.modelReq.record(indexChosenLine).isNull("day_type")==True):
-                for day in ((str(self.modelReq.record(indexChosenLine).value("days"))).translate(None, "{}").split(",")):
-                    self.dlg.ui.calendarWidget.setSelectedDate(QDate.fromString(day, "yyyy-MM-dd"))
-                self.dlg.ui.radioButtonPreciseDate.setChecked(True)
-            else:
-                self.dlg.ui.comboBoxDayType.setCurrentIndex(self.modelDayType.match(self.modelDayType.index(0,1), 0, self.modelReq.record(indexChosenLine).value("day_type"))[0].row())
-                self.dlg.ui.radioButtonDayType.setChecked(True)
-                self.dlg.ui.dateEditPerStart.setDate(self.modelReq.record(indexChosenLine).value("per_start"))
-                self.dlg.ui.dateEditPerEnd.setDate(self.modelReq.record(indexChosenLine).value("per_end"))
-                self.dlg.ui.comboBoxPerType.setCurrentIndex(self.modelPerType.match(self.modelPerType.index(0,1), 0, self.modelReq.record(indexChosenLine).value("per_type"))[0].row())
-                self.dlg.ui.comboBoxDayAg.setCurrentIndex(self.modelAgreg.match(self.modelAgreg.index(0,1), 0, self.modelReq.record(indexChosenLine).value("day_ag"))[0].row())
-            
-            
-            # "time_start", "time_end", "time_ag", "time_point" fields
-            if (self.modelReq.record(indexChosenLine).isNull("time_start")==False):
-                self.dlg.ui.timeEditTimeStart.setTime(self.modelReq.record(indexChosenLine).value("time_start"))
-                self.dlg.ui.radioButtonTimePeriod.setChecked(True)
-                self.dlg.ui.timeEditTimeEnd.setTime(self.modelReq.record(indexChosenLine).value("time_end"))
-            elif (self.modelReq.record(indexChosenLine).isNull("constraint_date_after")==False):
-                self.radioButtonTimePoint.setChecked(True)
-                self.timeEditTimePoint.setTime(self.modelReq.record(indexChosenLine).value("time_point"))
-                self.comboBoxTimePointConstraint.setCurrentIndex(self.modelTimeConst.match(self.modelTimeConst.index(0,1), 0, self.modelReq.record(indexChosenLine).value("time_const"))[0].row())
-            
-            # 4th tab
-            #####
-            
-            if ((self.obj_def_name== "stop_areas") or (self.obj_def_name == "stops") or (self.obj_def_name == "sections") or (self.obj_def_name=="trips")):
-                self.dlg.ui.groupBoxGeoQuery.setEnabled(True)
-                self.dlg.ui.groupBoxColor.setEnabled(True)
-                self.dlg.ui.groupBoxSize.setEnabled(True)
-                self.dlg.ui.comboBoxPathID.setEnabled(False)
-                self.dlg.ui.toolBoxDisplay.setItemEnabled(1,False)
-            elif ((self.obj_def_name == "paths") or (self.obj_def_name == "paths_details")):
-                self.dlg.ui.groupBoxGeoQuery.setEnabled(False)
-                self.dlg.ui.comboBoxPathID.setEnabled(True)
-                if (self.obj_def_name=="paths"):
-                    s="(SELECT 'Tous' as gid, -1 as gid_order) UNION (SELECT gid::character varying, gid FROM indic."+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+") ORDER BY gid_order"
-                elif (self.obj_def_name=="paths_details"):
-                    s="(SELECT 'Tous' as path_id, -1 as path_id_order) UNION (SELECT distinct path_id::character varying, path_id FROM indic."+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+") ORDER BY path_id_order"
-                self.modelPathID.setQuery(unicode(s), self.db)
-                self.dlg.ui.toolBoxDisplay.setItemEnabled(1,False)
-            elif ((self.obj_def_name == "routes") or (self.obj_def_name == "agencies")):
-                self.dlg.ui.groupBoxGeoQuery.setEnabled(False)
-                self.dlg.ui.comboBoxPathID.setEnabled(False)
-                self.dlg.ui.toolBoxDisplay.setItemEnabled(1,False)
-            elif ((self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees")):
-                self.dlg.ui.groupBoxGeoQuery.setEnabled(True)
-                self.dlg.ui.groupBoxColor.setEnabled(True)
-                self.dlg.ui.groupBoxSize.setEnabled(True)
-                self.dlg.ui.comboBoxPathID.setEnabled(False)
-                # Update available derived surface representations
-                self.dlg.ui.toolBoxDisplay.setItemEnabled(1,True)
-                self.parent_layer = self.dlg.ui.comboBoxReq.currentText()
-                self.refreshDerivedRep()             
-                self._slotComboBoxDerivedRepIndexChanged(0)
-            
-            self.dlg.ui.pushButtonReqDisplay.setEnabled(True)
-            self.dlg.ui.pushButtonReqRename.setEnabled(True)
-            self.dlg.ui.pushButtonReqDelete.setEnabled(True)
-            self.dlg.ui.pushButtonSaveComments.setEnabled(True)
-            
-            # Update color and size indicators
-            self.updateReqIndicators()
-            
-            
-            # Display comments of the current layer
-            s="SELECT coalesce(pg_catalog.obj_description((SELECT 'indic."+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+"'::regclass::oid)), '');"
-            q=QtSql.QSqlQuery(unicode(s), self.db)
-            q.next()
-            self.dlg.ui.textEditComments.setPlainText(q.value(0))  
-    
-    
-    def _slotComboBoxPathIDIndexChanged(self, indexChosenLine):
-        for name, layer in QgsMapLayerRegistry.instance().mapLayers().iteritems(): 
-                if (layer.name()==self.dlg.ui.comboBoxReq.currentText()):
-                    if (self.dlg.ui.comboBoxPathID.currentText()!="Tous" and self.dlg.ui.comboBoxPathID.currentText()!=""):
-                        if (self.obj_def_name=="paths"):
-                            layer.setSubsetString("gid = "+self.dlg.ui.comboBoxPathID.currentText())
-                        elif (self.obj_def_name=="paths_details"):
-                            layer.setSubsetString("path_id = "+self.dlg.ui.comboBoxPathID.currentText())
-                    else:
-                        layer.setSubsetString("")
-        
-    
-    def _slotPushButtonReqDeleteClicked(self):
-        ret = QMessageBox.question(self.dlg, "TempusAccess", u"La requête courante va être supprimée. \n Êtes vous certain(e) de vouloir faire cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
-        if (ret == QMessageBox.Ok):
-            for layer in self.node_indicators.findLayers():
-                if (layer.name()==self.dlg.ui.comboBoxReq.currentText()):
-                    QgsMapLayerRegistry.instance().removeMapLayer(layer.layer().id())
-            
-            for i in range(0, self.modelDerivedRep.rowCount()):
-                s="DROP TABLE indic."+self.modelDerivedRep.record(i).value(0)+";"
-                if self.debug:
-                    with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                        log_file.write(s+"\n")
-                q=QtSql.QSqlQuery(self.db)
-                q.exec_(unicode(s))
-            
-            s="DROP TABLE indic."+self.dlg.ui.comboBoxReq.currentText()+";\
-            DELETE FROM tempus_access.indic_catalog WHERE layer_name = '"+self.dlg.ui.comboBoxReq.currentText()+"' OR parent_layer = '"+self.dlg.ui.comboBoxReq.currentText()+"';"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(s+"\n")
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
-        
-            self.refreshReq()
-        
-        
-    def _slotPushButtonReqRenameClicked(self):
-        old_name = self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")
-        new_name = self.dlg.ui.comboBoxReq.currentText()
-        s="ALTER TABLE indic."+old_name+" RENAME TO "+new_name+";\
-        UPDATE tempus_access.indic_catalog SET layer_name = '"+new_name+"' WHERE layer_name = '"+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+"';\
-        UPDATE tempus_access.indic_catalog SET parent_layer = '"+new_name+"' WHERE parent_layer = '"+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+"';\
-        ALTER TABLE indic."+new_name+"\
-        RENAME CONSTRAINT "+old_name+"_pkey TO "+new_name+"_pkey";
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(s+"\n")
-        q=QtSql.QSqlQuery(self.db)
-        q.exec_(unicode(s))
-        
-        for layer in self.node_indicators.findLayers():
-            if (layer.name()==old_name):
-                QgsMapLayerRegistry.instance().removeMapLayer(layer.layer().id())
-        
-        self.refreshReq()
-        
-        self.dlg.ui.comboBoxReq.setCurrentIndex(self.modelReq.match(self.modelReq.index(0,0), 0, new_name)[0].row())
 
-        
-    def _slotPushButtonSaveCommentsClicked(self):
-        s="COMMENT ON TABLE indic."+self.modelReq.record(self.dlg.ui.comboBoxReq.currentIndex()).value("layer_name")+" IS '"+unicode(self.dlg.ui.textEditComments.toPlainText())+"';"
-        
-        q=QtSql.QSqlQuery(self.db)
-        q.exec_(unicode(s))
-    
-    
-    def _slotComboBoxSizeIndicIndexChanged(self, indexChosenLine):
-        if (indexChosenLine>0):
-            s="SELECT coalesce(min("+self.modelSizeIndic.record(indexChosenLine).value("col_name")+"), 0), coalesce(max("+self.modelSizeIndic.record(indexChosenLine).value("col_name")+"), 0) FROM indic."+self.dlg.ui.comboBoxReq.currentText()
-            q=QtSql.QSqlQuery(unicode(s), self.db)
-            q.next()
-            self.dlg.ui.spinBoxSizeIndicMinValue.setEnabled(True)
-            self.dlg.ui.spinBoxSizeIndicMaxValue.setEnabled(True) 
-            self.dlg.ui.spinBoxSizeIndicMinValue.setValue(max(0,q.value(0)-1))
-            self.dlg.ui.spinBoxSizeIndicMaxValue.setValue(q.value(1))
-        else:
-            self.dlg.ui.spinBoxSizeIndicMinValue.setEnabled(False)
-            self.dlg.ui.spinBoxSizeIndicMaxValue.setEnabled(False)
-            self.dlg.ui.spinBoxSizeIndicMinValue.setValue(0)
-            self.dlg.ui.spinBoxSizeIndicMaxValue.setValue(0)
-        
-    
-    def _slotComboBoxColorIndicIndexChanged(self, indexChosenLine):
-        if (indexChosenLine>0):
-            s="SELECT min("+self.modelColorIndic.record(indexChosenLine).value("col_name")+"), max("+self.modelColorIndic.record(indexChosenLine).value("col_name")+") FROM indic."+self.dlg.ui.comboBoxReq.currentText()
-            q=QtSql.QSqlQuery(unicode(s), self.db)
-            q.next()
-            self.dlg.ui.spinBoxColorIndicMinValue.setEnabled(True)
-            self.dlg.ui.spinBoxColorIndicMaxValue.setEnabled(True) 
-            self.dlg.ui.spinBoxColorIndicMinValue.setValue(max(q.value(0),0))
-            self.dlg.ui.spinBoxColorIndicMaxValue.setValue(q.value(1))
-        else:
-            self.dlg.ui.spinBoxColorIndicMinValue.setEnabled(False)
-            self.dlg.ui.spinBoxColorIndicMaxValue.setEnabled(False) 
-    
-    
-    def _slotComboBoxDerivedRepIndexChanged(self, indexChosenLine):
-        if ((self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")): 
-            if (indexChosenLine==0): # Ready to generate iso-surfaces
-                self.dlg.ui.groupBoxParamDerivedRep.setEnabled(True)
-                # Update available indicators for surface representation
-                s="(\
-                   SELECT lib, code, col_name FROM tempus_access.indicators \
-                   WHERE sur_color = TRUE AND col_name IN \
-                       (SELECT column_name FROM information_schema.columns WHERE table_schema = 'indic' AND table_name = '"+self.dlg.ui.comboBoxReq.currentText()+"')\
-                   AND col_name IN \
-                       (SELECT col_name FROM tempus_access.indicators \
-                       WHERE ARRAY[code] <@ (SELECT indic_list::integer[] FROM tempus_access.obj_type WHERE def_name = '"+self.obj_def_name+"') \
-                       )\
-                   )\
-                   UNION \
-                   (\
-                   SELECT '', -1, '' \
-                   )\
-                   ORDER BY 2"
-                self.modelDerivedRepIndic.setQuery(s, self.db)      
-                
-                self.dlg.ui.pushButtonDerivedRepDelete.setEnabled(False)
-                self.dlg.ui.pushButtonDerivedRepRename.setEnabled(False)      
-                self._slotComboBoxDerivedRepIndicIndexChanged(0)
-            
-            else: # Ready to display an already calculated isosurface
-                self.dlg.ui.groupBoxParamDerivedRep.setEnabled(False)
-                self.dlg.ui.pushButtonDerivedRepDelete.setEnabled(True)
-                self.dlg.ui.pushButtonDerivedRepRename.setEnabled(True)
-                self.dlg.ui.pushButtonDerivedRepGenerate.setEnabled(False)
-                self.dlg.ui.groupBoxSize.setEnabled(False)
-                s="(\
-                       SELECT lib, code, col_name FROM tempus_access.indicators \
-                       WHERE sur_color = TRUE AND col_name IN \
-                           (SELECT column_name FROM information_schema.columns WHERE table_schema = 'indic' AND table_name = '"+self.dlg.ui.comboBoxDerivedRep.currentText()+"') \
-                       AND col_name IN \
-                           (SELECT col_name FROM tempus_access.indicators \
-                           WHERE ARRAY[code] <@ (SELECT indic_list::integer[] FROM tempus_access.obj_type WHERE def_name = '"+self.obj_def_name+"') \
-                           )\
-                   )\
-                   UNION \
-                   (\
-                       SELECT '', -1, '' \
-                   )\
-                   ORDER BY 2"
-                self.modelColorIndic.setQuery(s, self.db)
-
-                
-    def _slotPushButtonDerivedRepDeleteClicked(self):
-        ret = QMessageBox.question(self.dlg, "TempusAccess", u"La représentation surfacique courante va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
-
-        if (ret == QMessageBox.Ok):
-            for layer in self.node_indicators.findLayers():
-                if (layer.name()==self.dlg.ui.comboBoxDerivedRep.currentText()):
-                    QgsMapLayerRegistry.instance().removeMapLayer(layer.layer().id())
-                    
-            s="DROP TABLE indic."+self.dlg.ui.comboBoxDerivedRep.currentText()+";\
-            DELETE FROM tempus_access.indic_catalog WHERE layer_name = '"+self.dlg.ui.comboBoxDerivedRep.currentText()+"';"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(s+"\n")
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
-        
-            self.refreshDerivedRep()
-            
-        
-    def _slotPushButtonDerivedRepRenameClicked(self):
-        old_name = self.modelDerivedRep.record(self.dlg.ui.comboBoxDerivedRep.currentIndex()).value("layer_name")
-        new_name = self.dlg.ui.comboBoxDerivedRep.currentText()
-        s="ALTER TABLE indic."+old_name+" RENAME TO "+new_name+";\
-        UPDATE tempus_access.indic_catalog SET layer_name = '"+new_name+"' WHERE layer_name = '"+self.modelDerivedRep.record(self.dlg.ui.comboBoxDerivedRep.currentIndex()).value("layer_name")+"';\
-        ALTER TABLE indic."+new_name+"\
-        RENAME CONSTRAINT "+old_name+"_pkey TO "+new_name+"_pkey";
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(s+"\n")
-        q=QtSql.QSqlQuery(self.db)
-        q.exec_(unicode(s))
-        
-        for layer in self.node_indicators.findLayers():
-            if (layer.name()==old_name):
-                QgsMapLayerRegistry.instance().removeMapLayer(layer.layer().id())
-        
-        self.refreshDerivedRep()
-        
-        self.dlg.ui.comboBoxDerivedRep.setCurrentIndex(self.modelDerivedRep.match(self.modelDerivedRep.index(0,0), 0, new_name)[0].row())
-
-            
-    def _slotComboBoxDerivedRepIndicIndexChanged(self, indexChosenLine):
-        if (indexChosenLine>0):
-            s="SELECT min("+self.modelDerivedRepIndic.record(indexChosenLine).value("col_name")+"), max("+self.modelDerivedRepIndic.record(indexChosenLine).value("col_name")+") FROM indic."+self.dlg.ui.comboBoxReq.currentText()
-            q=QtSql.QSqlQuery(unicode(s), self.db)
-            q.next()
-            self.dlg.ui.spinBoxDerivedRepIndicMinValue.setEnabled(True)
-            self.dlg.ui.spinBoxDerivedRepIndicMaxValue.setEnabled(True)
-            self.dlg.ui.spinBoxDerivedRepIndicMinValue.setValue(q.value(0))
-            self.dlg.ui.spinBoxDerivedRepIndicMaxValue.setRange(1, q.value(1))
-            self.dlg.ui.spinBoxDerivedRepIndicMaxValue.setValue(q.value(1))
-            self.dlg.ui.spinBoxDerivedRepIndicMaxValue.setRange(1, q.value(1))
-            self.dlg.ui.spinBoxDerivedRepClasses.setRange(1, q.value(1))
-            if (self.dlg.ui.comboBoxDerivedRep.currentText()==""):
-                self.dlg.ui.pushButtonDerivedRepGenerate.setEnabled(True)
-            else:
-                self.dlg.ui.pushButtonDerivedRepGenerate.setEnabled(False)
-        else:
-            self.dlg.ui.pushButtonDerivedRepGenerate.setEnabled(False)
-            self.dlg.ui.spinBoxDerivedRepIndicMinValue.setEnabled(False)
-            self.dlg.ui.spinBoxDerivedRepIndicMaxValue.setEnabled(False)
-            self.dlg.ui.spinBoxColorIndicMinValue.setValue(0)
-            self.dlg.ui.spinBoxColorIndicMaxValue.setValue(0)
-                
-    
-    def _slotPushButtonDerivedRepGenerateClicked(self):
-        self.isosurfaces=True
-        self.buildQuery()
-        if self.debug:
-            with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                log_file.write(self.query+"\n")
-        r=QtSql.QSqlQuery(self.db)
-        done=r.exec_(self.query)
-        self._slotResultAvailable(done, self.query)
-    
-    
-    def _slotpushButtonReqDisplayClicked(self):
-        size_indic_name=self.modelSizeIndic.record(self.dlg.ui.comboBoxSizeIndic.currentIndex()).value("col_name")
-        color_indic_name=self.modelColorIndic.record(self.dlg.ui.comboBoxColorIndic.currentIndex()).value("col_name")
-        
-        self.dlg.ui.labelElapsedTime.setText("")
-               
-        if (size_indic_name!=""):
-            s="SELECT tempus_access.map_indicator('"+self.dlg.ui.comboBoxReq.currentText()+"', '"+size_indic_name+"', 'size', "+str(self.dlg.ui.spinBoxSizeIndicMinValue.value())+", "+str(self.dlg.ui.spinBoxSizeIndicMaxValue.value())+", "+str(self.dlg.ui.doubleSpinBoxSize.value())+")"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(unicode(s)+"\n")
-            
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
-        elif (self.obj_def_name != "paths_tree") and (self.obj_def_name != "comb_paths_trees"):
-            s="UPDATE indic."+self.dlg.ui.comboBoxReq.currentText()+" SET symbol_size = 1"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(unicode(s)+"\n")
-            
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
-        
-        if (color_indic_name!=""):
-            s="SELECT tempus_access.map_indicator('"+self.dlg.ui.comboBoxReq.currentText()+"', '"+color_indic_name+"', 'color', "+str(self.dlg.ui.spinBoxColorIndicMinValue.value())+", "+str(self.dlg.ui.spinBoxColorIndicMaxValue.value())+", 1)"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(unicode(s)+"\n")
-            
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
-        elif (self.obj_def_name != "paths_tree") and (self.obj_def_name != "comb_paths_trees"):
-            s="UPDATE indic."+self.dlg.ui.comboBoxReq.currentText()+" SET symbol_color = 1"
-            if self.debug:
-                with open(self.plugin_dir+"/log.txt", "a") as log_file:
-                    log_file.write(unicode(s)+"\n")
-            
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s)) 
-        
-        for layer in self.node_indicators.findLayers():
-            self.iface.legendInterface().setLayerVisible(layer.layer(), False)
-        
-        # Stop areas or stops
-        if (((self.obj_def_name=="stops") or (self.obj_def_name=="stop_areas")) and self.dlg.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/stops_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "the_geom", '')
-        elif (((self.obj_def_name=="stops") or (self.obj_def_name=="stop_areas")) and self.dlg.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/stops_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "the_geom", '')
-        # Sections
-        elif ((self.obj_def_name=="sections") and self.dlg.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/sections_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "the_geom", '')
-        elif ((self.obj_def_name=="sections") and self.dlg.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/sections_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "the_geom", '')
-        # Trips
-        elif ((self.obj_def_name=="trips") and self.dlg.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/sections_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "the_geom", '')
-        elif ((self.obj_def_name=="trips") and self.dlg.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/sections_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "the_geom", '')
-        # Routes or agencies
-        elif ((self.obj_def_name =="routes") or (self.obj_def_name=="agencies")):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), '', 'gid', None, '')
-        # Paths
-        elif (self.obj_def_name == "paths"):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/paths.qml", "gid", "the_geom", "")
-        elif (self.obj_def_name=="paths_details"):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/paths_by_mode.qml", "gid", "the_geom", "") 
-        # Paths tree described by nodes
-        elif (self.obj_def_name=="paths_tree") and (self.dlg.ui.toolBoxDisplay.currentIndex()==0):            
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/isochrons_nodes.qml", "to_node", "geom_point", "") 
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/isochrons_edges.qml", "to_node", "geom_section", "")
-        elif ((self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")) and (self.dlg.ui.toolBoxDisplay.currentIndex()==1):
-            self.indicDisplay(self.dlg.ui.comboBoxDerivedRep.currentText(), self.plugin_dir + "/styles/isochrons_surfaces.qml", "id", "geom", "")
-        elif (self.obj_def_name=="comb_paths_trees") and (self.dlg.ui.toolBoxDisplay.currentIndex()==0):
-            self.indicDisplay(self.dlg.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/isochrons_nodes.qml", "id", "geom", "")
-        
-        if (self.obj_def_name == "paths" or self.obj_def_name=="paths_details" or self.obj_def_name=="paths_tree" or self.obj_def_name=="comb_paths_trees"):
-            for layer in self.node_indicators.findLayers():
-                if (layer.name()== "Destinations" or layer.name() == "Origines"):
-                    self.iface.legendInterface().setLayerVisible(layer.layer(), True)   
-    
-    

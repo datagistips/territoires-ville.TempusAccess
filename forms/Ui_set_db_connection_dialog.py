@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_set_db_connection_dialog.ui'
 #
-# Created: Tue Nov 20 10:50:23 2018
+# Created: Thu Nov 22 13:16:55 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

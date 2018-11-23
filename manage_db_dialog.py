@@ -110,16 +110,18 @@ class manage_db_dialog(QDialog):
             q=QtSql.QSqlQuery(self.temp_db)
             q.exec_(unicode(s))
             
-            
-            
             cmd = [PGRESTORE,  "-h", self.temp_db.hostName(), "-p", str(self.temp_db.port()), "-d", self.temp_db.databaseName(), "-U",  self.temp_db.userName(), "-w", "-O", "-x", "-v", nom_fichier]
+            self.ui.lineEditCommand.setText(" ".join(cmd))
             r = subprocess.call( cmd )
-            os.popen("pause").read() # on utilise popen qui va lancer une commande système sans faire apparaître de message, on initialise l'objet
-    
+            
             box = QMessageBox()
-            box.setText(u"L'import de la base est terminé. Vous pouvez maintenant la charger. " )
+            if r==0:
+                box.setText(u"L'import de la base s'est terminé avec succès. Vous pouvez maintenant la charger. " )
+            else:
+                box.setText(u"L'import de la base a échoué ou a retourné des avertissements. ")
             box.exec_()
     
+        
         
     def _slotPushButtonCreateClicked(self):
         s="SELECT count(*) from pg_database\
@@ -143,6 +145,7 @@ class manage_db_dialog(QDialog):
             
             dbstring = "host="+self.caller.db.hostName()+" dbname=tempusaccess_"+self.ui.lineEditNewDB.text()+" port="+str(self.caller.db.port())
             cmd = ["python", TEMPUSLOADER, "--action", "reset", "--tempusaccess", "--path", self.plugin_dir + "/data/system.zip", "--sep", ";", "--encoding", "LATIN1", "-d", dbstring]
+            self.ui.lineEditCommand.setText(" ".join(cmd))
             r = subprocess.call( cmd )
             
             box = QMessageBox()
@@ -194,12 +197,18 @@ class manage_db_dialog(QDialog):
     
     def _slotPushButtonExportClicked(self):
         nom_fichier = QFileDialog.getSaveFileName(caption = "Enregistrer la base de données sous...", directory=self.caller.data_dir, filter = "Backup files (*.backup)")
-        cmd = [PGDUMP, "--host", self.temp_db.hostName(), "--port", str(self.temp_db.port()), "--username", self.temp_db.userName(), "--no-password", "--format", "custom", "--encoding", "UTF8", "--no-privileges", "--verbose", "--file", nom_fichier, "-d", self.temp_db.databaseName()]
-        r = subprocess.call( cmd )
         
-        box = QMessageBox()
-        box.setText(u"La sauvegarde est terminée. " )
-        box.exec_()
+        if nom_fichier:
+            cmd = [PGDUMP, "--host", self.temp_db.hostName(), "--port", str(self.temp_db.port()), "--username", self.temp_db.userName(), "--no-password", "--format", "custom", "--encoding", "UTF8", "--no-privileges", "--verbose", "--file", nom_fichier, "-d", self.temp_db.databaseName()]
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            r = subprocess.call( cmd )
+            
+            box = QMessageBox()
+            if r==0:
+                box.setText(u"La sauvegarde s'est terminée avec succès.")
+            else:
+                box.setText(u"La sauvegarde a échoué.")
+            box.exec_()
     
     
     def _slotPushButtonDeleteClicked(self):
@@ -233,15 +242,7 @@ class manage_db_dialog(QDialog):
         self.ui.labelLoadedDB.setText("tempusaccess_"+self.ui.comboBoxDB.currentText())
         self.updateDBConnection()
         
-        if (self.caller.db.open() == False):
-            self.ui.pushButtonExport.setEnabled(False)
-            self.ui.pushButtonDelete.setEnabled(False)
-            self.ui.pushButtonLoad.setEnabled(False)
-            box = QMessageBox()
-            box.setText(u"La connexion à la base de données a échoué :" + unicode(self.caller.db.lastError().text()))
-            box.exec_()
-        
-        else: # if connection succeeds
+        if self.caller.db.open():
             root = QgsProject.instance().layerTreeRoot()
             
             # Remove old layers
@@ -295,7 +296,11 @@ class manage_db_dialog(QDialog):
             self.caller.loadLayers()
                         
             # Set object type on "stop areas"
-            self.caller._slotComboBoxObjTypeIndexChanged(0)    
+            self.caller._slotComboBoxObjTypeIndexChanged(0)
+        else:
+            box = QMessageBox()
+            box.setText(u"La connexion à la base a échoué.")
+            box.exec_()
     
     
     def _slotClose(self):

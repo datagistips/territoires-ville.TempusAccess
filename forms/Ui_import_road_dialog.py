@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_road_dialog.ui'
 #
-# Created: Tue Nov 20 10:50:23 2018
+# Created: Thu Nov 22 13:16:56 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,13 +26,13 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(471, 275)
+        Dialog.resize(533, 280)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(380, 240, 81, 31))
+        self.buttonBox.setGeometry(QtCore.QRect(440, 240, 81, 41))
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.layoutWidget = QtGui.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 11, 451, 219))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 11, 511, 219))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout.setMargin(0)
@@ -112,6 +112,19 @@ class Ui_Dialog(object):
         self.lineEditSourceName = QtGui.QLineEdit(self.layoutWidget)
         self.lineEditSourceName.setObjectName(_fromUtf8("lineEditSourceName"))
         self.gridLayout.addWidget(self.lineEditSourceName, 0, 1, 1, 1)
+        self.layoutWidget_2 = QtGui.QWidget(Dialog)
+        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 250, 421, 22))
+        self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_2)
+        self.horizontalLayout.setMargin(0)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.label_8 = QtGui.QLabel(self.layoutWidget_2)
+        self.label_8.setObjectName(_fromUtf8("label_8"))
+        self.horizontalLayout.addWidget(self.label_8)
+        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
+        self.lineEditCommand.setEnabled(False)
+        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
+        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -131,6 +144,7 @@ class Ui_Dialog(object):
         self.pushButtonChoose.setToolTip(_translate("Dialog", "<html><head/><body><p>Le bouton n\'est accessible qu\'après avoir renseigné un nom pour le réseau. </p></body></html>", None))
         self.pushButtonChoose.setText(_translate("Dialog", "Parcourir...", None))
         self.label_6.setText(_translate("Dialog", "Nom réseau *", None))
+        self.label_8.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

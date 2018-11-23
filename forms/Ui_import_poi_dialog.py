@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_poi_dialog.ui'
 #
-# Created: Tue Nov 20 10:50:24 2018
+# Created: Thu Nov 22 13:16:57 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,13 +26,13 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(470, 345)
+        Dialog.resize(534, 320)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(380, 310, 81, 31))
+        self.buttonBox.setGeometry(QtCore.QRect(440, 280, 81, 41))
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.layoutWidget = QtGui.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 11, 451, 261))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 11, 511, 261))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout.setMargin(0)
@@ -115,6 +115,19 @@ class Ui_Dialog(object):
         self.comboBoxPOIType = QtGui.QComboBox(self.layoutWidget)
         self.comboBoxPOIType.setObjectName(_fromUtf8("comboBoxPOIType"))
         self.gridLayout.addWidget(self.comboBoxPOIType, 2, 1, 1, 1)
+        self.layoutWidget_2 = QtGui.QWidget(Dialog)
+        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 290, 421, 22))
+        self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_2)
+        self.horizontalLayout.setMargin(0)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.label_8 = QtGui.QLabel(self.layoutWidget_2)
+        self.label_8.setObjectName(_fromUtf8("label_8"))
+        self.horizontalLayout.addWidget(self.label_8)
+        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
+        self.lineEditCommand.setEnabled(False)
+        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
+        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -134,6 +147,7 @@ class Ui_Dialog(object):
         self.label_4.setText(_translate("Dialog", "Préfixe fichiers", None))
         self.label_5.setText(_translate("Dialog", "Encodage de caractères *", None))
         self.label_7.setText(_translate("Dialog", "Type de POI *", None))
+        self.label_8.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

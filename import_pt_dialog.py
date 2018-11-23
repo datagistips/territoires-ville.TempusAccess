@@ -67,16 +67,16 @@ class import_pt_dialog(QDialog):
 
 
     def _slotPushButtonImportClicked(self):
-        dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
+        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
         self.format = self.caller.modelPTFormat.record(self.ui.comboBoxFormat.currentIndex()).value("format_short_name")
         self.source_name = self.ui.lineEditSourceName.text()
         
         if (self.format == "pt_gtfs"):
-            cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--pt-network', self.source_name, '-s', self.cheminComplet1, '-d', dbstring]
+            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, "--encoding", self.encoding, '-S', str(self.srid), "-d", dbstring]
         elif (self.format == "pt_sncf"):
-            cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--pt-network', self.source_name, '-s', self.cheminComplet1, self.cheminComplet2, '-d', dbstring]
+            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, self.cheminComplet2, self.cheminComplet3, "--encoding", self.encoding, '-S', str(self.srid), "-d", dbstring]
         r = subprocess.call( cmd )
-            
+        
         self.caller.iface.mapCanvas().refreshMap() 
         
         box = QMessageBox()
@@ -96,17 +96,17 @@ class import_pt_dialog(QDialog):
         
     def _slotPushButtonChoose3Clicked(self):
         cheminComplet = QFileDialog.getExistingDirectory(caption = "Choisir le répertoire Route500", options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
-    
+        self.ui.labelFile3.setText(os.path.basename(self.cheminComplet3))
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
         self.format = self.caller.modelRoadFormat.record(indexChosenLine).value("format_short_name")
-        if (self.format == 'pt_gtfs'):
+        if (self.format == 'gtfs'):
             self.ui.pushButtonChoose2.setEnabled(False)
             self.ui.pushButtonChoose3.setEnabled(False)
             self.ui.labelChoose1.setText('Choisir le fichier .zip')
             self.ui.labelChoose2.setText('')
             self.ui.labelChoose3.setText('')
-        elif (self.format == 'pt_sncf'):
+        elif (self.format == 'sncf'):
             self.ui.pushButtonChoose2.setEnabled(True)
             self.ui.pushButtonChoose3.setEnabled(True)
             self.ui.labelChoose1.setText('Choisir le GTFS TER (.zip)')

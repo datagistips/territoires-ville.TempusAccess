@@ -1,0 +1,18 @@
+data_type;data_format;data_format_name;model_version;default_encoding;default_srid;path_type
+road;ign_route500;IGN - Route500;;LATIN1;2154;directory
+road;ign_route500;IGN - Route500;2.1;LATIN1;2154;directory
+road;ign_route120;IGN - Route120;;LATIN1;2154;directory
+road;ign_route120;IGN - Route120;1.1;LATIN1;2154;directory
+road;ign_bdtopo;IGN - BDTopo;;UTF-8;2154;directory
+road;ign_bdtopo;IGN - BDTopo;2.2;UTF-8;2154;directory
+road;ign_bdcarto;IGN - BDCarto;;UTF-8;2154;directory
+road;ign_bdcarto;IGN - BDCarto;3.2;UTF-8;2154;directory
+road;navteq;Navteq - Navstreets;;LATIN1;4326;directory
+road;tomtom;TomTom - Multinet;;LATIN1;4326;directory
+road;tomtom;TomTom - Multinet;1409;LATIN1;4326;directory
+road;osm;OSM;;UTF-8;4326;.pbf
+road;visum;Visum;;LATIN1;4326;directory
+poi;tempus;Tempus;;LATIN1;4326;.shp
+poi;insee_bpe;INSEE - BPE;;LATIN1;2154;directory
+pt;gtfs;GTFS;;UTF-8;4326;.zip
+pt;sncf;GTFS open-data SNCF (TER et IC);;UTF-8;4326;.zip
