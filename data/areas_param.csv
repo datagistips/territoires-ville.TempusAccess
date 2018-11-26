@@ -1,5 +1,0 @@
-mod_code;mod_lib;file_name;id_field;name_field;from_srid
-0;Région;REGION.shp;insee_reg;nom_reg;2154
-1;Département;DEPARTEMENT.shp;insee_dep;nom_dep;2154
-2;Commune;COMMUNE.shp;insee_com;nom_com;2154
-3;Pays;PAYS.shp;code_pays;nom_pays;2154

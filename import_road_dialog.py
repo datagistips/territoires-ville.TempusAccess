@@ -50,6 +50,10 @@ class import_road_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir
         
+        self.ui.comboBoxFormat.setModel(self.caller.modelRoadFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelRoadFormatVersion)
+        self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
+        
         # Connect signals and slots
         self._connectSlots()
         self.format = ''
@@ -75,14 +79,14 @@ class import_road_dialog(QDialog):
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
         self.format = self.caller.modelRoadFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
         self.caller.modelRoadFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'road' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
-
+    
     
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
         if (indexChosenLine>=0):
             self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_encoding")))
             self.ui.spinBoxSRID.setValue(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_srid"))
             self.path_type = self.caller.modelRoadFormatVersion.record(indexChosenLine).value("path_type")
-            if (self.format == "road_visum"):
+            if (self.format == "visum"):
                 self.ui.lineEditVisumModes.setText('P,B,V,T')
                 self.ui.lineEditVisumModes.setEnabled(True)
                 self.ui.labelVisumModes1.setEnabled(True)
@@ -124,14 +128,16 @@ class import_road_dialog(QDialog):
             visum_modes_string = '--visum-modes '+self.visum_modes
         
         cmd = ["python", TEMPUSLOADER, "--action", "import", "--data-type", "road", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '-S', str(self.srid), "-d", dbstring]
+        self.ui.lineEditCommand.setText(" ".join(cmd))
         r = subprocess.call( cmd )
-        
         
         self.caller.iface.mapCanvas().refreshMap()
         
         box = QMessageBox()
-        box.setText(u"L'import du réseau est terminé. " )
+        if r==0:
+            box.setText(u"L'import du réseau est terminé. " )
+        else:
+            box.setText(u"Erreur pendant l'import. ")
         box.exec_()
-            
             
             

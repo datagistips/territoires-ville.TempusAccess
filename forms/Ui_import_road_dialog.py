@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_road_dialog.ui'
 #
-# Created: Thu Nov 22 13:16:56 2018
+# Created: Mon Nov 26 16:54:11 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -122,7 +122,6 @@ class Ui_Dialog(object):
         self.label_8.setObjectName(_fromUtf8("label_8"))
         self.horizontalLayout.addWidget(self.label_8)
         self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
-        self.lineEditCommand.setEnabled(False)
         self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
         self.horizontalLayout.addWidget(self.lineEditCommand)
 

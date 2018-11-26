@@ -255,67 +255,42 @@ class TempusAccess:
         # Import and create
         self.manage_db_dialog=manage_db_dialog(self, self.iface)
         
-        ## PT networks dialogs
+        # PT networks dialogs
         self.modelPTSources = QtSql.QSqlQueryModel()
         self.modelPTFormat = QtSql.QSqlQueryModel()
         self.modelPTFormatVersion = QtSql.QSqlQueryModel()
         self.PTSources = []
         
-        # Import
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
-        self.import_pt_dialog.ui.comboBoxFormat.setModel(self.modelPTFormat)
-        
-        # Manage
         self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
 
-        ## Road networks dialogs
+        # Road networks dialogs
         self.modelRoadSources = QtSql.QSqlQueryModel()
         self.modelRoadFormat = QtSql.QSqlQueryModel()
         self.modelRoadFormatVersion = QtSql.QSqlQueryModel()
         
-        # Import
         self.import_road_dialog=import_road_dialog(self, self.iface)
-        self.import_road_dialog.ui.comboBoxFormat.setModel(self.modelRoadFormat)
-        self.import_road_dialog.ui.comboBoxFormatVersion.setModel(self.modelRoadFormatVersion)
-        self.import_road_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
-        
-        # Manage
         self.export_delete_road_dialog=export_delete_road_dialog(self, self.iface)
         
-        ## POI dialogs
+        # POI dialogs
         self.modelPOISources = QtSql.QSqlQueryModel()
         self.modelPOIType = QtSql.QSqlQueryModel()
         self.modelPOIFormat = QtSql.QSqlQueryModel()
         self.modelPOIFormatVersion = QtSql.QSqlQueryModel()
         
-        
-        # Import
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
-        self.import_poi_dialog.ui.comboBoxFormat.setModel(self.modelPOIFormat)
-        self.import_poi_dialog.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
-        self.import_poi_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
-        self.import_poi_dialog.ui.comboBoxPOIType.setModel(self.modelPOIType)
-        
-        # Manage
         self.export_delete_poi_dialog=export_delete_poi_dialog(self, self.iface)
         
-        ## Areas dialogs
+        # Areas dialogs
         self.modelAreaSources = QtSql.QSqlQueryModel()
         self.modelAreaFormat = QtSql.QSqlQueryModel()
         self.modelAreaFormatVersion = QtSql.QSqlQueryModel()
         
-        # Import
         self.import_areas_dialog=import_areas_dialog(self, self.iface)
-        self.import_areas_dialog.ui.comboBoxFormat.setModel(self.modelAreaFormat)
-        self.import_areas_dialog.ui.comboBoxFormatVersion.setModel(self.modelAreaFormatVersion)
-        self.import_areas_dialog.ui.comboBoxEncoding.setModel(self.modelEncoding)
-        
-        # Manage
         self.export_delete_areas_dialog=export_delete_areas_dialog(self, self.iface)
         
-        ## Indicators dialogs
+        # Indicators dialogs
         self.manage_indicators_dialog=manage_indicators_dialog(self, self.iface)
-        
         
         # Main dock widget
         # 1st tab

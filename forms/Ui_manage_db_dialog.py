@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_db_dialog.ui'
 #
-# Created: Thu Nov 22 13:16:55 2018
+# Created: Mon Nov 26 16:54:10 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -134,7 +134,6 @@ class Ui_Dialog(object):
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
         self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget2)
-        self.lineEditCommand.setEnabled(False)
         self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
         self.gridLayout.addWidget(self.lineEditCommand, 0, 1, 1, 1)
         self.label = QtGui.QLabel(self.layoutWidget2)

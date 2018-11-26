@@ -222,11 +222,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEditCommand">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-     </widget>
+     <widget class="QLineEdit" name="lineEditCommand"/>
     </item>
    </layout>
   </widget>

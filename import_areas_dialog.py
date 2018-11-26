@@ -46,7 +46,11 @@ class import_areas_dialog(QDialog):
         
         self.caller = caller
         
-        self.plugin_dir = self.caller.plugin_dir
+        self.plugin_dir = self.caller.plugin_dir        
+        
+        self.ui.comboBoxFormat.setModel(self.caller.modelAreaFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelAreaFormatVersion)
+        self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         
         # Connect signals and slots
         self._connectSlots()
@@ -74,59 +78,37 @@ class import_areas_dialog(QDialog):
 
         
     def _slotComboBoxFormatVersionCurrentIndexChanged(self):
-        pass
+        if (indexChosenLine>=0):
+            self.ui.spinBoxSRID.setValue(self.caller.modelAreaFormatVersion.record(indexChosenLine).value("default_srid"))
+            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelAreaFormatVersion.record(indexChosenLine).value("default_encoding")))
+            self.path_type = self.caller.modelAreaormatVersion.record(indexChosenLine).value("path_type")
     
     
     
     def _slotPushButtonChooseClicked(self):
-        # Open a window to choose path to the GTFS source file 
-        NomFichierComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier shape", directory=self.caller.data_dir, filter = "Shape files (*.shp)")
+        cheminComplet = ''
+        if (self.path_type=="directory"):
+            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir, caption="Choisir un dossier contenant la source à charger")
+        else:
+            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+        self.srid = self.ui.spinBoxSRID.value()
+        self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+        self.prefix = self.ui.lineEditPrefix.text()
+        self.source_name = self.ui.lineEditSourceName.text()
+        self.model_version = self.caller.modelAreaFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
+        self.filter = self.ui.lineEditFilter.text()
         
-        if NomFichierComplet:
-            s="SELECT max(code)+1 FROM tempus_access.areas_param"
-            q=QtSql.QSqlQuery(self.caller.db)
-            q.exec_(unicode(s))
-            q.next()
-            areaID = q.value(0)
-            # import the chosen GTFS source in the current schema, with "Tempus" library
-            cmd=["ogr2ogr", "-f", "PostgreSQL", "PG:dbname="+self.caller.base+" host="+self.caller.host+" port="+self.caller.port, NomFichierComplet,  "-overwrite", "-lco", "GEOMETRY_NAME=geom", "-s_srs", "EPSG:"+self.ui.lineEditSRID.text(), "-t_srs", "EPSG:4326", "-nln", "tempus_access.area_type"+str(areaID), "-nlt", "PROMOTE_TO_MULTI"]
-            r = subprocess.call( cmd ) 
-            
-            t="ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasID.text()+" TO lib; \
-            ALTER TABLE tempus_access.area_type"+str(areaID)+" RENAME COLUMN "+self.ui.lineEditAreasLib.text()+" TO char_id; \
-            CREATE INDEX IF NOT EXISTS area_type"+str(areaID)+"_lib_idx ON tempus_access.area_type"+str(areaID)+" USING gist (lib gist_trgm_ops); \
-            CREATE INDEX IF NOT EXISTS area_type"+str(areaID)+"_char_id_idx ON tempus_access.area_type"+str(areaID)+" USING btree (char_id);\
-            INSERT INTO tempus_access.areas_param(code, lib, file_name, id_field, name_field, from_srid)\
-            VALUES ((SELECT max(code)+1 FROM tempus_access.areas_param), '"+self.ui.lineEditAreasName.text()+"', '"+QFileInfo(NomFichierComplet).fileName()+"','"+\
-                       self.ui.lineEditAreasID.text()+"', '"+self.ui.lineEditAreasLib.text()+"', "+self.ui.lineEditSRID.text()+");  \
-            ALTER TABLE tempus_access.area_type"+str(areaID)+" DROP COLUMN ogc_fid"
-            q=QtSql.QSqlQuery(self.caller.db)
-            q.exec_(unicode(t)) 
-
-            s="SELECT lib, code, file_name, id_field, name_field, from_srid FROM tempus_access.areas_param WHERE code = "+str(areaID)+"\
-            ORDER BY 2"
-            q=QtSql.QSqlQuery(self.caller.db)
-            q.exec_(unicode(s))
-            
-            self.caller.modelAreaType.setQuery(unicode(s), self.caller.db)
-
-            uri=QgsDataSourceURI()
-            uri.setConnection(self.caller.host, self.caller.port, self.caller.base, self.caller.login, self.caller.pwd)
-            
-            for i in range(0,self.caller.modelAreaType.rowCount()):
-                if (self.caller.modelAreaType.record(i).value("code")==areaID):
-                    uri.setDataSource("tempus_access", "area_type"+str(areaID), "geom", "")
-                    layer = QgsVectorLayer(uri.uri(), self.caller.modelAreaType.record(i).value("lib"), "postgres")
-                    if (layer.isValid()):
-                        QgsMapLayerRegistry.instance().addMapLayer(layer, False)
-                        node_layer = QgsLayerTreeLayer(layer)
-                        self.caller.node_admin.insertChildNode(i, node_layer)
-                        self.caller.iface.legendInterface().setLayerVisible(layer, False)
-            
-            
-            
-            box = QMessageBox()
-            box.setText(u"L'import du fichier de zonage est terminé. " )
-            box.exec_()
-                
-            
+        cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "area", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), '--prefix', self.prefix, '--filter', self.filter, '--dbstring', dbstring]
+        self.ui.lineEditCommand.setText(" ".join(cmd))
+        r = subprocess.call( cmd )
+        
+        self.caller.iface.mapCanvas().refreshMap()
+        
+        box = QMessageBox()
+        if r==0:
+            box.setText(u"L'import de la source est terminé. " )
+        else:
+            box.setText(u"Erreur pendant l'import. ")
+        box.exec_()
+        

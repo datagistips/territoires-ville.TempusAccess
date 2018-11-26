@@ -46,7 +46,12 @@ class import_poi_dialog(QDialog):
         
         self.caller = caller
         
-        self.plugin_dir = self.caller.plugin_dir
+        self.plugin_dir = self.caller.plugin_dir        
+        
+        self.ui.comboBoxFormat.setModel(self.modelPOIFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
+        self.ui.comboBoxEncoding.setModel(self.modelEncoding)
+        self.ui.comboBoxPOIType.setModel(self.modelPOIType)
         
         # Connect signals and slots
         self._connectSlots()
@@ -80,32 +85,31 @@ class import_poi_dialog(QDialog):
     
     
     def _slotPushButtonChooseClicked(self):
-        self.srid = self.ui.spinBoxSRID.value()
-        
         cheminComplet = ''
         if (self.path_type=="directory"):
             cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
         else:
             cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
-        
-        dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
+        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
         self.srid = self.ui.spinBoxSRID.value()
         self.prefix = self.ui.lineEditPrefix.text()
-        self.encoding = self.caller.modelPOIEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+        self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
         self.source_name = self.ui.lineEditSourceName.text()
         self.model_version = self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
         self.filter = self.ui.lineEditFilter.text()
         self.poi_type = self.caller.modelPOIType.record(self.ui.comboBoxPOIType.currentIndex()).value("id")
         
-        cmd=["python", self.caller.load_tempus_path, '-t', self.format, '--poi-source', self.source_name, '-s', cheminComplet, '-d', dbstring, '-W', self.encoding, '-S', str(self.srid), '-p', self.prefix, '--poi-filter', self.filter, '--poi-type', str(self.poi_type)]
-        print cmd
+        cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "poi", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '-S', str(self.srid), '-p', self.prefix, '--filter', self.filter, '--poi-type', str(self.poi_type), '-d', dbstring]
+        self.ui.lineEditCommand.setText(" ".join(cmd))
         r = subprocess.call( cmd )
-               
+        
         self.caller.iface.mapCanvas().refreshMap()
         
-        
         box = QMessageBox()
-        box.setText(u"L'import de la source de données est terminé. " )
+        if r==0:
+            box.setText(u"L'import de la source est terminé. " )
+        else:
+            box.setText(u"Erreur pendant l'import. ")
         box.exec_()
             
             
