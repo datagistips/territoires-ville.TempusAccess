@@ -48,10 +48,10 @@ class import_poi_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir        
         
-        self.ui.comboBoxFormat.setModel(self.modelPOIFormat)
-        self.ui.comboBoxFormatVersion.setModel(self.modelPOIFormatVersion)
-        self.ui.comboBoxEncoding.setModel(self.modelEncoding)
-        self.ui.comboBoxPOIType.setModel(self.modelPOIType)
+        self.ui.comboBoxFormat.setModel(self.caller.modelPOIFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelPOIFormatVersion)
+        self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
+        self.ui.comboBoxPOIType.setModel(self.caller.modelPOIType)
         
         # Connect signals and slots
         self._connectSlots()
