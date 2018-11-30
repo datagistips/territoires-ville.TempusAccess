@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_indicators_dialog.ui'
 #
-# Created: Mon Nov 26 16:54:13 2018
+# Created: Thu Nov 29 14:50:41 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

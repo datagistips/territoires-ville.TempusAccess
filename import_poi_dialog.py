@@ -34,6 +34,8 @@ import string
 import os
 import subprocess
 
+from config import *
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_import_poi_dialog import Ui_Dialog
 
@@ -48,8 +50,8 @@ class import_poi_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir        
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelPOIFormat)
-        self.ui.comboBoxFormatVersion.setModel(self.caller.modelPOIFormatVersion)
+        self.ui.comboBoxFormat.setModel(self.caller.modelPOISourceFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelPOISourceFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         self.ui.comboBoxPOIType.setModel(self.caller.modelPOIType)
         
@@ -64,7 +66,9 @@ class import_poi_dialog(QDialog):
         self.ui.pushButtonChoose.clicked.connect(self._slotPushButtonChooseClicked)
         self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
         self.ui.lineEditSourceName.textChanged.connect(self._slotLineEditSourceNameTextChanged)
-        
+        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
+    
+    
     def _slotLineEditSourceNameTextChanged(self, text):
         if (self.ui.lineEditSourceName.text()!=""):
             self.ui.pushButtonChoose.setEnabled(True)
@@ -73,15 +77,33 @@ class import_poi_dialog(QDialog):
 
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelPOIFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.caller.modelPOIFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'poi' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelPOISourceFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.caller.modelPOISourceFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'poi' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
 
     
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
         if (indexChosenLine>=0):
-            self.ui.spinBoxSRID.setValue(self.caller.modelPOIFormatVersion.record(indexChosenLine).value("default_srid"))
-            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPOIFormatVersion.record(indexChosenLine).value("default_encoding")))
-            self.path_type = self.caller.modelPOIFormatVersion.record(indexChosenLine).value("path_type")
+            self.ui.spinBoxSRID.setValue(self.caller.modelPOISourceFormatVersion.record(indexChosenLine).value("default_srid"))
+            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPOISourceFormatVersion.record(indexChosenLine).value("default_encoding")))
+            self.path_type = self.caller.modelPOISourceFormatVersion.record(indexChosenLine).value("path_type")
+            if (self.format == 'insee_bpe'):
+                self.ui.lineEditSourceComment.setText('')
+                self.ui.lineEditSourceComment.setEnabled(False)
+                self.ui.lineEditIdField.setText("")
+                self.ui.lineEditIdField.setEnabled(False)
+                self.ui.lineEditNameField.setText("")
+                self.ui.lineEditNameField.setEnabled(False)
+                self.ui.lineEditPrefix.setText("")
+                self.ui.lineEditPrefix.setEnabled(True)
+            elif (self.format == 'tempus'):
+                self.ui.lineEditSourceComment.setText('')
+                self.ui.lineEditSourceComment.setEnabled(True)
+                self.ui.lineEditIdField.setText("")
+                self.ui.lineEditIdField.setEnabled(True)
+                self.ui.lineEditNameField.setText("")
+                self.ui.lineEditNameField.setEnabled(True)
+                self.ui.lineEditPrefix.setText("")
+                self.ui.lineEditPrefix.setEnabled(False)
     
     
     def _slotPushButtonChooseClicked(self):
@@ -95,22 +117,36 @@ class import_poi_dialog(QDialog):
         self.prefix = self.ui.lineEditPrefix.text()
         self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
         self.source_name = self.ui.lineEditSourceName.text()
-        self.model_version = self.caller.modelPOIFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
+        self.model_version = self.caller.modelPOISourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
         self.filter = self.ui.lineEditFilter.text()
         self.poi_type = self.caller.modelPOIType.record(self.ui.comboBoxPOIType.currentIndex()).value("id")
+        self.id_field = self.ui.lineEditIdField.text()
+        self.name_field = self.ui.lineEditNameField.text()
         
-        cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "poi", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '-S', str(self.srid), '-p', self.prefix, '--filter', self.filter, '--poi-type', str(self.poi_type), '-d', dbstring]
+        cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "poi", '--poi-type', str(self.poi_type), "--data-format", self.format, "--source-name", self.source_name, "--id-field", self.id_field, "--name-field", self.name_field, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), '--dbstring', dbstring]
+        if (self.prefix != ""):
+            cmd.append("--prefix")
+            cmd.append(self.prefix)
+        if (str(self.model_version) != 'NULL'):
+            cmd.append('--model-version')
+            cmd.append(str(self.model_version))
+        if (self.filter != ''):
+            cmd.append('--filter')
+            cmd.append(self.filter)
+        
         self.ui.lineEditCommand.setText(" ".join(cmd))
         r = subprocess.call( cmd )
-        
-        self.caller.iface.mapCanvas().refreshMap()
         
         box = QMessageBox()
         if r==0:
             box.setText(u"L'import de la source est terminé. " )
+            layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
+            self.caller.zoomToLayersList(layersList)
         else:
-            box.setText(u"Erreur pendant l'import. ")
+            box.setText(u"Erreur pendant l'import, code de retour = "+str(r)+". ")
         box.exec_()
             
-            
+
+    def _slotClose(self):
+        self.hide()
             

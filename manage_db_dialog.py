@@ -149,7 +149,10 @@ class manage_db_dialog(QDialog):
             r = subprocess.call( cmd )
             
             box = QMessageBox()
-            box.setText(u"La base a été créée. Vous pouvez maintenant la charger, puis y importer des données. " )
+            if (r==0):
+                box.setText(u"La base a été créée. Vous pouvez maintenant la charger, puis y importer des données. " )
+            else:
+                box.setText(u"Erreur pendant la création de la base. ")
             box.exec_()
     
     
@@ -260,8 +263,8 @@ class manage_db_dialog(QDialog):
             self.caller.node_road_offer.setExpanded(False)
             self.caller.node_vacances=self.caller.node_group.insertGroup(3, u"Vacances scolaires et jours fériés")
             self.caller.node_vacances.setExpanded(False)
-            self.caller.node_admin=self.caller.node_group.insertGroup(4, u"Zonages")
-            self.caller.node_admin.setExpanded(False)
+            self.caller.node_zoning=self.caller.node_group.insertGroup(4, u"Zonages")
+            self.caller.node_zoning.setExpanded(False)
         
             self.ui.pushButtonExport.setEnabled(True)
             self.ui.pushButtonDelete.setEnabled(True)
@@ -274,20 +277,29 @@ class manage_db_dialog(QDialog):
             self.caller.modelCriterion.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'opt_crit' ORDER BY mod_code", self.caller.db)
             self.caller.modelRepMeth.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'rep_meth' ORDER BY mod_code", self.caller.db)
             self.caller.modelEncoding.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'encoding' ORDER BY mod_code", self.caller.db)
-            self.caller.modelRoadFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelPTFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelPOIFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelAreaFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'area' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
+            
+            self.caller.refreshRoadNetworks()
+            self.caller.modelRoadNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road' ORDER BY data_format_name", self.caller.db)
+            
+            self.caller.refreshPTNetworks()
+            self.caller.modelPTNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt' ORDER BY data_format_name", self.caller.db)
+            
+            self.caller.refreshPOISources()
+            self.caller.modelPOISourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi' ORDER BY data_format_name", self.caller.db)
             self.caller.modelPOIType.setQuery("SELECT name, id FROM tempus.poi_type ORDER BY id", self.caller.db)
+            
+            self.caller.refreshZoningSources()
+            self.caller.modelZoningSourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning' ORDER BY data_format_name", self.caller.db)
+            
+            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
+            
             
             # Individual modes model
             s="SELECT name, id FROM tempus.transport_mode WHERE gtfs_feed_id IS NULL"
             self.caller.modelIModes.setQuery(unicode(s), self.caller.db)
-            self.caller.dlg.ui.listViewIModes.selectAll()            
-                                
-            self.caller.modelAreaType.setQuery("(SELECT lib, code FROM tempus_access.areas_param UNION SELECT '', -1) ORDER BY 2", self.caller.db)
-            self.caller.refreshGTFSFeeds()
+            self.caller.dlg.ui.listViewIModes.selectAll()                                
+            
+            self.caller.refreshPTNetworks()
                             
             # Already calculated queries model
             self.caller.refreshReq()

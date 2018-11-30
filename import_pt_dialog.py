@@ -49,8 +49,8 @@ class import_pt_dialog(QDialog):
         self.caller = caller
         self.temp_data_dir = self.caller.data_dir        
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelPTFormat)
-        self.ui.comboBoxFormatVersion.setModel(self.caller.modelPTFormatVersion)
+        self.ui.comboBoxFormat.setModel(self.caller.modelPTNetworkFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelPTNetworkFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         
         # Connect signals and slots
@@ -78,15 +78,15 @@ class import_pt_dialog(QDialog):
     
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelPTFormat.record(indexChosenLine).value("data_format")
-        self.caller.modelPTFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding FROM tempus_access.formats WHERE data_type = 'pt' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelPTNetworkFormat.record(indexChosenLine).value("data_format")
+        self.caller.modelPTNetworkFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding FROM tempus_access.formats WHERE data_type = 'pt' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
         self._slotComboBoxFormatVersionCurrentIndexChanged(self.ui.comboBoxFormatVersion.currentIndex())
         
         
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
         if (indexChosenLine>=0):
-            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPTFormatVersion.record(indexChosenLine).value("default_encoding")))
-            self.ui.spinBoxSRID.setValue(self.caller.modelPTFormatVersion.record(indexChosenLine).value("default_srid"))
+            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelPTNetworkFormatVersion.record(indexChosenLine).value("default_encoding")))
+            self.ui.spinBoxSRID.setValue(self.caller.modelPTNetworkFormatVersion.record(indexChosenLine).value("default_srid"))
             if (self.format == 'gtfs'):
                 self.ui.pushButtonChoose2.setEnabled(False)
                 self.ui.pushButtonChoose3.setEnabled(False)
@@ -95,6 +95,7 @@ class import_pt_dialog(QDialog):
                 self.ui.labelChoose1.setText('Choisir le fichier .zip')
                 self.ui.labelChoose2.setText('')
                 self.ui.labelChoose3.setText('')
+                self.ui.lineEditPrefix.setEnabled(False)
                 self.ui.labelSRID.setEnabled(False)
                 self.ui.spinBoxSRID.setEnabled(False)
                 self.ui.labelEncoding.setEnabled(False)
@@ -107,6 +108,7 @@ class import_pt_dialog(QDialog):
                 self.ui.labelChoose1.setText('Choisir le GTFS TER (.zip)')
                 self.ui.labelChoose2.setText(u'Choisir le GTFS Intercités (.zip)')
                 self.ui.labelChoose3.setText(u'Choisir le répertoire contenant les données auxiliaires')
+                self.ui.lineEditPrefix.setEnabled(True)
                 self.ui.labelSRID.setEnabled(True)
                 self.ui.spinBoxSRID.setEnabled(True)
                 self.ui.labelEncoding.setEnabled(True)
@@ -140,27 +142,40 @@ class import_pt_dialog(QDialog):
 
     def _slotPushButtonImportClicked(self):
         dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-        self.format = self.caller.modelPTFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.format = self.caller.modelPTNetworkFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
         self.source_name = self.ui.lineEditSourceName.text()
         self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
         self.prefix = self.ui.lineEditPrefix.text()
         self.srid = self.ui.spinBoxSRID.value()
+        
         cmd = []
         if (self.format == "gtfs"):
-            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, "--encoding", self.encoding, '-S', str(self.srid), "-d", dbstring]
+            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, "--encoding", self.encoding, '--srid', str(self.srid), "--dbstring", dbstring]
         elif (self.format == "sncf"):
-            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, self.cheminComplet2, self.cheminComplet3, "--prefix", self.prefix, '-S', str(self.srid), "-d", dbstring]
-
+            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, self.cheminComplet2, self.cheminComplet3, '--srid', str(self.srid), "--dbstring", dbstring]
+        
+        if (self.ui.lineEditPrefix.text() != ""):
+            cmd.append("--prefix")
+            cmd.append(self.ui.lineEditPrefix.text())
+        if (str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")) != 'NULL'):
+            cmd.append('--model-version')
+            cmd.append(str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")))
+        
         self.ui.lineEditCommand.setText(" ".join(cmd))
         r = subprocess.call( cmd )
         
         self.caller.iface.mapCanvas().refreshMap() 
         
         box = QMessageBox()
-        if r==0:
+        if (r == 0):
             box.setText(u"L'import du réseau est terminé. " )
+            
+            self.caller.refreshPTNetworks()                
+                
+            layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"Arrêts par mode") or (layer.name()==u"Sections par mode"))]
+            self.caller.zoomToLayers(layersList)
         else:
-            box.setText(u"Erreur pendant l'import. ")
+            box.setText(u"Erreur pendant l'import, code de retour = "+str(r)+". ")
         box.exec_()
     
     

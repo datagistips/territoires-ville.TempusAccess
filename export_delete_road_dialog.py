@@ -34,6 +34,8 @@ import string
 import os
 import subprocess
 
+from config import *
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_export_delete_road_dialog import Ui_Dialog
 
@@ -47,7 +49,7 @@ class export_delete_road_dialog(QDialog):
         self.db = caller.db
         self.iface = caller.iface
                 
-        self.ui.comboBoxSourceName.setModel(self.caller.modelRoadSources)
+        self.ui.comboBoxSourceName.setModel(self.caller.modelRoadNetwork)
         
         self._connectSlots()
     
@@ -59,9 +61,28 @@ class export_delete_road_dialog(QDialog):
     
     def _slotPushButtonDeleteClicked(self):
         ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
-
+        
         if (ret == QMessageBox.Ok): 
-            pass
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.source_name = self.caller.modelRoadNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("name")
+        
+            cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "road", "--source-name", self.source_name, '--dbstring', dbstring]
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            
+            rc = self.caller.execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                self.caller.iface.mapCanvas().refreshMap()
+
+                box.setText(u"Source supprimée avec succès" )
+                
+                self.caller.refreshRoadNetworks()
+                
+            else:
+                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
+            box.exec_()
+    
     
     def _slotExportClicked(self):
         # Open a window to choose path to the GTFS source file 

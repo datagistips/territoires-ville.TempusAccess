@@ -34,6 +34,8 @@ import string
 import os
 import subprocess
 
+from config import *
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_export_delete_pt_dialog import Ui_Dialog
 
@@ -47,7 +49,7 @@ class export_delete_pt_dialog(QDialog):
         self.db = caller.db
         self.iface = caller.iface
                 
-        self.ui.comboBoxSourceName.setModel(self.caller.modelPTSources)
+        self.ui.comboBoxSourceName.setModel(self.caller.modelPTNetwork)
         
         self._connectSlots()
     
@@ -61,26 +63,33 @@ class export_delete_pt_dialog(QDialog):
         ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
 
         if (ret == QMessageBox.Ok): 
-            s="UPDATE tempus_gtfs.stops\
-                SET artificial_road_section=false;\
-                DELETE FROM tempus_gtfs.transfers\
-                WHERE feed_id = '"+self.ui.comboBoxGTFSFeeds.currentText()+"';"
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")
+        
+            uri=QgsDataSourceURI()
+            uri.setConnection(self.caller.db.hostName(), str(self.caller.db.port()), self.caller.db.databaseName(), self.caller.db.userName(), self.caller.db.password())
             
-            dbstring = "host="+self.caller.host+" dbname="+self.caller.base+" port="+self.caller.port
-            cmd = ["python", self.caller.load_tempus_path, '-d', dbstring, '--pt-delete', '--pt-network', self.ui.comboBoxGTFSFeeds.currentText()]
-            r = subprocess.call( cmd, shell=True )
+            for layer in QgsMapLayerRegistry.instance().mapLayers().values():
+                if (layer.name()==self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")):
+                    QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+            self.caller.node_pt_offer.setExpanded(True) 
             
-            s="REFRESH MATERIALIZED VIEW tempus_access.stops_by_mode;\
-               REFRESH MATERIALIZED VIEW tempus_access.sections_by_mode;\
-               REFRESH MATERIALIZED VIEW tempus_access.trips_by_mode;"
-            q=QtSql.QSqlQuery(self.db)
-            q.exec_(unicode(s))
+            cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring]
             
-            # Refresh list of GTFS data sources
-            self.caller.refreshPTData()
-            self.caller.refreshGTFSFeeds()
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            
+            rc = self.caller.execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                self.caller.iface.mapCanvas().refreshMap()
+
+                box.setText(u"Source supprimée avec succès" )
+                
+                self.caller.refreshPTNetworks()
+                
+            else:
+                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
+            box.exec_()
         
         
     def _slotExportClicked(self):

@@ -52,6 +52,14 @@ class manage_indicators_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir
         
+        self.ui.comboBoxColorIndic.setModel(self.caller.modelColorIndic)
+        self.ui.comboBoxDerivedRepIndic.setModel(self.caller.modelDerivedRepIndic)
+        self.ui.comboBoxSizeIndic.setModel(self.caller.modelSizeIndic)
+        self.ui.comboBoxDerivedRep.setModel(self.caller.modelDerivedRep)
+        self.ui.comboBoxPathID.setModel(self.caller.modelPathID)
+        self.ui.comboBoxReq.setModel(self.caller.modelReq)
+        self.ui.comboBoxRepMeth.setModel(self.caller.modelRepMeth)
+        
         self.connectSlots()
     
     

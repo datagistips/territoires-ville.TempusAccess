@@ -44,8 +44,8 @@ from import_road_dialog import import_road_dialog
 from export_delete_road_dialog import export_delete_road_dialog
 from import_poi_dialog import import_poi_dialog
 from export_delete_poi_dialog import export_delete_poi_dialog
-from import_areas_dialog import import_areas_dialog
-from export_delete_areas_dialog import export_delete_areas_dialog
+from import_zoning_dialog import import_zoning_dialog
+from export_delete_zoning_dialog import export_delete_zoning_dialog
 from manage_indicators_dialog import manage_indicators_dialog
 
 import subprocess
@@ -246,138 +246,128 @@ class TempusAccess:
         
         self.modelEncoding = QtSql.QSqlQueryModel()
         
-        ## Database dialogs
+        # Databases
         self.modelDB = QtSql.QSqlQueryModel()
         
-        # Set connection
         self.set_db_connection_dialog = set_db_connection_dialog(self, self.iface)
-        
-        # Import and create
         self.manage_db_dialog=manage_db_dialog(self, self.iface)
         
-        # PT networks dialogs
-        self.modelPTSources = QtSql.QSqlQueryModel()
-        self.modelPTFormat = QtSql.QSqlQueryModel()
-        self.modelPTFormatVersion = QtSql.QSqlQueryModel()
-        self.PTSources = []
+        # PT networks    
+        self.modelPTNetwork = QtSql.QSqlQueryModel()
+        self.modelPTNetworkFormat = QtSql.QSqlQueryModel()
+        self.modelPTNetworkFormatVersion = QtSql.QSqlQueryModel()
+        self.dlg.ui.listViewPTNetworks.setModel(self.modelPTNetwork)
+        self.PTNetworks = []
         
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
         self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
 
-        # Road networks dialogs
-        self.modelRoadSources = QtSql.QSqlQueryModel()
-        self.modelRoadFormat = QtSql.QSqlQueryModel()
-        self.modelRoadFormatVersion = QtSql.QSqlQueryModel()
+        # Road networkds
+        self.modelRoadNetwork = QtSql.QSqlQueryModel()
+        self.modelRoadNetworkFormat = QtSql.QSqlQueryModel()
+        self.modelRoadNetworkFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_road_dialog=import_road_dialog(self, self.iface)
         self.export_delete_road_dialog=export_delete_road_dialog(self, self.iface)
         
-        # POI dialogs
-        self.modelPOISources = QtSql.QSqlQueryModel()
+        # POI
+        self.modelPOISource = QtSql.QSqlQueryModel()
         self.modelPOIType = QtSql.QSqlQueryModel()
-        self.modelPOIFormat = QtSql.QSqlQueryModel()
-        self.modelPOIFormatVersion = QtSql.QSqlQueryModel()
+        self.modelPOISourceFormat = QtSql.QSqlQueryModel()
+        self.modelPOISourceFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
         self.export_delete_poi_dialog=export_delete_poi_dialog(self, self.iface)
         
-        # Areas dialogs
-        self.modelAreaSources = QtSql.QSqlQueryModel()
-        self.modelAreaFormat = QtSql.QSqlQueryModel()
-        self.modelAreaFormatVersion = QtSql.QSqlQueryModel()
+        # Zonings
+        self.modelZoningSource=QtSql.QSqlQueryModel()  
+        self.modelZoningSourceFormat = QtSql.QSqlQueryModel()
+        self.modelZoningSourceFormatVersion = QtSql.QSqlQueryModel()
+        self.modelZone=QtSql.QSqlQueryModel()
         
-        self.import_areas_dialog=import_areas_dialog(self, self.iface)
-        self.export_delete_areas_dialog=export_delete_areas_dialog(self, self.iface)
+        self.dlg.ui.comboBoxIndicZoning.setModel(self.modelZoningSource)
+        self.dlg.ui.comboBoxZoningFilter.setModel(self.modelZoningSource)
+        self.dlg.ui.comboBoxZone.setModel(self.modelZone)
+
+        self.import_zoning_dialog=import_zoning_dialog(self, self.iface)
+        self.export_delete_zoning_dialog=export_delete_zoning_dialog(self, self.iface)
         
-        # Indicators dialogs
+        # Indicators, requests and representations
+        self.modelIndic = QtSql.QSqlQueryModel()
+        self.modelSizeIndic = QtSql.QSqlQueryModel()
+        self.modelDerivedRepIndic = QtSql.QSqlQueryModel()
+        self.modelColorIndic = QtSql.QSqlQueryModel()
+        self.modelDerivedRep=QtSql.QSqlQueryModel()
+        self.modelPathID = QtSql.QSqlQueryModel()
+        self.modelRepMeth = QtSql.QSqlQueryModel()
+        self.modelReq = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.listViewIndic.setModel(self.modelIndic)        
+        
         self.manage_indicators_dialog=manage_indicators_dialog(self, self.iface)
         
-        # Main dock widget
-        # 1st tab
+        # Object types
         self.modelObjType = QtSql.QSqlQueryModel()
         self.dlg.ui.comboBoxObjType.setModel(self.modelObjType)
         self.obj_def_name="stop_areas"
         
+        # Nodes
         self.modelNode = QtSql.QSqlQueryModel()
+        self.modelNodeType = QtSql.QSqlQueryModel()
+        self.modelSelectedNodes = QtSql.QSqlQueryModel()
+        
         self.dlg.ui.comboBoxOrig.setModel(self.modelNode)
         self.dlg.ui.comboBoxDest.setModel(self.modelNode)
         self.dlg.ui.comboBoxPathsTreeRootNode.setModel(self.modelNode)
-        
-        self.modelIndic = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewIndic.setModel(self.modelIndic)        
-        
-        self.modelSelectedNodes = QtSql.QSqlQueryModel()
+        self.dlg.ui.comboBoxNodeType.setModel(self.modelNodeType)
         self.dlg.ui.listViewNodes.setModel(self.modelSelectedNodes)
         
+        # Aggregation methods
         self.modelAgreg = QtSql.QSqlQueryModel()
+        
         self.dlg.ui.comboBoxNodeAg.setModel(self.modelAgreg)
-        
-        self.modelNodeType = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxNodeType.setModel(self.modelNodeType)
-        
-        self.modelAreaType=QtSql.QSqlQueryModel()  
-        self.dlg.ui.comboBoxAreaType.setModel(self.modelAreaType)
-
-        self.modelArea=QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxArea.setModel(self.modelArea)
-        
-        # 2nd tab
-        self.modelStop = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxForcStop.setModel(self.modelStop)
-        
-        self.modelRoute = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxForcRoute.setModel(self.modelRoute)
-
-        self.modelAgencies = QtSql.QSqlQueryModel()
-        self.dlg.ui.tableViewAgencies.setModel(self.modelAgencies)
-        self.dlg.ui.tableViewAgencies.verticalHeader().setVisible(False)
-                
-        self.dlg.ui.listViewGTFSFeeds.setModel(self.modelPTSources)
-        
-        self.modelIModes = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewIModes.setModel(self.modelIModes)
-
-        self.modelPTModes = QtSql.QSqlQueryModel()
-        self.dlg.ui.listViewPTModes.setModel(self.modelPTModes)
-
-        # 3rd tab
-        self.modelDayType = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxDayType.setModel(self.modelDayType)
-
-        self.modelPerType = QtSql.QSqlQueryModel()
-        self.dlg.ui.comboBoxPerType.setModel(self.modelPerType)
-
         self.dlg.ui.comboBoxDayAg.setModel(self.modelAgreg)
         self.dlg.ui.comboBoxTimeAg.setModel(self.modelAgreg)
         
-        # 4th tab
+        # PT stops
+        self.modelStop = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.comboBoxForcStop.setModel(self.modelStop)
+        
+        # PT routes
+        self.modelRoute = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.comboBoxForcRoute.setModel(self.modelRoute)
+
+        # PT agencies
+        self.modelAgencies = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.tableViewAgencies.setModel(self.modelAgencies)
+        self.dlg.ui.tableViewAgencies.verticalHeader().setVisible(False)
+                
+        # Transport modes        
+        self.modelIModes = QtSql.QSqlQueryModel()
+        self.modelPTModes = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.listViewIModes.setModel(self.modelIModes)
+        self.dlg.ui.listViewPTModes.setModel(self.modelPTModes)
+
+        # Days
+        self.modelDayType = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.comboBoxDayType.setModel(self.modelDayType)
+
+        # Periods
+        self.modelPerType = QtSql.QSqlQueryModel()
+        
+        self.dlg.ui.comboBoxPerType.setModel(self.modelPerType)
+
+        # Optimization criteria
         self.modelCriterion = QtSql.QSqlQueryModel()
+        
         self.dlg.ui.comboBoxCriterion.setModel(self.modelCriterion)
         
-        # 5th tab
         
-        self.modelSizeIndic = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxSizeIndic.setModel(self.modelSizeIndic)
-        
-        self.modelColorIndic = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxColorIndic.setModel(self.modelColorIndic)
-        
-        self.modelDerivedRepIndic = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxDerivedRepIndic.setModel(self.modelDerivedRepIndic)
-        
-        self.modelReq = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxReq.setModel(self.modelReq)
-        
-        self.modelDerivedRep=QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxDerivedRep.setModel(self.modelDerivedRep)
-        
-        self.modelPathID = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxPathID.setModel(self.modelPathID)
-        
-        self.modelRepMeth = QtSql.QSqlQueryModel()
-        self.manage_indicators_dialog.ui.comboBoxRepMeth.setModel(self.modelRepMeth)
-        
-            
         self.clickTool = QgsMapToolEmitPoint(self.iface.mapCanvas()) # Outil permettant l'émission d'un QgsPoint à chaque clic sur le canevas 
         self.toolPan = QgsMapToolPan(self.iface.mapCanvas()) # Outil "main" utilisé pour se déplacer dans la fenêtre
         self.iface.mapCanvas().setMapTool(self.toolPan)
@@ -385,7 +375,6 @@ class TempusAccess:
         self.chooseOrig = False
         self.chooseDest = False
         self.chooseNode = False
-
         
         self.timer = QTimer()
         self.timer.setInterval(1000)
@@ -404,8 +393,8 @@ class TempusAccess:
         self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
         self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
         self.action_export_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
-        self.action_import_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.action_export_delete_areas = QAction(QIcon(self.icon_dir + "/icon_areas.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
+        self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
+        self.action_export_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
         self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
         self.action.setToolTip(u"Lancer le plugin")
@@ -417,8 +406,8 @@ class TempusAccess:
         self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
         self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
         self.action_export_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
-        self.action_import_areas.setToolTip(u"Importer un zonage")
-        self.action_export_delete_areas.setToolTip(u"Exporter ou supprimer un zonage")
+        self.action_import_zoning.setToolTip(u"Importer un zonage")
+        self.action_export_delete_zoning.setToolTip(u"Exporter ou supprimer un zonage")
         self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
         
         # Connect the actions to the methods
@@ -431,8 +420,8 @@ class TempusAccess:
         self.action_export_delete_pt.triggered.connect(self.export_delete_pt)
         self.action_import_poi.triggered.connect(self.import_poi)
         self.action_export_delete_poi.triggered.connect(self.export_delete_poi)
-        self.action_import_areas.triggered.connect(self.import_areas)
-        self.action_export_delete_areas.triggered.connect(self.export_delete_areas)
+        self.action_import_zoning.triggered.connect(self.import_zoning)
+        self.action_export_delete_zoning.triggered.connect(self.export_delete_zoning)
         self.action_manage_indicators.triggered.connect(self.manage_indicators)
         
         # Add toolbar buttons and menu items
@@ -445,8 +434,8 @@ class TempusAccess:
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_poi)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_areas)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_areas)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_zoning)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_zoning)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_indicators)
                 
         m = self.toolButton.menu()
@@ -459,8 +448,8 @@ class TempusAccess:
         m.addAction(self.action_export_delete_pt)
         m.addAction(self.action_import_poi)
         m.addAction(self.action_export_delete_poi)
-        m.addAction(self.action_import_areas)
-        m.addAction(self.action_export_delete_areas)
+        m.addAction(self.action_import_zoning)
+        m.addAction(self.action_export_delete_zoning)
         m.addAction(self.action_manage_indicators)
         
         self.toolButton.setDefaultAction(self.action)
@@ -490,8 +479,8 @@ class TempusAccess:
         
         # Remove the plugin menu items and icons
         self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_indicators) 
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_areas)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_areas)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_zoning)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_zoning)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
@@ -503,8 +492,8 @@ class TempusAccess:
         self.iface.removePluginMenu(u"&TempusAccess", self.action)
 
         self.iface.removeToolBarIcon(self.action_manage_indicators)
-        self.iface.removeToolBarIcon(self.action_import_areas)
-        self.iface.removeToolBarIcon(self.action_export_delete_areas)
+        self.iface.removeToolBarIcon(self.action_import_zoning)
+        self.iface.removeToolBarIcon(self.action_export_delete_zoning)
         self.iface.removeToolBarIcon(self.action_import_poi)
         self.iface.removeToolBarIcon(self.action_export_delete_poi)
         self.iface.removeToolBarIcon(self.action_import_pt)
@@ -519,8 +508,8 @@ class TempusAccess:
         # Close dialogs which would stay opened
         self.dlg.hide()
         self.manage_indicators_dialog.hide()
-        self.import_areas_dialog.hide()
-        self.export_delete_areas_dialog.hide()
+        self.import_zoning_dialog.hide()
+        self.export_delete_zoning_dialog.hide()
         self.import_poi_dialog.hide()
         self.export_delete_poi_dialog.hide()
         self.import_pt_dialog.hide()
@@ -529,6 +518,18 @@ class TempusAccess:
         self.export_delete_road_dialog.hide() 
         self.set_db_connection_dialog.hide()
         self.manage_db_dialog.hide()
+    
+    
+    def execute_external_cmd(self, cmd):
+        r = subprocess.Popen( cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False )
+            
+        while True:
+            output = r.stdout.readline()
+            if output == '' and r.poll() is not None:
+                break
+            if output:
+                print output.strip()
+        return r.poll()
     
     
     def set_db_connection(self):
@@ -569,12 +570,12 @@ class TempusAccess:
         self.export_delete_poi_dialog.show()
     
     
-    def import_areas(self):
-        self.import_areas_dialog.show()
+    def import_zoning(self):
+        self.import_zoning_dialog.show()
         
     
-    def export_delete_areas(self):
-        self.export_delete_areas_dialog.show()
+    def export_delete_zoning(self):
+        self.export_delete_zoning_dialog.show()
         
       
     def manage_indicators(self):
@@ -598,7 +599,7 @@ class TempusAccess:
             
             self.node_indicators.setExpanded(True)
             self.node_pt_offer.setExpanded(False)
-            self.node_admin.setExpanded(False)
+            self.node_zoning.setExpanded(False)
             self.node_vacances.setExpanded(False)
             
             layer.setSubsetString(filter)
@@ -620,29 +621,41 @@ class TempusAccess:
                         self.iface.mapCanvas().setExtent(crd.transform(l.extent()))
                 
                 self.iface.mapCanvas().refreshMap()
-
-
-    def manageStoredQueries(self):
-        self.manageStoredQueriesDialog.show()
     
     
-    def refreshGTFSFeeds(self):    
+    def refreshPTNetworks(self):    
         # Populate the listView containing GTFS data sources
-        s="SELECT distinct feed_id, id FROM tempus_gtfs.feed_info"
-        self.modelPTSources.setQuery(unicode(s), self.db)
-        
+        s="SELECT feed_id, id FROM tempus_gtfs.feed_info ORDER BY 2"
+        self.modelPTNetwork.setQuery(unicode(s), self.db)
+                
         # Each update of the model must be accompanied by a new connexion of signal and slot on the listView selection
-        self.dlg.ui.listViewGTFSFeeds.selectionModel().selectionChanged.connect(self._slotListViewGTFSFeedsSelectionChanged)
+        self.dlg.ui.listViewPTNetworks.selectionModel().selectionChanged.connect(self._slotlistViewPTNetworksSelectionChanged)
         
-        sel = QItemSelection(self.modelPTSources.index(0,0), self.modelPTSources.index(0,1))
-        self.dlg.ui.listViewGTFSFeeds.selectionModel().select(sel, QItemSelectionModel.ClearAndSelect)
+        self.modelAgencies.clear()
+        
+        sel = QItemSelection(self.modelPTNetwork.index(0,0), self.modelPTNetwork.index(0,1))
+        self.dlg.ui.listViewPTNetworks.selectionModel().select(sel, QItemSelectionModel.ClearAndSelect)
     
+    
+    def refreshRoadNetworks(self):
+        s="SELECT name, id, comment FROM tempus.road_network ORDER BY 2"
+        self.modelRoadNetwork.setQuery(unicode(s), self.db)
+        
+        
+    def refreshPOISources(self):
+        s="SELECT name, id, comment FROM tempus.poi_source ORDER BY 2"
+        self.modelPOISource.setQuery(unicode(s), self.db)    
+    
+    
+    def refreshZoningSources(self):
+        s="SELECT comment, name, id FROM zoning.zoning_source ORDER BY 2"
+        self.modelZoningSource.setQuery(unicode(s), self.db)
+        
     
     def refreshPTData(self):        
         s="REFRESH MATERIALIZED VIEW tempus_access.stops_by_mode;\
            REFRESH MATERIALIZED VIEW tempus_access.sections_by_mode;\
-           REFRESH MATERIALIZED VIEW tempus_access.trips_by_mode;\
-           REFRESH MATERIALIZED VIEW tempus_access.transfers_geom"
+           REFRESH MATERIALIZED VIEW tempus_access.trips_by_mode;"
         q=QtSql.QSqlQuery(self.db)
         q.exec_(unicode(s))
     
@@ -717,15 +730,30 @@ class TempusAccess:
               )\
               ORDER BY 2"
         self.modelColorIndic.setQuery( s,self.db)
-        
-        
-    def loadLayers(self):
+    
+    
+    def zoomToLayersList(self, layers, visible):
         from_proj = QgsCoordinateReferenceSystem()
         from_proj.createFromSrid(4326)
         to_proj = QgsCoordinateReferenceSystem()
         to_proj.createFromSrid(self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
         crd=QgsCoordinateTransform(from_proj, to_proj)
         
+        extent = QgsRectangle()
+        for layer in layers:
+            extent.combineExtentWith( layer.extent() )
+            if (visible == True):
+                self.iface.legendInterface().setLayerVisible(layer, True)
+        
+        extent.scale( 1.1 ) # Increase a bit the extent to make sure all geometries lie inside 
+        if (extent.isEmpty==False): 
+            self.iface.mapCanvas().setExtent(crd.transform(extent))
+            
+        
+        self.iface.mapCanvas().refreshMap()
+    
+        
+    def loadLayers(self):
         # # Adding data tables/views in the layer manager
         uri=QgsDataSourceURI()
         uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
@@ -745,18 +773,18 @@ class TempusAccess:
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
             self.node_vacances.insertChildNode(1, node_layer)
-            
-        # Areas
-        for i in range(0,self.modelAreaType.rowCount()):
-            if (self.modelAreaType.record(i).value("code")!=-1):
-                uri.setDataSource("tempus_access", "area_type"+str(self.modelAreaType.record(i).value("code")), "geom", "")
-                layer = QgsVectorLayer(uri.uri(), self.modelAreaType.record(i).value("lib"), "postgres")
+        
+        # Zonings
+        for i in range(0,self.modelZoningSource.rowCount()):
+            if (self.modelZoningSource.record(i).value("id")!=-1):
+                uri.setDataSource("zoning", self.modelZoningSource.record(i).value("name"), "geom", "")
+                layer = QgsVectorLayer(uri.uri(), self.modelZoningSource.record(i).value("comment"), "postgres")
                 if (layer.isValid()):
                     QgsMapLayerRegistry.instance().addMapLayer(layer, False)
                     node_layer = QgsLayerTreeLayer(layer)
-                    self.node_admin.insertChildNode(i, node_layer)
+                    self.node_zoning.insertChildNode(i, node_layer)
                     self.iface.legendInterface().setLayerVisible(layer, False)
-                
+        
         # Stops by mode (view)
         uri.setDataSource("tempus_gtfs", "stops_by_mode", "geom", "", "gid") 
         layer = QgsVectorLayer(uri.uri(), u"Arrêts par mode", "postgres")
@@ -766,7 +794,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(0, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True) 
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
                 
         # Sections by mode (view)
         uri.setDataSource("tempus_gtfs", "sections_by_mode", "geom", "", "gid")
@@ -777,7 +805,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(1, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
         
         # Trips by mode (view)
         uri.setDataSource("tempus_gtfs", "trips_by_mode", "geom_multi", "", "gid")
@@ -788,7 +816,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(2, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
         
         # Stops
         uri.setDataSource("tempus_gtfs", "stops", "geom", "", "id") 
@@ -799,10 +827,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(3, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            # Center map on this layer
-            if (layer.extent().isEmpty==False): 
-                self.iface.mapCanvas().setExtent(crd.transform(layer.extent()))
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
         
         # Sections
         uri.setDataSource("tempus_gtfs", "sections", "geom", "", "id")
@@ -813,7 +838,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(4, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTSources)+"::integer[]")
+            layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTNetworks)+"::integer[]")
         
         # Transfer arcs
         uri.setDataSource("tempus_access", "transfers_geom", "geom", "", "id")
@@ -824,7 +849,7 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(5, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+"::integer[])")
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
 
         # Car/Bicycle parks and user POIs
         uri.setDataSource("tempus", "poi", "geom", "", "id")
@@ -889,10 +914,11 @@ class TempusAccess:
         self.node_indicators.setExpanded(False)
         self.node_vacances.setExpanded(False)
         self.node_pt_offer.setExpanded(False)
-        self.node_admin.setExpanded(False)
+        self.node_zoning.setExpanded(False)
         
-        self.iface.mapCanvas().refreshMap()
-    
+        # Zoom to all layers
+        self.zoomToLayersList(QgsMapLayerRegistry.instance().mapLayers().values(), False)
+        
     
     def daysFilter(self):
         self.day="NULL"
@@ -950,10 +976,10 @@ class TempusAccess:
             box.exec_()
         
         # GTFS feeds
-        self.PTSources = []
-        if (self.dlg.ui.listViewGTFSFeeds.selectionModel().hasSelection()):
-            for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-                self.PTSources.append(self.modelPTSources.record(item.row()).value("id"))
+        self.PTNetworks = []
+        if (self.dlg.ui.listViewPTNetworks.selectionModel().hasSelection()):
+            for item in self.dlg.ui.listViewPTNetworks.selectionModel().selectedRows():
+                self.PTNetworks.append(self.modelPTNetwork.record(item.row()).value("id"))
         else:
             box = QMessageBox()
             box.setText(u"Sélectionnez au moins une source de données GTFS (onglet n°2)")
@@ -982,17 +1008,17 @@ class TempusAccess:
             box.setText(u"Sélectionner au moins un mode de transport (onglet n°2)")
             box.exec_()
         
-        # Area type
-        if (self.modelAreaType.record(self.dlg.ui.comboBoxAreaType.currentIndex()).value("code")>=0):
-            self.area_type = self.modelAreaType.record(self.dlg.ui.comboBoxAreaType.currentIndex()).value("code") 
+        # Zoning
+        if (self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id")>=0):
+            self.zoning = self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id") 
         else:
-            self.area_type = -1      
+            self.zoning = -1      
         
-        # Area ID
-        if (self.modelArea.record(self.dlg.ui.comboBoxArea.currentIndex()).value("char_id")>=0):
-            self.areas = "ARRAY['"+self.modelArea.record(self.dlg.ui.comboBoxArea.currentIndex()).value("char_id")+"']"
+        # Area
+        if (self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("char_id")>=0):
+            self.zoning = "ARRAY['"+self.modelZoningSource.record(self.dlg.ui.comboBoxZone.currentIndex()).value("char_id")+"']"
         else:
-            self.areas = "NULL"
+            self.zoning = "NULL"
         
         # Routes
         if (self.modelRoute.record(self.dlg.ui.comboBoxForcRoute.currentIndex()).value("id") >=0):
@@ -1024,7 +1050,7 @@ class TempusAccess:
             # Build stop indicators
             if (self.obj_def_name=="stop_areas"):
                 self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.PTSources)+",\
+                                                                            ARRAY"+str(self.PTNetworks)+",\
                                                                             ARRAY"+str(self.route_types)+",\
                                                                             ARRAY"+str(self.agencies)+",\
                                                                             1, \
@@ -1037,12 +1063,12 @@ class TempusAccess:
                                                                             "+self.time_start+"::time, \
                                                                             "+self.time_end+"::time, \
                                                                             "+str(self.area_type)+",\
-                                                                            "+self.areas+",\
+                                                                            "+self.zoning+",\
                                                                             "+self.route+");"
             
             elif (self.obj_def_name=="stops"):
                 self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.PTSources)+",\
+                                                                            ARRAY"+str(self.PTNetworks)+",\
                                                                             ARRAY"+str(self.route_types)+",\
                                                                             ARRAY"+str(self.agencies)+",\
                                                                             0, \
@@ -1055,13 +1081,13 @@ class TempusAccess:
                                                                             "+self.time_start+"::time, \
                                                                             "+self.time_end+"::time, \
                                                                             "+str(self.area_type)+",\
-                                                                            "+self.areas+",\
+                                                                            "+self.zoning+",\
                                                                             "+self.route+");"
             
             # Build sections indicators
             elif (self.obj_def_name=="sections"):
                 self.query="SELECT tempus_access.create_pt_section_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                          ARRAY"+str(self.PTSources)+",\
+                                                                          ARRAY"+str(self.PTNetworks)+",\
                                                                           ARRAY"+str(self.route_types)+",\
                                                                           ARRAY"+str(self.agencies)+",\
                                                                           "+self.day+"::date,\
@@ -1074,14 +1100,14 @@ class TempusAccess:
                                                                           "+self.time_end+"::time, \
                                                                           "+str(self.time_ag)+",\
                                                                           "+str(self.area_type)+",\
-                                                                          "+self.areas+",\
+                                                                          "+self.zoning+",\
                                                                           "+self.route+",\
                                                                           "+self.stop+");"
             
             # Build trips indicators
             elif (self.obj_def_name=="trips"):
                 self.query="SELECT tempus_access.create_pt_trip_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.PTSources)+",\
+                                                                       ARRAY"+str(self.PTNetworks)+",\
                                                                        ARRAY"+str(self.route_types)+",\
                                                                        ARRAY"+str(self.agencies)+",\
                                                                        "+self.day+"::date,\
@@ -1094,14 +1120,14 @@ class TempusAccess:
                                                                        "+self.time_end+"::time, \
                                                                        "+str(self.time_ag)+",\
                                                                        "+str(self.area_type)+",\
-                                                                       "+self.areas+",\
+                                                                       "+self.zoning+",\
                                                                        "+self.route+",\
                                                                        "+self.stop+");"
             
             # Build routes indicators
             elif (self.obj_def_name=="routes"):
                 self.query="SELECT tempus_access.create_pt_route_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.PTSources)+",\
+                                                                       ARRAY"+str(self.PTNetworks)+",\
                                                                        ARRAY"+str(self.route_types)+",\
                                                                        ARRAY"+str(self.agencies)+",\
                                                                        "+self.day+"::date,\
@@ -1113,13 +1139,13 @@ class TempusAccess:
                                                                        "+self.time_start+"::time, \
                                                                        "+self.time_end+"::time, \
                                                                        "+str(self.area_type)+",\
-                                                                       "+self.areas+",\
+                                                                       "+self.zoning+",\
                                                                        "+self.stop+");"
         
         # Build agencies indicators
         if (self.obj_def_name=="agencies"):
             self.query="SELECT tempus_access.create_pt_agency_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                   ARRAY"+str(self.PTSources)+",\
+                                                                   ARRAY"+str(self.PTNetworks)+",\
                                                                    ARRAY"+str(self.route_types)+",\
                                                                    "+self.day+"::date,\
                                                                    "+str(self.day_type)+"::integer, \
@@ -1130,7 +1156,7 @@ class TempusAccess:
                                                                    "+self.time_start+"::time, \
                                                                    "+self.time_end+"::time, \
                                                                    "+str(self.area_type)+",\
-                                                                   "+self.areas+",\
+                                                                   "+self.zoning+",\
                                                                    "+self.stop+");" 
         
         # Build paths/paths trees/isochrons indicators
@@ -1293,15 +1319,15 @@ class TempusAccess:
         self.dlg.ui.pushButtonChoosePathsTreeRootOnMap.clicked.connect(self._slotPushButtonChoosePathsTreeRootOnMapClicked)
         self.dlg.ui.pushButtonChoosePathsTreesRootsOnMap.clicked.connect(self._slotPushButtonChoosePathsTreesRootsOnMapClicked)
         self.dlg.ui.pushButtonRemovePathsTreesRoots.clicked.connect(self._slotPushButtonRemovePathsTreesRootsClicked)
-        self.dlg.ui.comboBoxAreaType.currentIndexChanged.connect(self._slotComboBoxAreaTypeIndexChanged)
-        self.dlg.ui.comboBoxArea.currentIndexChanged.connect(self._slotComboBoxAreaIndexChanged)
+        self.dlg.ui.comboBoxZoningFilter.currentIndexChanged.connect(self._slotComboBoxZoningFilterIndexChanged)
+        self.dlg.ui.comboBoxZone.currentIndexChanged.connect(self._slotComboBoxZoneIndexChanged)
         self.dlg.ui.pushButtonInvertOD.clicked.connect(self._slotPushButtonInvertODClicked)
         self.dlg.ui.comboBoxPathsTreeOD.currentIndexChanged.connect(self._slotComboBoxPathsTreeODIndexChanged)
         self.dlg.ui.comboBoxCombPathsTreesOD.currentIndexChanged.connect(self._slotComboBoxCombPathsTreesODIndexChanged)
         
         
         # 2nd tab
-        self.dlg.ui.listViewGTFSFeeds.selectionModel().selectionChanged.connect(self._slotListViewGTFSFeedsSelectionChanged)
+        self.dlg.ui.listViewPTNetworks.selectionModel().selectionChanged.connect(self._slotlistViewPTNetworksSelectionChanged)
         
         
         # 3rd tab 
@@ -1596,7 +1622,7 @@ class TempusAccess:
         
         
         if (self.node_type==0): # Stops area
-            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") ORDER BY 1"
+            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") ORDER BY 1"
             self.modelNode.setQuery(unicode(s), self.db)
             
         elif (self.node_type==1): # Road nodes
@@ -1622,7 +1648,7 @@ class TempusAccess:
         if (self.node_type==0): # Stop areas
             s="SELECT id as id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
                FROM tempus_gtfs.stops \
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+") \
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+") \
                ORDER BY 2 \
                LIMIT 1"
             i=4
@@ -1700,7 +1726,7 @@ class TempusAccess:
                 subset_d = s
             if (self.node_type==0): # Stop areas
                 t="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
-                   WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
+                   WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                    ORDER BY 1"
             elif (self.node_type==1): # Road nodes
                 t="SELECT id FROM tempus.road_node WHERE ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"::bigint[]\
@@ -1773,7 +1799,7 @@ class TempusAccess:
         
         if (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==0): # Stop areas
             s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTSources) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                ORDER BY 1"
         elif (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==1): # Road nodes
             s="SELECT id FROM tempus.road_node WHERE ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
@@ -1807,50 +1833,42 @@ class TempusAccess:
         self.updateSelectedNodes()
         
         
-    def _slotComboBoxAreaTypeIndexChanged(self, indexChosenLine):
-        self.area_type = self.modelAreaType.record(self.dlg.ui.comboBoxAreaType.currentIndex()).value("code")
-        
-        if (indexChosenLine>0):
-            s="SELECT lib, char_id FROM tempus_access.area_type"+str(self.modelAreaType.record(indexChosenLine).value("code"))+" \
+    def _slotComboBoxZoningFilterIndexChanged(self, indexChosenLine):
+        if (indexChosenLine>=0):
+            s="SELECT lib, id FROM zoning."+self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("name")+" \
                 UNION \
                 SELECT '', '-1' \
                 ORDER BY 1"
         else:
             s="SELECT '' as lib, '-1' as char_id"
-        self.modelArea.setQuery(unicode(s), self.db)
+        self.modelZone.setQuery(unicode(s), self.db)
         
-        for name, layer in QgsMapLayerRegistry.instance().mapLayers().iteritems():
-            for i in range(0,self.modelAreaType.rowCount()):
-                if ((self.modelAreaType.record(i).value("code")==self.modelAreaType.record(self.dlg.ui.comboBoxAreaType.currentIndex()).value("code")) and (layer.name()==self.modelAreaType.record(i).value("lib"))):
-                    self.iface.legendInterface().setLayerVisible(layer, True)
-                elif (layer.name()==self.modelAreaType.record(i).value("lib")):
-                    self.iface.legendInterface().setLayerVisible(layer, False)
+
     
     
-    def _slotComboBoxAreaIndexChanged(self):
+    def _slotComboBoxZoneIndexChanged(self):
         from_proj = QgsCoordinateReferenceSystem()
         from_proj.createFromSrid(4326)
         to_proj = QgsCoordinateReferenceSystem()
         to_proj.createFromSrid(self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
         crd=QgsCoordinateTransform(from_proj, to_proj)
         
-        self.area_id = self.modelArea.record(self.dlg.ui.comboBoxArea.currentIndex()).value("char_id")
+        self.zone_id = self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("id")
         
         # Filtering map display on the area layer
         for name, layer in QgsMapLayerRegistry.instance().mapLayers().iteritems():
-            for i in range(0,self.modelAreaType.rowCount()):
-                if ((self.modelAreaType.record(i).value("code")==self.modelAreaType.record(self.dlg.ui.comboBoxAreaType.currentIndex()).value("code")) and (layer.name()==self.modelAreaType.record(i).value("lib"))):
-                    self.iface.legendInterface().setLayerVisible(layer, True)
-                    if (self.area_id == "-1"):
+            for i in range(0,self.modelZoningSource.rowCount()):
+                if ((self.modelZoningSource.record(i).value("id")==self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id")) and (layer.name()==self.modelZoningSource.record(i).value("comment"))):
+                    if (self.zone_id == -1):
                         layer.setSubsetString("")
-                    elif (self.area_id != None):
-                        layer.setSubsetString("char_id = '" + str(self.modelArea.record(self.dlg.ui.comboBoxArea.currentIndex()).value("char_id")) + "'")
+                        self.iface.legendInterface().setLayerVisible(layer, False)
+                    elif (self.zone_id != None):
+                        layer.setSubsetString("id = " + str(self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("id")))
                         self.iface.mapCanvas().setExtent(crd.transform(layer.extent()))
-
-                elif (layer.name()==self.modelAreaType.record(i).value("lib")):
-                    self.iface.legendInterface().setLayerVisible(layer, False)
+                        self.iface.legendInterface().setLayerVisible(layer, True)
+                elif (layer.name() == self.modelZoningSource.record(i).value("comment")):
                     layer.setSubsetString("")
-        
+                    self.iface.legendInterface().setLayerVisible(layer, False)
         self.iface.mapCanvas().refreshMap()
     
     
@@ -1862,18 +1880,18 @@ class TempusAccess:
     
     # Slots of the 2nd tab
     
-    def _slotListViewGTFSFeedsSelectionChanged(self, selected, deselected):
-        self.PTSources = []
-        for item in self.dlg.ui.listViewGTFSFeeds.selectionModel().selectedRows():
-            self.PTSources.append(self.modelPTSources.record(item.row()).value("id"))
+    def _slotlistViewPTNetworksSelectionChanged(self, selected, deselected):
+        self.PTNetworks = []
+        for item in self.dlg.ui.listViewPTNetworks.selectionModel().selectedRows():
+            self.PTNetworks.append(self.modelPTNetwork.record(item.row()).value("id"))
         
         # Update of the dialog widgets with the selected feeds
         
-        if (len(self.PTSources)>0):
+        if (len(self.PTNetworks)>0):
             # Agencies
             s="SELECT feed_id, agency_id, agency_name, id \
                FROM tempus_gtfs.agency \
-               WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ") ORDER BY feed_id, agency_id"
+               WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTNetworks) + ") ORDER BY feed_id, agency_id"
             self.modelAgencies.setQuery(unicode(s), self.db)
             self.dlg.ui.tableViewAgencies.selectAll()
             self.dlg.ui.tableViewAgencies.resizeRowsToContents()
@@ -1883,7 +1901,7 @@ class TempusAccess:
             # PT modes
             s="SELECT name, id, gtfs_feed_id, gtfs_route_type \
                FROM tempus.transport_mode \
-               WHERE ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.PTSources) 
+               WHERE ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.PTNetworks) 
             self.modelPTModes.setQuery(unicode(s), self.db)
             self.dlg.ui.listViewPTModes.selectAll()
             
@@ -1893,7 +1911,7 @@ class TempusAccess:
             # PT stops
             s="SELECT DISTINCT stop_name || '-' || stop_id as stop, id, feed_id, stop_id, stop_name \
                FROM tempus_gtfs.stops\
-               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")\
+               WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTNetworks) + ")\
                UNION SELECT '', -1, '', '', ''\
                ORDER BY 1"
             self.modelStop.setQuery(unicode(s), self.db)
@@ -1901,7 +1919,7 @@ class TempusAccess:
             # PT routes
             s="SELECT route_long_name as route_name, id, feed_id, route_id \
                FROM tempus_gtfs.routes \
-               WHERE  feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")\
+               WHERE  feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTNetworks) + ")\
                UNION SELECT '', -1, null, null ORDER BY 1; "
             self.dlg.ui.comboBoxForcRoute.setModelColumn(0)
             self.modelRoute.setQuery(s, self.db)
@@ -1909,14 +1927,14 @@ class TempusAccess:
             # PT sections
             s="SELECT DISTINCT id, stop_from, stop_to \
                  FROM tempus_gtfs.sections \
-                 WHERE ARRAY[feed_id] <@ ARRAY" + str(self.PTSources) + "\
+                 WHERE ARRAY[feed_id] <@ ARRAY" + str(self.PTNetworks) + "\
                  UNION SELECT -1, null, null ORDER BY 1;"
             
             # Calendar and date edition widgets : updated with the minimum and maximum dates in the selected data sources
-            if (len(self.dlg.ui.listViewGTFSFeeds.selectionModel().selection().indexes())>0):
+            if (len(self.dlg.ui.listViewPTNetworks.selectionModel().selection().indexes())>0):
                 s="SELECT min(date), max(date) \
                    FROM tempus_gtfs.calendar_dates \
-                   WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTSources) + ")"
+                   WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTNetworks) + ")"
                 q=QtSql.QSqlQuery(unicode(s), self.db)
                 q.next()
                 self.dlg.ui.calendarWidget.setDateRange(q.value(0), q.value(1))
@@ -1933,7 +1951,7 @@ class TempusAccess:
             
             layerList = [lyr for lyr in QgsMapLayerRegistry.instance().mapLayers().values() if lyr.name() == u"Sections"]
             if layerList: 
-                layerList[0].setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTSources))
+                layerList[0].setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTNetworks))
                 if (layerList[0].extent().isEmpty()==False): 
                     self.iface.mapCanvas().setExtent(crd.transform(layerList[0].extent()))
             
@@ -1941,7 +1959,7 @@ class TempusAccess:
                                                                                                 or (layer.name()==u"Arrêts") or (layer.name()==u"Arrêts par mode") \
                                                                                                 or (layer.name()=="Sections par mode"))]
             for lyr in layerList:
-                lyr.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTSources)+")")
+                lyr.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+")")
             self.iface.mapCanvas().refreshMap()
     
 

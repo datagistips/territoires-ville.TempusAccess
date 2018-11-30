@@ -50,8 +50,8 @@ class import_road_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelRoadFormat)
-        self.ui.comboBoxFormatVersion.setModel(self.caller.modelRoadFormatVersion)
+        self.ui.comboBoxFormat.setModel(self.caller.modelRoadNetworkFormat)
+        self.ui.comboBoxFormatVersion.setModel(self.caller.modelRoadNetworkFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         
         # Connect signals and slots
@@ -68,6 +68,7 @@ class import_road_dialog(QDialog):
         self.ui.pushButtonChoose.clicked.connect(self._slotPushButtonChooseClicked)
         self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
         self.ui.lineEditSourceName.textChanged.connect(self._slotLineEditSourceNameTextChanged)
+        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
         
     def _slotLineEditSourceNameTextChanged(self, text):
         if (self.ui.lineEditSourceName.text()!=""):
@@ -77,15 +78,15 @@ class import_road_dialog(QDialog):
         
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelRoadFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.caller.modelRoadFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'road' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelRoadNetworkFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.caller.modelRoadNetworkFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'road' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
     
     
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
         if (indexChosenLine>=0):
-            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_encoding")))
-            self.ui.spinBoxSRID.setValue(self.caller.modelRoadFormatVersion.record(indexChosenLine).value("default_srid"))
-            self.path_type = self.caller.modelRoadFormatVersion.record(indexChosenLine).value("path_type")
+            self.ui.comboBoxEncoding.setCurrentIndex(self.ui.comboBoxEncoding.findText(self.caller.modelRoadNetworkFormatVersion.record(indexChosenLine).value("default_encoding")))
+            self.ui.spinBoxSRID.setValue(self.caller.modelRoadNetworkFormatVersion.record(indexChosenLine).value("default_srid"))
+            self.path_type = self.caller.modelRoadNetworkFormatVersion.record(indexChosenLine).value("path_type")
             if (self.format == "visum"):
                 self.ui.lineEditVisumModes.setText('P,B,V,T')
                 self.ui.lineEditVisumModes.setEnabled(True)
@@ -103,41 +104,58 @@ class import_road_dialog(QDialog):
 
 
     def _slotPushButtonChooseClicked(self):
-        cheminComplet = ''
+        if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == ''):
+            box = QMessageBox()
+            box.setText(u"Certains paramètres obligatoires ne sont pas renseignés. ")
+            box.exec_()
+        else:cheminComplet = ''
         if (self.path_type=="directory"):
             cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
         else:
             cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
-        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-        self.srid = self.ui.spinBoxSRID.value()
-        self.prefix = self.ui.lineEditPrefix.text()
-        self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
-        self.source_name = self.ui.lineEditSourceName.text()
-        self.model_version = self.caller.modelRoadFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
-        self.visum_modes = self.ui.lineEditVisumModes.text()
-        prefix_string=''
-        if (self.prefix != ""):
-            prefix_string = "-p "+self.prefix 
-        
-        version_string=''
-        if (str(self.model_version) != 'NULL'):
-            version_string = '-m ' + str(self.model_version)
             
-        visum_modes_string=''
-        if (self.visum_modes != ''):
-            visum_modes_string = '--visum-modes '+self.visum_modes
-        
-        cmd = ["python", TEMPUSLOADER, "--action", "import", "--data-type", "road", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '-S', str(self.srid), "-d", dbstring]
-        self.ui.lineEditCommand.setText(" ".join(cmd))
-        r = subprocess.call( cmd )
-        
-        self.caller.iface.mapCanvas().refreshMap()
-        
-        box = QMessageBox()
-        if r==0:
-            box.setText(u"L'import du réseau est terminé. " )
-        else:
-            box.setText(u"Erreur pendant l'import. ")
-        box.exec_()
+        if cheminComplet != '':
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.srid = self.ui.spinBoxSRID.value()
+            self.prefix = unicode(self.ui.lineEditPrefix.text())
+            self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+            self.source_name = unicode(self.ui.lineEditSourceName.text())
+            self.source_comment = unicode(self.ui.lineEditSourceComment.text())
+            self.model_version = self.caller.modelRoadNetworkFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
+            self.visum_modes = unicode(self.ui.lineEditVisumModes.text())
             
+            cmd = ["python", TEMPUSLOADER, "--action", "import", "--data-type", "road", "--data-format", self.format, "--source-name", self.source_name, "--source-comment", self.source_comment, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), "-d", dbstring]
+            if (self.prefix != ''):
+                cmd.append("--prefix")
+                cmd.append(self.prefix)
+            if (str(self.model_version) != 'NULL'):
+                cmd.append('--model-version')
+                cmd.append(str(self.model_version))
+            if (self.visum_modes != ''):
+                cmd.append('--visum-modes')
+                cmd.append(self.visum_modes)
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            
+            
+            rc = self.caller.execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                self.caller.iface.mapCanvas().refreshMap()
+
+                box.setText(u"L'import de la source est terminé. " )
+                
+                self.caller.refreshRoadNetworks()
+                
+                # Zoom to the loaded zoning data
+                layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name() == u"Réseau piéton") or (layer.name() == u"Réseau voiture") or (layer.name() == u"Réseau vélo")) ]
+                self.caller.zoomToLayersList(layersList, True)
+                
+            else:
+                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
+            box.exec_()
+        
+        
+    def _slotClose(self):
+        self.hide()            
             
