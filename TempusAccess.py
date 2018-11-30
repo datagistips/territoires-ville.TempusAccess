@@ -43,9 +43,9 @@ from export_delete_pt_dialog import export_delete_pt_dialog
 from import_road_dialog import import_road_dialog
 from export_delete_road_dialog import export_delete_road_dialog
 from import_poi_dialog import import_poi_dialog
-from export_delete_poi_dialog import export_delete_poi_dialog
+from delete_poi_dialog import delete_poi_dialog
 from import_zoning_dialog import import_zoning_dialog
-from export_delete_zoning_dialog import export_delete_zoning_dialog
+from delete_zoning_dialog import delete_zoning_dialog
 from manage_indicators_dialog import manage_indicators_dialog
 
 import subprocess
@@ -277,7 +277,7 @@ class TempusAccess:
         self.modelPOISourceFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
-        self.export_delete_poi_dialog=export_delete_poi_dialog(self, self.iface)
+        self.delete_poi_dialog=delete_poi_dialog(self, self.iface)
         
         # Zonings
         self.modelZoningSource=QtSql.QSqlQueryModel()  
@@ -290,7 +290,7 @@ class TempusAccess:
         self.dlg.ui.comboBoxZone.setModel(self.modelZone)
 
         self.import_zoning_dialog=import_zoning_dialog(self, self.iface)
-        self.export_delete_zoning_dialog=export_delete_zoning_dialog(self, self.iface)
+        self.delete_zoning_dialog=delete_zoning_dialog(self, self.iface)
         
         # Indicators, requests and representations
         self.modelIndic = QtSql.QSqlQueryModel()
@@ -392,9 +392,9 @@ class TempusAccess:
         self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
         self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
         self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
-        self.action_export_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
+        self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
         self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.action_export_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
+        self.action_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
         self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
         self.action.setToolTip(u"Lancer le plugin")
@@ -405,9 +405,9 @@ class TempusAccess:
         self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
         self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
         self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
-        self.action_export_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
+        self.action_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
         self.action_import_zoning.setToolTip(u"Importer un zonage")
-        self.action_export_delete_zoning.setToolTip(u"Exporter ou supprimer un zonage")
+        self.action_delete_zoning.setToolTip(u"Exporter ou supprimer un zonage")
         self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
         
         # Connect the actions to the methods
@@ -419,9 +419,9 @@ class TempusAccess:
         self.action_import_pt.triggered.connect(self.import_pt)
         self.action_export_delete_pt.triggered.connect(self.export_delete_pt)
         self.action_import_poi.triggered.connect(self.import_poi)
-        self.action_export_delete_poi.triggered.connect(self.export_delete_poi)
+        self.action_delete_poi.triggered.connect(self.delete_poi)
         self.action_import_zoning.triggered.connect(self.import_zoning)
-        self.action_export_delete_zoning.triggered.connect(self.export_delete_zoning)
+        self.action_delete_zoning.triggered.connect(self.delete_zoning)
         self.action_manage_indicators.triggered.connect(self.manage_indicators)
         
         # Add toolbar buttons and menu items
@@ -433,9 +433,9 @@ class TempusAccess:
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_poi)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_poi)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_zoning)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_zoning)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_zoning)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_indicators)
                 
         m = self.toolButton.menu()
@@ -447,9 +447,9 @@ class TempusAccess:
         m.addAction(self.action_import_pt)
         m.addAction(self.action_export_delete_pt)
         m.addAction(self.action_import_poi)
-        m.addAction(self.action_export_delete_poi)
+        m.addAction(self.action_delete_poi)
         m.addAction(self.action_import_zoning)
-        m.addAction(self.action_export_delete_zoning)
+        m.addAction(self.action_delete_zoning)
         m.addAction(self.action_manage_indicators)
         
         self.toolButton.setDefaultAction(self.action)
@@ -480,9 +480,9 @@ class TempusAccess:
         # Remove the plugin menu items and icons
         self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_indicators) 
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_zoning)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_zoning)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_zoning)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_poi)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_pt)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_road)
@@ -493,9 +493,9 @@ class TempusAccess:
 
         self.iface.removeToolBarIcon(self.action_manage_indicators)
         self.iface.removeToolBarIcon(self.action_import_zoning)
-        self.iface.removeToolBarIcon(self.action_export_delete_zoning)
+        self.iface.removeToolBarIcon(self.action_delete_zoning)
         self.iface.removeToolBarIcon(self.action_import_poi)
-        self.iface.removeToolBarIcon(self.action_export_delete_poi)
+        self.iface.removeToolBarIcon(self.action_delete_poi)
         self.iface.removeToolBarIcon(self.action_import_pt)
         self.iface.removeToolBarIcon(self.action_export_delete_pt)
         self.iface.removeToolBarIcon(self.action_import_road)
@@ -509,9 +509,9 @@ class TempusAccess:
         self.dlg.hide()
         self.manage_indicators_dialog.hide()
         self.import_zoning_dialog.hide()
-        self.export_delete_zoning_dialog.hide()
+        self.delete_zoning_dialog.hide()
         self.import_poi_dialog.hide()
-        self.export_delete_poi_dialog.hide()
+        self.delete_poi_dialog.hide()
         self.import_pt_dialog.hide()
         self.export_delete_pt_dialog.hide()
         self.import_road_dialog.hide()
@@ -566,16 +566,16 @@ class TempusAccess:
         self.import_poi_dialog.show()
     
     
-    def export_delete_poi(self):
-        self.export_delete_poi_dialog.show()
+    def delete_poi(self):
+        self.delete_poi_dialog.show()
     
     
     def import_zoning(self):
         self.import_zoning_dialog.show()
         
     
-    def export_delete_zoning(self):
-        self.export_delete_zoning_dialog.show()
+    def delete_zoning(self):
+        self.delete_zoning_dialog.show()
         
       
     def manage_indicators(self):

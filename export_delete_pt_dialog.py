@@ -57,6 +57,7 @@ class export_delete_pt_dialog(QDialog):
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
         self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
+        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
     
     
     def _slotPushButtonDeleteClicked(self):
@@ -94,9 +95,27 @@ class export_delete_pt_dialog(QDialog):
         
     def _slotExportClicked(self):
         # Open a window to choose path to the GTFS source file 
-        NomFichierComplet = QFileDialog.getSaveFileName(caption = "Choisir un nom de fichier", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
+        NomFichierComplet=''
+        NomFichierComplet = QFileDialog.getSaveFileName(caption = "Enregistrer sous...", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
         
-        self.caller.exportGTFS(NomFichierComplet, "tempus_gtfs", self.ui.comboBoxGTFSFeeds.currentText())
+        if (NomFichierComplet!=''):
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("name")
+            
+            cmd=["python", TEMPUSLOADER, "--action", "export", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring, '--path', NomFichierComplet]
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            
+            rc = self.caller.execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                box.setText(u"Source exportée avec succès" )                
+            else:
+                box.setText(u"Erreur pendant l'export. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
+            box.exec_()
 
+            
+    def _slotClose(self):
+        self.hide()
         
         

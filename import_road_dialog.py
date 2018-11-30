@@ -47,6 +47,7 @@ class import_road_dialog(QDialog):
         self.ui.setupUi(self)
         
         self.caller = caller
+        self.iface = self.caller.iface 
         
         self.plugin_dir = self.caller.plugin_dir
         

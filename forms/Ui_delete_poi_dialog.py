@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_poi_dialog.ui'
+# Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_delete_poi_dialog.ui'
 #
-# Created: Thu Nov 29 14:50:41 2018
+# Created: Fri Nov 30 17:59:50 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,10 +47,7 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.comboBoxSourceName, 0, 1, 1, 1)
         self.pushButtonDelete = QtGui.QPushButton(self.verticalLayoutWidget)
         self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
-        self.gridLayout.addWidget(self.pushButtonDelete, 1, 0, 1, 1)
-        self.pushButtonExport = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.pushButtonExport.setObjectName(_fromUtf8("pushButtonExport"))
-        self.gridLayout.addWidget(self.pushButtonExport, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.pushButtonDelete, 1, 1, 1, 1)
         self.layoutWidget = QtGui.QWidget(Dialog)
         self.layoutWidget.setGeometry(QtCore.QRect(20, 100, 421, 22))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
@@ -73,7 +70,6 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Gérer les données de points d\'intérêt", None))
         self.label.setText(_translate("Dialog", "Nom de la source *", None))
         self.pushButtonDelete.setText(_translate("Dialog", "Supprimer source", None))
-        self.pushButtonExport.setText(_translate("Dialog", "Exporter source", None))
         self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
