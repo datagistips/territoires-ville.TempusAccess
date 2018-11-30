@@ -21,7 +21,7 @@
 import sys
 import os
 
-TEMPUSLOADER=("C:/OSGeo4W64/apps/Python27/lib/site-packages/tempusloader-1.2.3-py2.7.egg/tempusloader/load_tempus.py" if sys.platform.startswith('win') else "load_tempus")
+TEMPUSLOADER=(os.path.dirname(__file__)+"/scripts/tempusloader/load_tempus.py" if sys.platform.startswith('win') else "load_tempus")
 PGRESTORE=(os.path.dirname(__file__)+"/exe/runtime/pg_restore.exe" if sys.platform.startswith('win') else "pg_restore")
 PGDUMP=(os.path.dirname(__file__)+"/exe/runtime/pg_dump.exe" if sys.platform.startswith('win') else "pg_dump")
 

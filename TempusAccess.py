@@ -900,8 +900,17 @@ class TempusAccess:
             self.iface.legendInterface().setLayerVisible(layer, True)
 
         # Penalized road movements
-        uri.setDataSource("tempus", "penalized_movements", "geom", "", "id")
-        layer = QgsVectorLayer(uri.uri(), u"Mouvements pénalisé", "postgres")
+        uri.setDataSource("tempus", "view_penalized_movements_cars", "geom", "", "id")
+        layer = QgsVectorLayer(uri.uri(), u"Mouvements pénalisés voitures", "postgres")
+        layer.loadNamedStyle(self.styles_dir + '/penalized_movements.qml')
+        if (layer.isValid()):
+            QgsMapLayerRegistry.instance().addMapLayer(layer, False)
+            node_layer = QgsLayerTreeLayer(layer)
+            self.node_road_offer.insertChildNode(5, node_layer)
+            self.iface.legendInterface().setLayerVisible(layer,False)
+            
+        uri.setDataSource("tempus", "view_penalized_movements_cyclists", "geom", "", "id")
+        layer = QgsVectorLayer(uri.uri(), u"Mouvements pénalisés vélos", "postgres")
         layer.loadNamedStyle(self.styles_dir + '/penalized_movements.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)

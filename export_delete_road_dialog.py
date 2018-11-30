@@ -78,6 +78,7 @@ class export_delete_road_dialog(QDialog):
                 box.setText(u"Source supprimée avec succès" )
                 
                 self.caller.refreshRoadNetworks()
+                self.iface.mapCanvas().refreshMap()
                 
             else:
                 box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")

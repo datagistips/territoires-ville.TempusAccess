@@ -151,6 +151,8 @@ class import_road_dialog(QDialog):
                 layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name() == u"Réseau piéton") or (layer.name() == u"Réseau voiture") or (layer.name() == u"Réseau vélo")) ]
                 self.caller.zoomToLayersList(layersList, True)
                 
+                self.iface.mapCanvas().refreshMap()
+                
             else:
                 box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
