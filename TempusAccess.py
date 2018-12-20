@@ -248,15 +248,11 @@ class TempusAccess:
         self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
         self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
         self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
-<<<<<<< HEAD
+
         self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Supprimer une source de points d'intérêt", self.iface.mainWindow())
         self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
         self.action_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Supprimer un zonage", self.iface.mainWindow())
-=======
-        self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
-        self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.action_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
->>>>>>> f9929be026e0076408622a0f9a53c7a6c1907e74
+
         self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
         self.action.setToolTip(u"Lancer le plugin")
