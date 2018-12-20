@@ -41,7 +41,7 @@ from thread_tools import execute_external_cmd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_export_delete_pt_dialog import Ui_Dialog
 
-class export_delete_pt_dialog(QDialog): 
+class export_delete_pt_dialog(QDialog):
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
@@ -50,74 +50,72 @@ class export_delete_pt_dialog(QDialog):
         self.caller = caller
         self.db = caller.db
         self.iface = caller.iface
-                
+
         self.ui.comboBoxSourceName.setModel(self.caller.modelPTNetwork)
-        
+
         self._connectSlots()
-    
-    
+
+
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
         self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
         self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
-    
-    
+
+
     def _slotPushButtonDeleteClicked(self):
         ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
 
-        if (ret == QMessageBox.Ok): 
+        if (ret == QMessageBox.Ok):
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
             self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")
-        
+
             uri=QgsDataSourceURI()
             uri.setConnection(self.caller.db.hostName(), str(self.caller.db.port()), self.caller.db.databaseName(), self.caller.db.userName(), self.caller.db.password())
-            
+
             for layer in QgsMapLayerRegistry.instance().mapLayers().values():
                 if (layer.name()==self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")):
                     QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
-            self.caller.node_pt_offer.setExpanded(True) 
-            
+            self.caller.node_pt_offer.setExpanded(True)
+
             cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring]
-            
+
             self.ui.lineEditCommand.setText(" ".join(cmd))
-            
+
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 
                 box.setText(u"Source supprimée avec succès" )
-                
+
                 self.caller.refreshPTNetworks()
-                
+
             else:
                 box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
-        
-        
+
+
     def _slotExportClicked(self):
-        # Open a window to choose path to the GTFS source file 
+        # Open a window to choose path to the GTFS source file
         NomFichierComplet=''
         NomFichierComplet = QFileDialog.getSaveFileName(caption = "Enregistrer sous...", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
-        
+
         if (NomFichierComplet!=''):
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
             self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("name")
-            
+
             cmd=["python", TEMPUSLOADER, "--action", "export", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring, '--path', NomFichierComplet]
-            
+
             self.ui.lineEditCommand.setText(" ".join(cmd))
-            
+
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
-                box.setText(u"Source exportée avec succès" )                
+                box.setText(u"Source exportée avec succès" )
             else:
                 box.setText(u"Erreur pendant l'export. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
 
-            
+
     def _slotClose(self):
         self.hide()
-        
-        

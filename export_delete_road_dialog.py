@@ -100,9 +100,15 @@ class export_delete_road_dialog(QDialog):
             
             self.ui.lineEditCommand.setText(" ".join(cmd))
             
+<<<<<<< HEAD
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc == 0):
+=======
+            rc = self.caller.execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+>>>>>>> f9929be026e0076408622a0f9a53c7a6c1907e74
                 box.setText(u"Source exportée avec succès" )                
             else:
                 box.setText(u"Erreur pendant l'export. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
