@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_road_dialog.ui'
+# Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_delete_zoning_dialog.ui'
 #
-# Created: Mon Dec 03 00:24:21 2018
+# Created: Fri Nov 30 17:56:32 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,11 +47,7 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.comboBoxSourceName, 0, 1, 1, 1)
         self.pushButtonDelete = QtGui.QPushButton(self.verticalLayoutWidget)
         self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
-        self.gridLayout.addWidget(self.pushButtonDelete, 1, 0, 1, 1)
-        self.pushButtonExport = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.pushButtonExport.setEnabled(False)
-        self.pushButtonExport.setObjectName(_fromUtf8("pushButtonExport"))
-        self.gridLayout.addWidget(self.pushButtonExport, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.pushButtonDelete, 1, 1, 1, 1)
         self.layoutWidget = QtGui.QWidget(Dialog)
         self.layoutWidget.setGeometry(QtCore.QRect(20, 100, 421, 22))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
@@ -71,11 +67,9 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(_translate("Dialog", "Gérer les réseaux routiers", None))
-        self.label.setText(_translate("Dialog", "Nom de la source *", None))
-        self.pushButtonDelete.setText(_translate("Dialog", "Supprimer source", None))
-        self.pushButtonExport.setToolTip(_translate("Dialog", "<html><head/><body><p>Fonctionnalité bientôt disponible !</p></body></html>", None))
-        self.pushButtonExport.setText(_translate("Dialog", "Exporter source", None))
+        Dialog.setWindowTitle(_translate("Dialog", "Gérer les zonages", None))
+        self.label.setText(_translate("Dialog", "Nom du zonage *", None))
+        self.pushButtonDelete.setText(_translate("Dialog", "Supprimer zonage", None))
         self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 

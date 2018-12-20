@@ -35,6 +35,7 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_export_delete_road_dialog import Ui_Dialog
@@ -57,6 +58,7 @@ class export_delete_road_dialog(QDialog):
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
         self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
+        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
     
     
     def _slotPushButtonDeleteClicked(self):
@@ -70,7 +72,7 @@ class export_delete_road_dialog(QDialog):
             
             self.ui.lineEditCommand.setText(" ".join(cmd))
             
-            rc = self.caller.execute_external_cmd( cmd )
+            rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
@@ -81,13 +83,33 @@ class export_delete_road_dialog(QDialog):
                 self.iface.mapCanvas().refreshMap()
                 
             else:
-                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
+                box.setText(u"Erreur pendant l'import. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
     
     
     def _slotExportClicked(self):
         # Open a window to choose path to the GTFS source file 
-        NomDossierComplet = QFileDialog.getSaveFileName(caption = "Choisir un dossier", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
-
+        NomFichierComplet=''
+        NomFichierComplet = QFileDialog.getSaveFileName(caption = "Enregistrer sous...", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
+        
+        if (NomFichierComplet!=''):
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.source_name = self.caller.modelRoadNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("name")
+            
+            cmd=["python", TEMPUSLOADER, "--action", "export", "--data-type", "road", "--source-name", self.source_name, '--dbstring', dbstring, '--path', NomFichierComplet]
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))
+            
+            rc = execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc == 0):
+                box.setText(u"Source exportée avec succès" )                
+            else:
+                box.setText(u"Erreur pendant l'export. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
+            box.exec_()
+        
+    
+    def _slotClose(self):
+        self.hide()
         
         

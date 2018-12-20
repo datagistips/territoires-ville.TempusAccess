@@ -35,11 +35,12 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
-from Ui_export_delete_poi_dialog import Ui_Dialog
+from Ui_delete_poi_dialog import Ui_Dialog
 
-class export_delete_poi_dialog(QDialog): 
+class delete_poi_dialog(QDialog): 
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
@@ -56,7 +57,7 @@ class export_delete_poi_dialog(QDialog):
     
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
-        self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
+        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
     
     
     def _slotPushButtonDeleteClicked(self):
@@ -70,7 +71,7 @@ class export_delete_poi_dialog(QDialog):
             
             self.ui.lineEditCommand.setText(" ".join(cmd))
             
-            rc = self.caller.execute_external_cmd( cmd )
+            rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
@@ -84,9 +85,7 @@ class export_delete_poi_dialog(QDialog):
             box.exec_()
         
         
-    
-    def _slotExportClicked(self):
-        pass
-        
+    def _slotClose(self):
+        self.hide()
         
         

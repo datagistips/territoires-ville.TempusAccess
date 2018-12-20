@@ -35,6 +35,7 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_import_zoning_dialog import Ui_Dialog
@@ -123,7 +124,7 @@ class import_zoning_dialog(QDialog):
     def _slotPushButtonChooseClicked(self):
         if (self.ui.lineEditSourceName.text() == '') or (self.format == 'tempus' and ((self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
             box = QMessageBox()
-            box.setText(u"Certains paramètres obligatoires ne sont pas renseignés. ")
+            box.setText(unicode("Certains paramètres obligatoires ne sont pas renseignés."))
             box.exec_()
         else:
             cheminComplet = ''
@@ -134,35 +135,40 @@ class import_zoning_dialog(QDialog):
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
             self.srid = self.ui.spinBoxSRID.value()
             self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
-            self.source_name = self.ui.lineEditSourceName.text()
+            self.source_name = unicode(self.ui.lineEditSourceName.text())
+            self.prefix = unicode(self.ui.lineEditPrefix.text())
+            self.model_version = str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version"))
+            self.filter = unicode(self.ui.lineEditFilter.text())
+            self.id_field = unicode(self.ui.lineEditIdField.text())
+            self.name_field = unicode(self.ui.lineEditNameField.text())
             
             cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "zoning", "--data-format", self.format, "--source-name", self.source_name, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), '--dbstring', dbstring]
-            if (self.ui.lineEditPrefix.text() != ""):
+            if (self.prefix != ""):
                 cmd.append("--prefix")
-                cmd.append(self.ui.lineEditPrefix.text())
-            if (str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")) != 'NULL'):
+                cmd.append(self.prefix)
+            if (self.model_version != 'NULL'):
                 cmd.append('--model-version')
-                cmd.append(str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")))
-            if (self.ui.lineEditFilter.text() != ''):
+                cmd.append(self.model_version)
+            if (self.filter != ''):
                 cmd.append('--filter')
-                cmd.append(self.ui.lineEditFilter.text())
+                cmd.append(self.filter)
             if (self.ui.lineEditSourceComment.text()!=''):
                 cmd.append("--source-comment")
                 cmd.append(self.ui.lineEditSourceComment.text())
             if (self.format == "tempus"):
                 cmd.append("--id-field")
-                cmd.append(self.ui.lineEditIdField.text())
+                cmd.append(self.id_field)
                 cmd.append("--name-field")
-                cmd.append(self.ui.lineEditNameField.text())
+                cmd.append(self.name_field)
             
             self.ui.lineEditCommand.setText(" ".join(cmd))
                         
-            rc = self.caller.execute_external_cmd( cmd )
+            rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 
-                box.setText(u"L'import de la source est terminé. " )
+                box.setText(u"L'import de la source est terminé.")
                 
                 self.caller.refreshZoningSources()
                 
@@ -190,7 +196,7 @@ class import_zoning_dialog(QDialog):
                 self.caller.zoomToLayersList(layersList, True)
                 
             else:
-                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
+                box.setText(u"Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
             box.exec_()
         
             

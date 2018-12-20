@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.ui'
 #
-# Created: Thu Nov 29 18:03:23 2018
+# Created: Sun Dec 09 10:29:20 2018
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,7 +105,7 @@ class Ui_DockWidget(object):
         self.toolBoxPaths.setGeometry(QtCore.QRect(10, 100, 321, 251))
         self.toolBoxPaths.setObjectName(_fromUtf8("toolBoxPaths"))
         self.page = QtGui.QWidget()
-        self.page.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page.setObjectName(_fromUtf8("page"))
         self.layoutWidget_3 = QtGui.QWidget(self.page)
         self.layoutWidget_3.setGeometry(QtCore.QRect(10, 0, 301, 95))
@@ -169,7 +169,7 @@ class Ui_DockWidget(object):
         self.gridLayout.addWidget(self.pushButtonInvertOD, 1, 2, 1, 1)
         self.toolBoxPaths.addItem(self.page, _fromUtf8(""))
         self.page_2 = QtGui.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.layoutWidget1 = QtGui.QWidget(self.page_2)
         self.layoutWidget1.setGeometry(QtCore.QRect(10, 0, 311, 29))
@@ -338,10 +338,10 @@ class Ui_DockWidget(object):
         self.Tabs.addTab(self.tab_5, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
-        self.groupBoxGTFSFeeds = QtGui.QGroupBox(self.tab_2)
-        self.groupBoxGTFSFeeds.setGeometry(QtCore.QRect(10, 10, 341, 121))
-        self.groupBoxGTFSFeeds.setObjectName(_fromUtf8("groupBoxGTFSFeeds"))
-        self.listViewPTNetworks = QtGui.QListView(self.groupBoxGTFSFeeds)
+        self.groupBoxPTNetworks = QtGui.QGroupBox(self.tab_2)
+        self.groupBoxPTNetworks.setGeometry(QtCore.QRect(10, 10, 341, 121))
+        self.groupBoxPTNetworks.setObjectName(_fromUtf8("groupBoxPTNetworks"))
+        self.listViewPTNetworks = QtGui.QListView(self.groupBoxPTNetworks)
         self.listViewPTNetworks.setGeometry(QtCore.QRect(10, 40, 321, 71))
         self.listViewPTNetworks.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.listViewPTNetworks.setAlternatingRowColors(True)
@@ -430,7 +430,7 @@ class Ui_DockWidget(object):
         self.toolBoxDays.setGeometry(QtCore.QRect(20, 60, 291, 281))
         self.toolBoxDays.setObjectName(_fromUtf8("toolBoxDays"))
         self.page_4 = QtGui.QWidget()
-        self.page_4.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_4.setGeometry(QtCore.QRect(0, 0, 291, 227))
         self.page_4.setObjectName(_fromUtf8("page_4"))
         self.calendarWidget = QtGui.QCalendarWidget(self.page_4)
         self.calendarWidget.setGeometry(QtCore.QRect(0, 0, 291, 221))
@@ -558,7 +558,7 @@ class Ui_DockWidget(object):
         self.horizontalLayout_14.addWidget(self.timeEditTimePoint)
         self.toolBoxTime.addItem(self.page_6, _fromUtf8(""))
         self.page_7 = QtGui.QWidget()
-        self.page_7.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_7.setGeometry(QtCore.QRect(0, 0, 271, 147))
         self.page_7.setObjectName(_fromUtf8("page_7"))
         self.layoutWidget5 = QtGui.QWidget(self.page_7)
         self.layoutWidget5.setGeometry(QtCore.QRect(0, 10, 271, 31))
@@ -811,7 +811,7 @@ class Ui_DockWidget(object):
         self.label_7.setText(_translate("DockWidget", "minutes", None))
         self.label_5.setText(_translate("DockWidget", "Valeur maximum", None))
         self.Tabs.setTabText(self.Tabs.indexOf(self.tab_5), _translate("DockWidget", "Objets", None))
-        self.groupBoxGTFSFeeds.setTitle(_translate("DockWidget", "Réseau de transport collectif", None))
+        self.groupBoxPTNetworks.setTitle(_translate("DockWidget", "Réseau de transport collectif", None))
         self.groupBoxAgencies.setTitle(_translate("DockWidget", "Transporteurs", None))
         self.groupBoxTransportModes.setTitle(_translate("DockWidget", "Modes de transport", None))
         self.label_2.setText(_translate("DockWidget", "Individuels", None))

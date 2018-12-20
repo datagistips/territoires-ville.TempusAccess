@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>539</width>
-    <height>128</height>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Gérer les zonages</string>
+   <string>Gérer les données de points d'intérêt</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -42,7 +42,7 @@
     <item row="0" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Nom du zonage *</string>
+       <string>Nom de la source *</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -52,17 +52,10 @@
     <item row="0" column="1">
      <widget class="QComboBox" name="comboBoxSourceName"/>
     </item>
-    <item row="1" column="0">
+    <item row="1" column="1">
      <widget class="QPushButton" name="pushButtonDelete">
       <property name="text">
-       <string>Supprimer zonage</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QPushButton" name="pushButtonExport">
-      <property name="text">
-       <string>Exporter zonage</string>
+       <string>Supprimer source</string>
       </property>
      </widget>
     </item>

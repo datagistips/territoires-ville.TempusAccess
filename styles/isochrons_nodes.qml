@@ -1,31 +1,16 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.20" simplifyAlgorithm="0" minimumScale="100000" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="0" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="100000" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="0" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="from_node">
+    <edittype widgetv2type="TextEdit" name="gid">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="to_node">
+    <edittype widgetv2type="TextEdit" name="tran_numb">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="transport_mode">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="from_cost">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="to_cost">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_changes">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="travel_time">
+    <edittype widgetv2type="TextEdit" name="mode_chang">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="symbol_color">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="geom_section">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
@@ -730,31 +715,21 @@
   <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
   <annotationform></annotationform>
   <aliases>
-    <alias field="from_node" index="0" name=""/>
-    <alias field="to_node" index="1" name=""/>
-    <alias field="transport_mode" index="2" name=""/>
-    <alias field="from_cost" index="3" name=""/>
-    <alias field="to_cost" index="4" name=""/>
-    <alias field="pt_changes" index="5" name=""/>
-    <alias field="travel_time" index="6" name=""/>
-    <alias field="symbol_color" index="7" name=""/>
-    <alias field="geom_section" index="8" name=""/>
+    <alias field="gid" index="0" name=""/>
+    <alias field="tran_numb" index="1" name="Nb correspondances"/>
+    <alias field="mode_chang" index="2" name="Nb chang modes"/>
+    <alias field="symbol_color" index="3" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
   <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;symbol_size&quot;" sortOrder="1">
     <columns>
-      <column width="-1" hidden="1" type="actions"/>
+      <column width="-1" hidden="0" type="field" name="gid"/>
+      <column width="124" hidden="0" type="field" name="tran_numb"/>
+      <column width="113" hidden="0" type="field" name="mode_chang"/>
       <column width="-1" hidden="0" type="field" name="symbol_color"/>
-      <column width="-1" hidden="0" type="field" name="from_node"/>
-      <column width="-1" hidden="0" type="field" name="to_node"/>
-      <column width="-1" hidden="0" type="field" name="transport_mode"/>
-      <column width="-1" hidden="0" type="field" name="from_cost"/>
-      <column width="-1" hidden="0" type="field" name="to_cost"/>
-      <column width="-1" hidden="0" type="field" name="pt_changes"/>
-      <column width="-1" hidden="0" type="field" name="travel_time"/>
-      <column width="-1" hidden="0" type="field" name="geom_section"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <editform></editform>
@@ -785,15 +760,10 @@ def my_form_open(dialog, layer, feature):
     <fieldstyles/>
   </conditionalstyles>
   <defaults>
-    <default field="from_node" expression=""/>
-    <default field="to_node" expression=""/>
-    <default field="transport_mode" expression=""/>
-    <default field="from_cost" expression=""/>
-    <default field="to_cost" expression=""/>
-    <default field="pt_changes" expression=""/>
-    <default field="travel_time" expression=""/>
+    <default field="gid" expression=""/>
+    <default field="tran_numb" expression=""/>
+    <default field="mode_chang" expression=""/>
     <default field="symbol_color" expression=""/>
-    <default field="geom_section" expression=""/>
   </defaults>
   <previewExpression>COALESCE( "stop_name", '&lt;NULL>' )</previewExpression>
   <layerGeometryType>0</layerGeometryType>

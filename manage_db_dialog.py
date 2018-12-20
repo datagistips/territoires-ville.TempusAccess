@@ -35,6 +35,7 @@ import string
 import os
 
 from config import *
+from thread_tools import *
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_manage_db_dialog import Ui_Dialog
@@ -112,50 +113,58 @@ class manage_db_dialog(QDialog):
             
             cmd = [PGRESTORE,  "-h", self.temp_db.hostName(), "-p", str(self.temp_db.port()), "-d", self.temp_db.databaseName(), "-U",  self.temp_db.userName(), "-w", "-O", "-x", "-v", nom_fichier]
             self.ui.lineEditCommand.setText(" ".join(cmd))
-            r = subprocess.call( cmd )
             
+            rc = execute_external_cmd( cmd )
             box = QMessageBox()
-            if r==0:
+            if (rc==0):
+                self.caller.iface.mapCanvas().refresh()
                 box.setText(u"L'import de la base s'est terminé avec succès. Vous pouvez maintenant la charger. " )
             else:
-                box.setText(u"L'import de la base a échoué ou a retourné des avertissements. ")
-            box.exec_()
-    
+                box.setText(u"L'import de la base a échoué ou a retourné des avertissements.\nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
+            box.exec_()    
         
         
     def _slotPushButtonCreateClicked(self):
-        s="SELECT count(*) from pg_database\
-            WHERE datname = 'tempusaccess_"+self.ui.lineEditNewDB.text()+"'";
-        q=QtSql.QSqlQuery(unicode(s), self.caller.db)
-        q.next()
-        create = True
-        
-        if (int(q.value(0))>0):
-            ret = QMessageBox.question(self, "TempusAccess", u"La base de données 'tempusaccess_"+self.ui.lineEditNewDB.text()+u"' existe déjà et va être réinitialisée : toutes les données présentes seront écrasées. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Cancel)
-            create = False
-        else:
-            ret = QMessageBox.Ok
-        
-        if (ret == QMessageBox.Ok):            
-            if (create == True):
-                cmd = [ "createdb", "-h", self.caller.db.hostName(), "-U", self.caller.db.userName(), "-p", str(self.caller.db.port()), "tempusaccess_"+self.ui.lineEditNewDB.text() ]
-                r = subprocess.call( cmd )
-            
-            self.caller.set_db_connection_dialog.refreshDBList()
-            
-            dbstring = "host="+self.caller.db.hostName()+" dbname=tempusaccess_"+self.ui.lineEditNewDB.text()+" port="+str(self.caller.db.port())
-            cmd = ["python", TEMPUSLOADER, "--action", "reset", "--tempusaccess", "--path", self.plugin_dir + "/data/system.zip", "--sep", ";", "--encoding", "LATIN1", "-d", dbstring]
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-            r = subprocess.call( cmd )
-            
+        if (self.ui.lineEditNewDB.text() == ''):
             box = QMessageBox()
-            if (r==0):
-                box.setText(u"La base a été créée. Vous pouvez maintenant la charger, puis y importer des données. " )
-            else:
-                box.setText(u"Erreur pendant la création de la base. ")
+            box.setText(unicode(u"Spécifiez le nom de la base à créer."))
             box.exec_()
-    
-    
+        else:
+            s="SELECT count(*) from pg_database\
+                WHERE datname = 'tempusaccess_"+self.ui.lineEditNewDB.text()+"'";
+            q=QtSql.QSqlQuery(unicode(s), self.caller.db)
+            q.next()
+            create = True
+            
+            if (int(q.value(0))>0):
+                ret = QMessageBox.question(self, "TempusAccess", u"La base de données 'tempusaccess_"+self.ui.lineEditNewDB.text()+u"' existe déjà et va être réinitialisée : toutes les données présentes seront écrasées. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Cancel)
+                create = False
+            else:
+                ret = QMessageBox.Ok
+            
+            if (ret == QMessageBox.Ok):            
+                if (create == True):
+                    cmd = [ "createdb", "-h", self.caller.db.hostName(), "-U", self.caller.db.userName(), "-p", str(self.caller.db.port()), "tempusaccess_"+self.ui.lineEditNewDB.text() ]
+                    rc = execute_external_cmd( cmd )
+                    
+                self.caller.set_db_connection_dialog.refreshDBList()
+                
+                dbstring = "host="+self.caller.db.hostName()+" dbname=tempusaccess_"+self.ui.lineEditNewDB.text()+" port="+str(self.caller.db.port())
+                cmd = ["python", TEMPUSLOADER, "--action", "reset", "--tempusaccess", "--path", self.plugin_dir + "/data/system.zip", "--sep", ";", "--encoding", "UTF8", "-d", dbstring]
+                self.ui.lineEditCommand.setText(" ".join(cmd))
+                
+                rc = execute_external_cmd( cmd )
+                box = QMessageBox()
+                if (rc==0):
+                    self.iface.mapCanvas().refreshMap()
+                    box.setText(u"La base a été créée. Vous pouvez maintenant la charger et y importer des données.")                    
+                    self.ui.comboBoxDB.setCurrentIndex( self.ui.comboBoxDB.findText( self.ui.lineEditNewDB.text() ) )
+                else:
+                    box.setText(u"Erreur pendant la création de la base.\nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
+                box.exec_()
+                
+                
+                
     def _slotComboBoxDBIndexChanged(self):
         self.temp_db.setHostName(self.caller.db.hostName())
         self.temp_db.setUserName(self.caller.db.userName())
@@ -204,10 +213,10 @@ class manage_db_dialog(QDialog):
         if nom_fichier:
             cmd = [PGDUMP, "--host", self.temp_db.hostName(), "--port", str(self.temp_db.port()), "--username", self.temp_db.userName(), "--no-password", "--format", "custom", "--encoding", "UTF8", "--no-privileges", "--verbose", "--file", nom_fichier, "-d", self.temp_db.databaseName()]
             self.ui.lineEditCommand.setText(" ".join(cmd))
-            r = subprocess.call( cmd )
+            rc = execute_external_cmd( cmd )
             
             box = QMessageBox()
-            if r==0:
+            if (rc==0):
                 box.setText(u"La sauvegarde s'est terminée avec succès.")
             else:
                 box.setText(u"La sauvegarde a échoué.")
@@ -227,6 +236,7 @@ class manage_db_dialog(QDialog):
         
         if (ret == QMessageBox.Ok):
             self.ui.labelLoadedDB.setText('...')
+            
             # Restart database server to be sure deleting "TempusAccess" database will be allowed (avoids still connected applications)
             cmd = [ "python", "-m", "pglite", "stop" ]
             r = subprocess.call( cmd )
@@ -236,7 +246,14 @@ class manage_db_dialog(QDialog):
             
             # Delete database
             cmd = [ "dropdb", "-h", self.caller.db.hostName(), "-U", self.caller.db.userName(), "-p", str(self.caller.db.port()), "tempusaccess_"+str(self.ui.comboBoxDB.currentText()) ]
-            r = subprocess.call( cmd )
+            rc = execute_external_cmd( cmd )
+            
+            box = QMessageBox()
+            if (rc==0):
+                box.setText(u"La suppression s'est terminée avec succès.")
+            else:
+                box.setText(u"La suppression a échoué.")
+            box.exec_()
             
             self.caller.set_db_connection_dialog.refreshDBList()
     
@@ -251,7 +268,7 @@ class manage_db_dialog(QDialog):
             # Remove old layers
             self.caller.node_group = root.findGroup("Analyse de l'offre de transport collectif")
             root.removeChildNode(self.caller.node_group)
-        
+            
             # Create new layers groups to display in the legend interface
             self.caller.node_group = root.insertGroup(0, "Analyse de l'offre de transport collectif")
             self.caller.node_group.setExpanded(True)
@@ -269,8 +286,21 @@ class manage_db_dialog(QDialog):
             self.ui.pushButtonExport.setEnabled(True)
             self.ui.pushButtonDelete.setEnabled(True)
             self.ui.pushButtonLoad.setEnabled(True)
+            self.caller.refreshRoadNetworks()
+            self.caller.modelRoadNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road' ORDER BY data_format_name", self.caller.db)
+            self.caller.refreshPTNetworks()
+            self.caller.modelPTNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt' ORDER BY data_format_name", self.caller.db)
+            self.caller.refreshPOISources()
+            self.caller.modelPOISourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelPOIType.setQuery("SELECT name, id FROM tempus.poi_type ORDER BY id", self.caller.db)
+            self.caller.refreshZoningSources()
+            self.caller.modelZoningSourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
             
-            self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
+            if (self.caller.modelPTNetwork.rowCount()>0):
+                self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
+            elif (self.caller.modelRoadNetwork.rowCount()>1):
+                self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type WHERE needs_pt = False ORDER BY code", self.caller.db)
             self.caller.modelPerType.setQuery("SELECT mod_lib, mod_code, mod_data FROM tempus_access.modalities WHERE var = 'per_type' ORDER BY mod_code", self.caller.db)
             self.caller.modelAgreg.setQuery("SELECT lib, code, func_name FROM tempus_access.agregates ORDER BY code", self.caller.db)
             self.caller.modelDayType.setQuery("SELECT mod_lib, mod_code, mod_data FROM tempus_access.modalities WHERE var = 'day_type' ORDER BY mod_code", self.caller.db)
@@ -278,35 +308,17 @@ class manage_db_dialog(QDialog):
             self.caller.modelRepMeth.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'rep_meth' ORDER BY mod_code", self.caller.db)
             self.caller.modelEncoding.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'encoding' ORDER BY mod_code", self.caller.db)
             
-            self.caller.refreshRoadNetworks()
-            self.caller.modelRoadNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road' ORDER BY data_format_name", self.caller.db)
-            
-            self.caller.refreshPTNetworks()
-            self.caller.modelPTNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt' ORDER BY data_format_name", self.caller.db)
-            
-            self.caller.refreshPOISources()
-            self.caller.modelPOISourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelPOIType.setQuery("SELECT name, id FROM tempus.poi_type ORDER BY id", self.caller.db)
-            
-            self.caller.refreshZoningSources()
-            self.caller.modelZoningSourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning' ORDER BY data_format_name", self.caller.db)
-            
-            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
-            
-            
             # Individual modes model
             s="SELECT name, id FROM tempus.transport_mode WHERE gtfs_feed_id IS NULL"
             self.caller.modelIModes.setQuery(unicode(s), self.caller.db)
             self.caller.dlg.ui.listViewIModes.selectAll()                                
-            
-            self.caller.refreshPTNetworks()
                             
             # Already calculated queries model
-            self.caller.refreshReq()
+            self.caller.manage_indicators_dialog.refreshReq()
             
             # Update the map window
             self.caller.loadLayers()
-                        
+            
             # Set object type on "stop areas"
             self.caller._slotComboBoxObjTypeIndexChanged(0)
         else:

@@ -43,164 +43,20 @@ from export_delete_pt_dialog import export_delete_pt_dialog
 from import_road_dialog import import_road_dialog
 from export_delete_road_dialog import export_delete_road_dialog
 from import_poi_dialog import import_poi_dialog
-from export_delete_poi_dialog import export_delete_poi_dialog
+from delete_poi_dialog import delete_poi_dialog
 from import_zoning_dialog import import_zoning_dialog
-from export_delete_zoning_dialog import export_delete_zoning_dialog
+from delete_zoning_dialog import delete_zoning_dialog
 from manage_indicators_dialog import manage_indicators_dialog
 
 import subprocess
+import qgis
 import datetime
 import os
 import sys
 import string
 import csv
 
-# Thread for general indicators building (no path calculation)
-class genIndicThread(QThread):
-    resultAvailable = pyqtSignal(bool, str)
-
-    def __init__(self, query_str, db, parent = None):
-        super(genIndicThread, self).__init__(parent)
-        
-        self.query_str = query_str
-        self.db = db
-        self.plugin_dir = os.path.dirname(__file__)
-    
-    def __del__(self):
-        self.wait()
-
-
-    def run(self): 
-        r=QtSql.QSqlQuery(self.db)
-        done=r.exec_(self.query_str)
-        self.resultAvailable.emit(done, self.query_str)
-        
-        
-# Thread for paths and paths trees building
-class pathIndicThread(QThread):
-    resultAvailable = pyqtSignal(bool, str)
-    
-    def __init__(self, query_str, db, dbstring, road_node_from, road_node_to, road_nodes, time_start, time_end, time_ag, time_point, time_interval, all_services, days, tran_modes, path_tree, max_cost, walking_speed, cycling_speed, constraint_date_after, parent = None):
-        super(pathIndicThread, self).__init__(parent)
-        
-        self.query_str = query_str
-        self.db = db
-        self.dbstring=dbstring
-        self.road_node_from = road_node_from
-        self.road_node_to = road_node_to
-        self.road_nodes = road_nodes
-        self.time_start = time_start
-        self.time_end = time_end
-        self.time_point = time_point
-        self.time_ag = time_ag
-        self.time_interval = time_interval
-        self.all_services = all_services
-        self.tran_modes = tran_modes 
-        self.days = days
-        self.path_tree = path_tree
-        self.max_cost = max_cost
-        self.walking_speed = walking_speed
-        self.cycling_speed = cycling_speed
-        self.constraint_date_after = constraint_date_after
-        self.plugin_dir = os.path.dirname(__file__)
-        
-        
-    def __del__(self):
-        self.wait()
-    
-    
-    def buildGraph(self):
-        if (self.path_tree==True):
-            s="DELETE FROM tempus_access.tempus_paths_tree_results; SELECT init_isochrone_plugin('"+self.dbstring+"');"
-        else:
-            s="DELETE FROM tempus_access.tempus_paths_results; SELECT init_multimodal_plugin('"+self.dbstring+"');"
-        
-        q=QtSql.QSqlQuery(self.db)
-        q.exec_(unicode(s))
-    
-    
-    def run(self):
-        self.buildGraph()
-        
-        for d in self.days:
-            if (self.time_point != "NULL"): # Simple time constraint
-                if (self.path_tree==False): 
-                    s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                    q=QtSql.QSqlQuery(self.db)
-                    q.exec_(unicode(s))
-                elif (self.path_tree==True): 
-                    for node in self.road_nodes: # For each source node
-                        s = "SELECT tempus_access.shortest_paths_tree(("+str(node)+"), ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+d \
-                            + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        q=QtSql.QSqlQuery(self.db)
-                        q.exec_(unicode(s))
-            
-            else: # Time period constraint
-                if (self.all_services==True): # All possible services of the period - only fo simple paths 
-                    current_timestamp=""
-                    bound_timestamp=""
-                    bound_time=""
-                    if (self.constraint_date_after == True):
-                        current_timestamp = d + " " +self.time_start[1:len(self.time_start)-1]
-                        bound_timestamp = d + " " + self.time_end[1:len(self.time_end)-1]
-                        bound_time = self.time_end
-                    elif (self.constraint_date_after == False):
-                        current_timestamp = d + " " +self.time_end[1:len(self.time_end)-1]
-                        bound_timestamp = d + " " + self.time_start[1:len(self.time_start)-1]
-                        bound_time = self.time_start
-                
-                    while (current_timestamp != bound_timestamp):
-                        s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        q=QtSql.QSqlQuery(self.db)
-                        q.exec_(unicode(s))
-                            
-                        s1 = "SELECT next_pt_timestamp::character varying FROM tempus_access.next_pt_timestamp("+bound_time+"::time, '"+str(d)+"'::date, "+str(self.constraint_date_after)+")"
-                        q1=QtSql.QSqlQuery(self.db)
-                        q1.exec_(unicode(s1))
-                        while q1.next():
-                            if (current_timestamp == str(q1.value(0))):
-                                current_timestamp = bound_timestamp
-                            else:
-                                current_timestamp = str(q1.value(0))
-                             
-                
-                elif (self.time_interval!="NULL"): # Search at a regular time interval
-                    current_timestamp=""
-                    bound_timestamp=""
-                    bound_time=""
-                    if (self.constraint_date_after == True):
-                        current_timestamp = d + " " +self.time_start[1:len(self.time_start)-1]
-                        bound_timestamp = d + " " + self.time_end[1:len(self.time_end)-1]
-                        bound_time = self.time_end
-                    elif (self.constraint_date_after == False):
-                        current_timestamp = d + " " +self.time_end[1:len(self.time_end)-1]
-                        bound_timestamp = d + " " + self.time_start[1:len(self.time_start)-1]
-                        bound_time = self.time_start
-                    
-                    while (current_timestamp != bound_timestamp):
-                        if (self.path_tree==False): 
-                            s = "SELECT tempus_access.shortest_path(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                            q=QtSql.QSqlQuery(self.db)
-                            q.exec_(unicode(s))
-                            
-                        elif (self.path_tree==True):
-                            for node in self.road_nodes: # For each source/target node
-                                s = "SELECT tempus_access.shortest_paths_tree("+str(node)+", ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                                q=QtSql.QSqlQuery(self.db)
-                                q.exec_(unicode(s))
-                        
-                        s1 = "SELECT next_timestamp::character varying FROM tempus_access.next_timestamp('"+current_timestamp+"'::timestamp, "+str(self.time_interval)+", '"+bound_timestamp+"'::timestamp, "+str(self.constraint_date_after)+")"
-                        q1=QtSql.QSqlQuery(self.db)
-                        q1.exec_(unicode(s1))
-                        while q1.next():
-                            current_timestamp = str(q1.value(0))       
-                        
-        r=QtSql.QSqlQuery(self.db)
-        done=r.exec_(self.query_str)
-        
-        self.resultAvailable.emit(done, self.query_str)
-
-
+from thread_tools import *
 
 class TempusAccess:
 
@@ -262,7 +118,7 @@ class TempusAccess:
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
         self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
 
-        # Road networkds
+        # Road networks
         self.modelRoadNetwork = QtSql.QSqlQueryModel()
         self.modelRoadNetworkFormat = QtSql.QSqlQueryModel()
         self.modelRoadNetworkFormatVersion = QtSql.QSqlQueryModel()
@@ -277,7 +133,7 @@ class TempusAccess:
         self.modelPOISourceFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
-        self.export_delete_poi_dialog=export_delete_poi_dialog(self, self.iface)
+        self.delete_poi_dialog=delete_poi_dialog(self, self.iface)
         
         # Zonings
         self.modelZoningSource=QtSql.QSqlQueryModel()  
@@ -290,7 +146,7 @@ class TempusAccess:
         self.dlg.ui.comboBoxZone.setModel(self.modelZone)
 
         self.import_zoning_dialog=import_zoning_dialog(self, self.iface)
-        self.export_delete_zoning_dialog=export_delete_zoning_dialog(self, self.iface)
+        self.delete_zoning_dialog=delete_zoning_dialog(self, self.iface)
         
         # Indicators, requests and representations
         self.modelIndic = QtSql.QSqlQueryModel()
@@ -392,9 +248,9 @@ class TempusAccess:
         self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
         self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
         self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
-        self.action_export_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Exporter ou supprimer des points d'intérêt", self.iface.mainWindow())
+        self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Supprimer une source de points d'intérêt", self.iface.mainWindow())
         self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.action_export_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Exporter ou supprimer un zonage", self.iface.mainWindow())
+        self.action_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Supprimer un zonage", self.iface.mainWindow())
         self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
         self.action.setToolTip(u"Lancer le plugin")
@@ -405,9 +261,9 @@ class TempusAccess:
         self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
         self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
         self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
-        self.action_export_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
+        self.action_delete_poi.setToolTip(u"Supprimer une source de points d'intérêt")
         self.action_import_zoning.setToolTip(u"Importer un zonage")
-        self.action_export_delete_zoning.setToolTip(u"Exporter ou supprimer un zonage")
+        self.action_delete_zoning.setToolTip(u"Supprimer un zonage")
         self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
         
         # Connect the actions to the methods
@@ -419,9 +275,9 @@ class TempusAccess:
         self.action_import_pt.triggered.connect(self.import_pt)
         self.action_export_delete_pt.triggered.connect(self.export_delete_pt)
         self.action_import_poi.triggered.connect(self.import_poi)
-        self.action_export_delete_poi.triggered.connect(self.export_delete_poi)
+        self.action_delete_poi.triggered.connect(self.delete_poi)
         self.action_import_zoning.triggered.connect(self.import_zoning)
-        self.action_export_delete_zoning.triggered.connect(self.export_delete_zoning)
+        self.action_delete_zoning.triggered.connect(self.delete_zoning)
         self.action_manage_indicators.triggered.connect(self.manage_indicators)
         
         # Add toolbar buttons and menu items
@@ -433,9 +289,9 @@ class TempusAccess:
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_poi)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_poi)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_zoning)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_zoning)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_zoning)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_indicators)
                 
         m = self.toolButton.menu()
@@ -447,9 +303,9 @@ class TempusAccess:
         m.addAction(self.action_import_pt)
         m.addAction(self.action_export_delete_pt)
         m.addAction(self.action_import_poi)
-        m.addAction(self.action_export_delete_poi)
+        m.addAction(self.action_delete_poi)
         m.addAction(self.action_import_zoning)
-        m.addAction(self.action_export_delete_zoning)
+        m.addAction(self.action_delete_zoning)
         m.addAction(self.action_manage_indicators)
         
         self.toolButton.setDefaultAction(self.action)
@@ -457,16 +313,21 @@ class TempusAccess:
     
     
     def load(self):
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+        
         # Set on-the-fly projection
         self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True) # Enable on the fly reprojections
         self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(2154, QgsCoordinateReferenceSystem.PostgisCrsId))
+        
+        qgis.utils.iface.actionShowPythonDialog().trigger()
+        pythonConsole = qgis.utils.iface.mainWindow().findChild( QDockWidget, 'PythonConsole' )
+        pythonConsole.console.shellOut.clearConsole()
         
         # Prepare main dock widget
         self.dlg.ui.radioButtonDayType.setChecked(True)
         self.dlg.ui.radioButtonPreciseDate.setChecked(True)
         self.dlg.ui.radioButtonTimePeriod.setChecked(True)
         self.node_type=0
-        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
         
         # Show DBConnectionDialog
         self.set_db_connection_dialog.show()
@@ -480,9 +341,9 @@ class TempusAccess:
         # Remove the plugin menu items and icons
         self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_indicators) 
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_zoning)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_zoning)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_zoning)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_poi)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_pt)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_road)
@@ -493,9 +354,9 @@ class TempusAccess:
 
         self.iface.removeToolBarIcon(self.action_manage_indicators)
         self.iface.removeToolBarIcon(self.action_import_zoning)
-        self.iface.removeToolBarIcon(self.action_export_delete_zoning)
+        self.iface.removeToolBarIcon(self.action_delete_zoning)
         self.iface.removeToolBarIcon(self.action_import_poi)
-        self.iface.removeToolBarIcon(self.action_export_delete_poi)
+        self.iface.removeToolBarIcon(self.action_delete_poi)
         self.iface.removeToolBarIcon(self.action_import_pt)
         self.iface.removeToolBarIcon(self.action_export_delete_pt)
         self.iface.removeToolBarIcon(self.action_import_road)
@@ -509,28 +370,55 @@ class TempusAccess:
         self.dlg.hide()
         self.manage_indicators_dialog.hide()
         self.import_zoning_dialog.hide()
-        self.export_delete_zoning_dialog.hide()
+        self.delete_zoning_dialog.hide()
         self.import_poi_dialog.hide()
-        self.export_delete_poi_dialog.hide()
+        self.delete_poi_dialog.hide()
         self.import_pt_dialog.hide()
         self.export_delete_pt_dialog.hide()
         self.import_road_dialog.hide()
         self.export_delete_road_dialog.hide() 
         self.set_db_connection_dialog.hide()
         self.manage_db_dialog.hide()
+        
     
-    
-    def execute_external_cmd(self, cmd):
-        r = subprocess.Popen( cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False )
+    def _connectSlots(self):
+        
+        # General interface
+        self.dlg.ui.pushButtonIndicCalculate.clicked.connect(self._slotPushButtonIndicCalculateClicked)
+        self.dlg.ui.pushButtonReinitCalc.clicked.connect(self._slotPushButtonReinitCalcClicked)
+        self.timer.timeout.connect(self._slotUpdateTimer) 
+        
+        # 1st tab
+        self.dlg.ui.comboBoxObjType.currentIndexChanged.connect(self._slotComboBoxObjTypeIndexChanged)
+        self.dlg.ui.comboBoxNodeType.currentIndexChanged.connect(self._slotComboBoxNodeTypeIndexChanged)
+        self.clickTool.canvasClicked.connect(self._slotClickPoint)
+        self.dlg.ui.comboBoxOrig.currentIndexChanged.connect(self._slotComboBoxOrigIndexChanged)
+        self.dlg.ui.comboBoxDest.currentIndexChanged.connect(self._slotComboBoxDestIndexChanged)
+        self.dlg.ui.comboBoxPathsTreeRootNode.currentIndexChanged.connect(self._slotComboBoxPathsTreeRootNodeIndexChanged)
+        self.dlg.ui.pushButtonChooseOrigOnMap.clicked.connect(self._slotPushButtonChooseOrigOnMapClicked)
+        self.dlg.ui.pushButtonChooseDestOnMap.clicked.connect(self._slotPushButtonChooseDestOnMapClicked)
+        self.dlg.ui.pushButtonChoosePathsTreeRootOnMap.clicked.connect(self._slotPushButtonChoosePathsTreeRootOnMapClicked)
+        self.dlg.ui.pushButtonChoosePathsTreesRootsOnMap.clicked.connect(self._slotPushButtonChoosePathsTreesRootsOnMapClicked)
+        self.dlg.ui.pushButtonRemovePathsTreesRoots.clicked.connect(self._slotPushButtonRemovePathsTreesRootsClicked)
+        self.dlg.ui.comboBoxZoningFilter.currentIndexChanged.connect(self._slotComboBoxZoningFilterIndexChanged)
+        self.dlg.ui.comboBoxZone.currentIndexChanged.connect(self._slotComboBoxZoneIndexChanged)
+        self.dlg.ui.pushButtonInvertOD.clicked.connect(self._slotPushButtonInvertODClicked)
+        self.dlg.ui.comboBoxPathsTreeOD.currentIndexChanged.connect(self._slotComboBoxPathsTreeODIndexChanged)
+        self.dlg.ui.comboBoxCombPathsTreesOD.currentIndexChanged.connect(self._slotComboBoxCombPathsTreesODIndexChanged)
+        
+        
+        # 2nd tab
+        self.dlg.ui.listViewPTNetworks.selectionModel().selectionChanged.connect(self._slotlistViewPTNetworksSelectionChanged)
+        
+        
+        # 3rd tab 
+        self.dlg.ui.radioButtonPreciseDate.toggled.connect(self._slotRadioButtonPreciseDateToggled)
+        self.dlg.ui.radioButtonDayType.toggled.connect(self._slotRadioButtonDayTypeToggled)
+        self.dlg.ui.radioButtonTimePeriod.toggled.connect(self._slotRadioButtonTimePeriodToggled)
+        self.dlg.ui.radioButtonTimePoint.toggled.connect(self._slotRadioButtonTimePointToggled)
+        self.dlg.ui.comboBoxTimeConstraint.currentIndexChanged.connect(self._slotComboBoxTimeConstraintIndexChanged)
+        self.dlg.ui.radioButtonTimeInterval.toggled.connect(self._slotRadioButtonTimeIntervalToggled)
             
-        while True:
-            output = r.stdout.readline()
-            if output == '' and r.poll() is not None:
-                break
-            if output:
-                print output.strip()
-        return r.poll()
-    
     
     def set_db_connection(self):
         self.set_db_connection_dialog.show()
@@ -566,61 +454,20 @@ class TempusAccess:
         self.import_poi_dialog.show()
     
     
-    def export_delete_poi(self):
-        self.export_delete_poi_dialog.show()
+    def delete_poi(self):
+        self.delete_poi_dialog.show()
     
     
     def import_zoning(self):
         self.import_zoning_dialog.show()
         
     
-    def export_delete_zoning(self):
-        self.export_delete_zoning_dialog.show()
+    def delete_zoning(self):
+        self.delete_zoning_dialog.show()
         
       
     def manage_indicators(self):
         self.manage_indicators_dialog.show()
-    
-
-    def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
-        if (layer_name!=''):
-            
-            uri=QgsDataSourceURI()
-            uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
-            uri.setDataSource("indic", layer_name, col_geom, "", col_id) 
-            
-            layer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-            layer.setProviderEncoding(u'UTF-8')
-            layer.dataProvider().setEncoding(u'UTF-8')
-            
-            QgsMapLayerRegistry.instance().addMapLayer(layer, False)
-            node_layer = QgsLayerTreeLayer(layer)
-            self.node_indicators.insertChildNode(0, node_layer)
-            
-            self.node_indicators.setExpanded(True)
-            self.node_pt_offer.setExpanded(False)
-            self.node_zoning.setExpanded(False)
-            self.node_vacances.setExpanded(False)
-            
-            layer.setSubsetString(filter)
-            
-            if (col_geom != None):
-                if (layer_style_path != ''):
-                    layer.loadNamedStyle(layer_style_path)
-                    self.iface.legendInterface().setLayerVisible(layer, True)
-
-                from_proj = QgsCoordinateReferenceSystem()
-                from_proj.createFromSrid(4326)
-                to_proj = QgsCoordinateReferenceSystem()
-                to_proj.createFromSrid(self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())
-                crd=QgsCoordinateTransform(from_proj, to_proj)
-            
-                # Center map display on result layer
-                for name, l in QgsMapLayerRegistry.instance().mapLayers().iteritems(): 
-                    if (l.name()==layer_name): 
-                        self.iface.mapCanvas().setExtent(crd.transform(l.extent()))
-                
-                self.iface.mapCanvas().refreshMap()
     
     
     def refreshPTNetworks(self):    
@@ -660,78 +507,6 @@ class TempusAccess:
         q.exec_(unicode(s))
     
     
-    def refreshReq(self):
-        self.modelReq.setQuery("(\
-                                    SELECT layer_name, id, obj_type, indics, o_node, d_node, node_type, \
-                                            o_nodes, d_nodes, nodes_ag, symb_size, symb_color, days, day_type, per_type, \
-                                            per_start, per_end, day_ag, time_start, time_end, time_ag, time_point, \
-                                            area_type, areas, route, stop, gtfs_feeds, agencies, \
-                                            pt_modes, i_modes, walk_speed, cycl_speed, max_cost, \
-                                            criterion, req\
-                                    FROM tempus_access.indic_catalog\
-                                    WHERE parent_layer IS NULL\
-                                )\
-                                UNION\
-                                (\
-                                    SELECT '', null, null, null, null, null, null, \
-                                    null, null, null, null, null, null, null, null, \
-                                    null, null, null, null, null, null, null, \
-                                    null, null, null, null, null, null, \
-                                    null, null, null, null, null, null, null \
-                                )\
-                                ORDER BY 1", \
-                             self.db)
-    
-    
-    def refreshDerivedRep(self):
-        self.modelDerivedRep.setQuery("(\
-                                    SELECT layer_name, id, obj_type, indics, classes_num, param, rep_meth\
-                                    FROM tempus_access.indic_catalog\
-                                    WHERE parent_layer ='"+self.dlg.ui.comboBoxReq.currentText()+"'\
-                                )\
-                                UNION\
-                                (\
-                                    SELECT '', null, null, null, null, null, null\
-                                )\
-                                ORDER BY 1", \
-                             self.db)
-    
-    
-    def updateReqIndicators(self):
-        s="(\
-                  SELECT lib, code, col_name FROM tempus_access.indicators \
-                  WHERE map_size = TRUE AND col_name IN \
-                  (\
-                    SELECT column_name FROM information_schema.columns WHERE table_schema = 'indic' AND table_name = '"+self.dlg.ui.comboBoxReq.currentText()+"')\
-                  AND col_name IN \
-                           (SELECT col_name FROM tempus_access.indicators \
-                           WHERE ARRAY[code] <@ (SELECT indic_list::integer[] FROM tempus_access.obj_type WHERE def_name = '"+self.obj_def_name+"') \
-                           )\
-                  )\
-                  UNION \
-                  (\
-                  SELECT '', -1, '' \
-                  )\
-                  ORDER BY 2"
-        self.modelSizeIndic.setQuery(s, self.db)
-            
-        s="(\
-               SELECT lib, code, col_name FROM tempus_access.indicators \
-               WHERE map_color = TRUE AND col_name IN \
-               (SELECT column_name FROM information_schema.columns WHERE table_schema = 'indic' AND table_name = '"+self.dlg.ui.comboBoxReq.currentText()+"')\
-               AND col_name IN \
-                           (SELECT col_name FROM tempus_access.indicators \
-                           WHERE ARRAY[code] <@ (SELECT indic_list::integer[] FROM tempus_access.obj_type WHERE def_name = '"+self.obj_def_name+"') \
-                           )\
-              )\
-              UNION \
-              (\
-              SELECT '', -1, '' \
-              )\
-              ORDER BY 2"
-        self.modelColorIndic.setQuery( s,self.db)
-    
-    
     def zoomToLayersList(self, layers, visible):
         from_proj = QgsCoordinateReferenceSystem()
         from_proj.createFromSrid(4326)
@@ -748,9 +523,8 @@ class TempusAccess:
         extent.scale( 1.1 ) # Increase a bit the extent to make sure all geometries lie inside 
         if (extent.isEmpty==False): 
             self.iface.mapCanvas().setExtent(crd.transform(extent))
-            
         
-        self.iface.mapCanvas().refreshMap()
+        self.iface.mapCanvas().refresh()
     
         
     def loadLayers(self):
@@ -829,6 +603,19 @@ class TempusAccess:
             self.iface.legendInterface().setLayerVisible(layer, False)
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
         
+        
+        # Stop areas
+        uri.setDataSource("tempus_gtfs", "stops", "geom", "", "id") 
+        layer = QgsVectorLayer(uri.uri(), u"Zones d'arrêts et entrées de stations", "postgres")
+        layer.loadNamedStyle(self.styles_dir + '/stop_areas.qml')
+        if (layer.isValid):
+            QgsMapLayerRegistry.instance().addMapLayer(layer, False)
+            node_layer = QgsLayerTreeLayer(layer)
+            self.node_pt_offer.insertChildNode(4, node_layer)
+            self.iface.legendInterface().setLayerVisible(layer, False)
+            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
+        
+        
         # Sections
         uri.setDataSource("tempus_gtfs", "sections", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), "Sections", "postgres")
@@ -836,7 +623,7 @@ class TempusAccess:
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
-            self.node_pt_offer.insertChildNode(4, node_layer)
+            self.node_pt_offer.insertChildNode(5, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
             layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTNetworks)+"::integer[]")
         
@@ -847,7 +634,7 @@ class TempusAccess:
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
-            self.node_pt_offer.insertChildNode(5, node_layer)
+            self.node_pt_offer.insertChildNode(6, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, False)
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
 
@@ -989,10 +776,6 @@ class TempusAccess:
         if (self.dlg.ui.listViewPTNetworks.selectionModel().hasSelection()):
             for item in self.dlg.ui.listViewPTNetworks.selectionModel().selectedRows():
                 self.PTNetworks.append(self.modelPTNetwork.record(item.row()).value("id"))
-        else:
-            box = QMessageBox()
-            box.setText(u"Sélectionnez au moins une source de données GTFS (onglet n°2)")
-            box.exec_()
         
         # Transport modes
         self.tran_modes=[]
@@ -1017,17 +800,19 @@ class TempusAccess:
             box.setText(u"Sélectionner au moins un mode de transport (onglet n°2)")
             box.exec_()
         
-        # Zoning
+        # Zoning filter
         if (self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id")>=0):
-            self.zoning = self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id") 
-        else:
-            self.zoning = -1      
+            self.zoning_filter = self.modelZoningSource.record(self.dlg.ui.comboBoxZoningFilter.currentIndex()).value("id")
         
-        # Area
-        if (self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("char_id")>=0):
-            self.zoning = "ARRAY['"+self.modelZoningSource.record(self.dlg.ui.comboBoxZone.currentIndex()).value("char_id")+"']"
+        # Filtered zones
+        if (self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("id")>=0):
+            self.zones = "ARRAY["+str(self.modelZone.record(self.dlg.ui.comboBoxZone.currentIndex()).value("id"))+"]"
         else:
-            self.zoning = "NULL"
+            self.zones = "NULL"
+        
+        # Zoning used to build population indicator
+        if (self.modelZoningSource.record(self.dlg.ui.comboBoxIndicZoning.currentIndex()).value("id")>=0):
+            self.indic_zoning = self.modelZoningSource.record(self.dlg.ui.comboBoxIndicZoning.currentIndex()).value("id")        
         
         # Routes
         if (self.modelRoute.record(self.dlg.ui.comboBoxForcRoute.currentIndex()).value("id") >=0):
@@ -1045,7 +830,7 @@ class TempusAccess:
         self.obj_type = self.modelObjType.record(self.dlg.ui.comboBoxObjType.currentIndex()).value("code")        
         
         self.query=""
-        if ((self.obj_def_name == "stop_areas") or (self.obj_def_name == "stops") or (self.obj_def_name=="sections") or (self.obj_def_name=="trips") or (self.obj_def_name=="routes")):
+        if ((self.obj_def_name == "stop_areas") or (self.obj_def_name == "stops") or (self.obj_def_name=="sections") or (self.obj_def_name=="trips") or (self.obj_def_name=="stops_routes") or (self.obj_def_name=="routes")):
             # Agencies
             self.agencies=[]
             if (self.dlg.ui.tableViewAgencies.selectionModel().hasSelection()):
@@ -1058,115 +843,150 @@ class TempusAccess:
             
             # Build stop indicators
             if (self.obj_def_name=="stop_areas"):
-                self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.PTNetworks)+",\
-                                                                            ARRAY"+str(self.route_types)+",\
-                                                                            ARRAY"+str(self.agencies)+",\
-                                                                            1, \
-                                                                            "+self.day+"::date,\
-                                                                            "+str(self.day_type)+"::integer, \
-                                                                            "+str(self.per_type)+"::integer, \
-                                                                            "+self.per_start+"::date, \
-                                                                            "+self.per_end+"::date, \
-                                                                            "+str(self.day_ag)+",\
-                                                                            "+self.time_start+"::time, \
-                                                                            "+self.time_end+"::time, \
-                                                                            "+str(self.area_type)+",\
-                                                                            "+self.zoning+",\
-                                                                            "+self.route+");"
+                self.query="SELECT tempus_access.create_pt_stop_area_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_route := "+self.route+"::integer\
+                                                                                );"
             
             elif (self.obj_def_name=="stops"):
-                self.query="SELECT tempus_access.create_pt_stop_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                            ARRAY"+str(self.PTNetworks)+",\
-                                                                            ARRAY"+str(self.route_types)+",\
-                                                                            ARRAY"+str(self.agencies)+",\
-                                                                            0, \
-                                                                            "+self.day+"::date,\
-                                                                            "+str(self.day_type)+"::integer, \
-                                                                            "+str(self.per_type)+"::integer, \
-                                                                            "+self.per_start+"::date, \
-                                                                            "+self.per_end+"::date, \
-                                                                            "+str(self.day_ag)+",\
-                                                                            "+self.time_start+"::time, \
-                                                                            "+self.time_end+"::time, \
-                                                                            "+str(self.area_type)+",\
-                                                                            "+self.zoning+",\
-                                                                            "+self.route+");"
+                self.query="SELECT tempus_access.create_pt_stop_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_route := "+self.route+"::integer\
+                                                                                );"
             
             # Build sections indicators
             elif (self.obj_def_name=="sections"):
-                self.query="SELECT tempus_access.create_pt_section_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                          ARRAY"+str(self.PTNetworks)+",\
-                                                                          ARRAY"+str(self.route_types)+",\
-                                                                          ARRAY"+str(self.agencies)+",\
-                                                                          "+self.day+"::date,\
-                                                                          "+str(self.day_type)+"::integer, \
-                                                                          "+str(self.per_type)+"::integer, \
-                                                                          "+self.per_start+"::date, \
-                                                                          "+self.per_end+"::date, \
-                                                                          "+str(self.day_ag)+",\
-                                                                          "+self.time_start+"::time, \
-                                                                          "+self.time_end+"::time, \
-                                                                          "+str(self.time_ag)+",\
-                                                                          "+str(self.area_type)+",\
-                                                                          "+self.zoning+",\
-                                                                          "+self.route+",\
-                                                                          "+self.stop+");"
+                self.query="SELECT tempus_access.create_pt_section_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_time_ag := "+str(self.time_ag)+",\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_route := "+self.route+"::integer, \
+                                                                                param_stop_area := "+self.stop+"::integer);"
             
             # Build trips indicators
             elif (self.obj_def_name=="trips"):
-                self.query="SELECT tempus_access.create_pt_trip_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.PTNetworks)+",\
-                                                                       ARRAY"+str(self.route_types)+",\
-                                                                       ARRAY"+str(self.agencies)+",\
-                                                                       "+self.day+"::date,\
-                                                                       "+str(self.day_type)+"::integer, \
-                                                                       "+str(self.per_type)+"::integer, \
-                                                                       "+self.per_start+"::date, \
-                                                                       "+self.per_end+"::date, \
-                                                                       "+str(self.day_ag)+",\
-                                                                       "+self.time_start+"::time, \
-                                                                       "+self.time_end+"::time, \
-                                                                       "+str(self.time_ag)+",\
-                                                                       "+str(self.area_type)+",\
-                                                                       "+self.zoning+",\
-                                                                       "+self.route+",\
-                                                                       "+self.stop+");"
-            
+                self.query="SELECT tempus_access.create_pt_trip_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_time_ag := "+str(self.time_ag)+",\
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_route := "+self.route+"::integer, \
+                                                                                param_stop_area := "+self.stop+"::integer\
+                                                                                );"
+            # Build stops routes indicators
+            elif (self.obj_def_name=="stops_routes"):
+                self.query="SELECT tempus_access.create_pt_stops_route_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_time_ag := "+str(self.time_ag)+",\
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_route := "+self.route+"::integer, \
+                                                                                param_stop_area := "+self.stop+"::integer\
+                                                                                );"
             # Build routes indicators
             elif (self.obj_def_name=="routes"):
-                self.query="SELECT tempus_access.create_pt_route_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                       ARRAY"+str(self.PTNetworks)+",\
-                                                                       ARRAY"+str(self.route_types)+",\
-                                                                       ARRAY"+str(self.agencies)+",\
-                                                                       "+self.day+"::date,\
-                                                                       "+str(self.day_type)+"::integer, \
-                                                                       "+str(self.per_type)+"::integer, \
-                                                                       "+self.per_start+"::date, \
-                                                                       "+self.per_end+"::date, \
-                                                                       "+str(self.day_ag)+",\
-                                                                       "+self.time_start+"::time, \
-                                                                       "+self.time_end+"::time, \
-                                                                       "+str(self.area_type)+",\
-                                                                       "+self.zoning+",\
-                                                                       "+self.stop+");"
+                self.query="SELECT tempus_access.create_pt_route_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_agencies := ARRAY"+str(self.agencies)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_time_ag := "+str(self.time_ag)+",\
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_stop_area := "+self.stop+"::integer);"
         
         # Build agencies indicators
         if (self.obj_def_name=="agencies"):
-            self.query="SELECT tempus_access.create_pt_agency_indicator_layer(ARRAY"+str(self.indics)+",\
-                                                                   ARRAY"+str(self.PTNetworks)+",\
-                                                                   ARRAY"+str(self.route_types)+",\
-                                                                   "+self.day+"::date,\
-                                                                   "+str(self.day_type)+"::integer, \
-                                                                   "+str(self.per_type)+"::integer, \
-                                                                   "+self.per_start+"::date, \
-                                                                   "+self.per_end+"::date, \
-                                                                   "+str(self.day_ag)+",\
-                                                                   "+self.time_start+"::time, \
-                                                                   "+self.time_end+"::time, \
-                                                                   "+str(self.area_type)+",\
-                                                                   "+self.zoning+",\
-                                                                   "+self.stop+");" 
+            self.query="SELECT tempus_access.create_pt_agency_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_pt_networks := ARRAY"+str(self.PTNetworks)+"::integer[],\
+                                                                                param_route_types := ARRAY"+str(self.route_types)+"::integer[],\
+                                                                                param_day := "+self.day+"::date,\
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_day_ag := "+str(self.day_ag)+"::integer,\
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_indic_zoning := "+str(self.indic_zoning)+"::integer,\
+                                                                                param_zoning_filter := "+str(self.zoning_filter)+"::integer,\
+                                                                                param_zones := "+self.zones+"::integer[],\
+                                                                                param_stop_area := "+self.stop+"::integer);"
+        
         
         # Build paths/paths trees/isochrons indicators
         elif ((self.obj_def_name=="paths") or (self.obj_def_name=="paths_details") or (self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")):
@@ -1197,39 +1017,46 @@ class TempusAccess:
                 self.node_ag = self.modelAgreg.record(self.dlg.ui.comboBoxNodeAg.currentIndex()).value("code")
                 
                 if (self.obj_def_name == "paths"):
-                    self.query="SELECT tempus_access.create_path_indicator_layer(ARRAY"+str(self.indics)+", \
-                                                                       "+str(self.node_type)+", \
-                                                                       "+str(self.from_node)+", \
-                                                                       "+str(self.to_node)+", \
-                                                                       ARRAY"+str(self.tran_modes)+", \
-                                                                       "+self.day+"::date, \
-                                                                       "+str(self.day_type)+"::integer, \
-                                                                       "+str(self.per_type)+"::integer, \
-                                                                       "+self.per_start+"::date, \
-                                                                       "+self.per_end+"::date, \
-                                                                       "+self.time_point+"::time, \
-                                                                       "+self.time_start+"::time, \
-                                                                       "+self.time_end+"::time, \
-                                                                       "+str(self.time_interval)+"::integer, \
-                                                                       "+str(self.all_services)+"::boolean, \
-                                                                       "+str(self.constraint_date_after)+"::boolean);"
+                    self.query="SELECT tempus_access.create_path_indicator_layer(\
+                                                                                param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                param_node_type := "+str(self.node_type)+"::integer, \
+                                                                                param_o_node := "+str(self.from_node)+"::integer, \
+                                                                                param_d_node := "+str(self.to_node)+"::integer, \
+                                                                                param_i_modes := ARRAY"+str(self.i_modes)+"::integer[], \
+                                                                                param_pt_modes := ARRAY"+str(self.pt_modes)+"::integer[], \
+                                                                                param_day := "+self.day+"::date, \
+                                                                                param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                param_per_start := "+self.per_start+"::date, \
+                                                                                param_per_end := "+self.per_end+"::date, \
+                                                                                param_time_point := "+self.time_point+"::time, \
+                                                                                param_time_start := "+self.time_start+"::time, \
+                                                                                param_time_end := "+self.time_end+"::time, \
+                                                                                param_time_inter := "+str(self.time_interval)+"::integer, \
+                                                                                param_all_services := "+str(self.all_services)+"::boolean, \
+                                                                                param_constraint_date_after := "+str(self.constraint_date_after)+"::boolean\
+                                                                                );"
+                                                                       
                 elif (self.obj_def_name == "paths_details"):
-                    self.query = "SELECT tempus_access.create_path_details_indicator_layer(ARRAY"+str(self.indics)+", \
-                                                                       "+str(self.node_type)+", \
-                                                                       "+str(self.from_node)+", \
-                                                                       "+str(self.to_node)+", \
-                                                                       ARRAY"+str(self.tran_modes)+", \
-                                                                       "+self.day+"::date, \
-                                                                       "+str(self.day_type)+"::integer, \
-                                                                       "+str(self.per_type)+"::integer, \
-                                                                       "+self.per_start+"::date, \
-                                                                       "+self.per_end+"::date, \
-                                                                       "+self.time_point+"::time, \
-                                                                       "+self.time_start+"::time, \
-                                                                       "+self.time_end+"::time, \
-                                                                       "+str(self.time_interval)+"::integer, \
-                                                                       "+str(self.all_services)+"::boolean, \
-                                                                       "+str(self.constraint_date_after)+"::boolean);"
+                    self.query = "SELECT tempus_access.create_path_details_indicator_layer(\
+                                                                                            param_indics := ARRAY"+str(self.indics)+"::integer[],\
+                                                                                            param_node_type := "+str(self.node_type)+"::integer, \
+                                                                                            param_o_node := "+str(self.from_node)+"::integer, \
+                                                                                            param_d_node := "+str(self.to_node)+"::integer, \
+                                                                                            param_i_modes := ARRAY"+str(self.i_modes)+"::integer[], \
+                                                                                            param_pt_modes := ARRAY"+str(self.pt_modes)+"::integer[], \
+                                                                                            param_day := "+self.day+"::date, \
+                                                                                            param_day_type := "+str(self.day_type)+"::integer, \
+                                                                                            param_per_type := "+str(self.per_type)+"::integer, \
+                                                                                            param_per_start := "+self.per_start+"::date, \
+                                                                                            param_per_end := "+self.per_end+"::date, \
+                                                                                            param_time_point := "+self.time_point+"::time, \
+                                                                                            param_time_start := "+self.time_start+"::time, \
+                                                                                            param_time_end := "+self.time_end+"::time, \
+                                                                                            param_time_inter := "+str(self.time_interval)+"::integer, \
+                                                                                            param_all_services := "+str(self.all_services)+"::boolean, \
+                                                                                            param_constraint_date_after := "+str(self.constraint_date_after)+"::boolean\
+                                                                                          );"
             
             self.road_nodes = []
             if (self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees"):
@@ -1259,10 +1086,10 @@ class TempusAccess:
                 self.cycling_speed=self.dlg.ui.doubleSpinBoxCyclingSpeed.value()
                 
                 # For isosurfaces computation
-                self.indic = self.modelDerivedRepIndic.record(self.dlg.ui.comboBoxDerivedRepIndic.currentIndex()).value("code")
-                self.rep_meth = self.modelRepMeth.record(self.dlg.ui.comboBoxRepMeth.currentIndex()).value("mod_code")
-                self.classes_num=self.dlg.ui.spinBoxDerivedRepClasses.value()
-                self.param=self.dlg.ui.doubleSpinBoxRepParam.value()                
+                self.indic = self.modelDerivedRepIndic.record(self.manage_indicators_dialog.ui.comboBoxDerivedRepIndic.currentIndex()).value("code")
+                self.rep_meth = self.modelRepMeth.record(self.manage_indicators_dialog.ui.comboBoxRepMeth.currentIndex()).value("mod_code")
+                self.classes_num=self.manage_indicators_dialog.ui.spinBoxDerivedRepClasses.value()
+                self.param=self.manage_indicators_dialog.ui.doubleSpinBoxRepParam.value()                
                 
                 if (self.isosurfaces==False):
                     if (self.obj_def_name == "paths_tree"):
@@ -1307,47 +1134,7 @@ class TempusAccess:
                                                                                         "+str(self.param)+"::double precision, \
                                                                                         "+str(self.rep_meth)+"::integer);"
         self.query=self.query.replace("  ", "")
-        
-        
-    def _connectSlots(self):
-        
-        # General interface
-        self.dlg.ui.pushButtonIndicCalculate.clicked.connect(self._slotPushButtonIndicCalculateClicked)
-        self.dlg.ui.pushButtonReinitCalc.clicked.connect(self._slotPushButtonReinitCalcClicked)
-        self.timer.timeout.connect(self._slotUpdateTimer) 
-        
-        # 1st tab
-        self.dlg.ui.comboBoxObjType.currentIndexChanged.connect(self._slotComboBoxObjTypeIndexChanged)
-        self.dlg.ui.comboBoxNodeType.currentIndexChanged.connect(self._slotComboBoxNodeTypeIndexChanged)
-        self.clickTool.canvasClicked.connect(self._slotClickPoint)
-        self.dlg.ui.comboBoxOrig.currentIndexChanged.connect(self._slotComboBoxOrigIndexChanged)
-        self.dlg.ui.comboBoxDest.currentIndexChanged.connect(self._slotComboBoxDestIndexChanged)
-        self.dlg.ui.comboBoxPathsTreeRootNode.currentIndexChanged.connect(self._slotComboBoxPathsTreeRootNodeIndexChanged)
-        self.dlg.ui.pushButtonChooseOrigOnMap.clicked.connect(self._slotPushButtonChooseOrigOnMapClicked)
-        self.dlg.ui.pushButtonChooseDestOnMap.clicked.connect(self._slotPushButtonChooseDestOnMapClicked)
-        self.dlg.ui.pushButtonChoosePathsTreeRootOnMap.clicked.connect(self._slotPushButtonChoosePathsTreeRootOnMapClicked)
-        self.dlg.ui.pushButtonChoosePathsTreesRootsOnMap.clicked.connect(self._slotPushButtonChoosePathsTreesRootsOnMapClicked)
-        self.dlg.ui.pushButtonRemovePathsTreesRoots.clicked.connect(self._slotPushButtonRemovePathsTreesRootsClicked)
-        self.dlg.ui.comboBoxZoningFilter.currentIndexChanged.connect(self._slotComboBoxZoningFilterIndexChanged)
-        self.dlg.ui.comboBoxZone.currentIndexChanged.connect(self._slotComboBoxZoneIndexChanged)
-        self.dlg.ui.pushButtonInvertOD.clicked.connect(self._slotPushButtonInvertODClicked)
-        self.dlg.ui.comboBoxPathsTreeOD.currentIndexChanged.connect(self._slotComboBoxPathsTreeODIndexChanged)
-        self.dlg.ui.comboBoxCombPathsTreesOD.currentIndexChanged.connect(self._slotComboBoxCombPathsTreesODIndexChanged)
-        
-        
-        # 2nd tab
-        self.dlg.ui.listViewPTNetworks.selectionModel().selectionChanged.connect(self._slotlistViewPTNetworksSelectionChanged)
-        
-        
-        # 3rd tab 
-        self.dlg.ui.radioButtonPreciseDate.toggled.connect(self._slotRadioButtonPreciseDateToggled)
-        self.dlg.ui.radioButtonDayType.toggled.connect(self._slotRadioButtonDayTypeToggled)
-        self.dlg.ui.radioButtonTimePeriod.toggled.connect(self._slotRadioButtonTimePeriodToggled)
-        self.dlg.ui.radioButtonTimePoint.toggled.connect(self._slotRadioButtonTimePointToggled)
-        self.dlg.ui.comboBoxTimeConstraint.currentIndexChanged.connect(self._slotComboBoxTimeConstraintIndexChanged)
-        self.dlg.ui.radioButtonTimeInterval.toggled.connect(self._slotRadioButtonTimeIntervalToggled)
-        
-    
+            
     
     # Slots of the general interface
     
@@ -1359,7 +1146,14 @@ class TempusAccess:
         self.time.start()
         self.timer.start()
         
-        if ((self.obj_def_name == "stop_areas") or (self.obj_def_name == "stops") or (self.obj_def_name=="sections") or (self.obj_def_name == "trips") or (self.obj_def_name == "routes") or (self.obj_def_name == "agencies")):
+        if ((self.obj_def_name == "stop_areas") or \
+            (self.obj_def_name == "stops") or \
+            (self.obj_def_name=="sections") or \
+            (self.obj_def_name == "trips") or \
+            (self.obj_def_name == "stops_routes") or \
+            (self.obj_def_name == "routes") or \
+            (self.obj_def_name == "agencies")\
+           ):
             self.gen_indic_thread = genIndicThread(self.query, \
                                                     self.db \
                                                   )
@@ -1367,7 +1161,11 @@ class TempusAccess:
             self.gen_indic_thread.resultAvailable.connect(self._slotResultAvailable)
             self.gen_indic_thread.start()
         
-        elif ((self.obj_def_name == "paths") or (self.obj_def_name == "paths_details") or (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees")):
+        elif ((self.obj_def_name == "paths") or \
+              (self.obj_def_name == "paths_details") or \
+              (self.obj_def_name == "paths_tree") or \
+              (self.obj_def_name == "comb_paths_trees")\
+             ):
             path_tree=False
             if (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees"):
                 path_tree=True
@@ -1415,22 +1213,27 @@ class TempusAccess:
             r.next()
             
             if (r.value(0)>0): # has returned at least one row
-                self.dlg.ui.Tabs.setCurrentIndex(3)
+                display_and_clear_python_console()
+                print u"La requête suivante a été exécutée : "+query_str  
                 if (self.isosurfaces==False):
-                    self.refreshReq()
-                    self.dlg.ui.comboBoxReq.setCurrentIndex(self.dlg.ui.comboBoxReq.findText(self.obj_def_name)) 
-                    self.dlg.ui.Tabs.setCurrentIndex(4)
+                    self.manage_indicators_dialog.refreshReq()
+                    self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 
+                    self.manage_indicators_dialog.show()
                 else:
                     self.refreshDerivedRep()
-                    self.dlg.ui.comboBoxDerivedRep.setCurrentIndex(self.dlg.ui.comboBoxDerivedRep.findText("isosurfaces"))
+                    manage_indicators_dialog.ui.comboBoxDerivedRep.setCurrentIndex(manage_indicators_dialog.ui.comboBoxDerivedRep.findText("isosurfaces"))
             
             else: # has not returned any row
                 box = QMessageBox()
                 box.setText(u"La requête a abouti mais n'a pas retourné de résultats. " )
+                display_and_clear_python_console()
+                print u"La requête suivante a abouti mais n'a pas retourné de résultats : "+query_str  
                 box.exec_()
         else:
             box = QMessageBox()
             box.setText(u"La requête a échoué. ")
+            display_and_clear_python_console()
+            print u"La requête suivante a échoué : "+self.query
             box.exec_()
             
             
@@ -1439,7 +1242,7 @@ class TempusAccess:
            
     
     def _slotPushButtonReinitCalcClicked(self):
-        self.dlg.ui.comboBoxReq.setCurrentIndex(0)
+        self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(0)
         self._slotComboBoxObjTypeIndexChanged(self.dlg.ui.comboBoxObjType.currentIndex())
         self.node_indicators.setExpanded(False)
         
@@ -1482,7 +1285,9 @@ class TempusAccess:
             self.dlg.ui.groupBoxPathsParameters.setEnabled(False)
             
             # 2nd tab
-            self.dlg.ui.groupBoxGTFSFeeds.setEnabled(True)
+            self.dlg.ui.groupBoxPTNetworks.setEnabled(True)
+            self.dlg.ui.listViewPTNetworks.setSelectionMode(QAbstractItemView.SingleSelection)
+            self.dlg.ui.listViewPTNetworks.setEnabled(True)
             self.dlg.ui.groupBoxAgencies.setEnabled(True)
             self.dlg.ui.listViewPTModes.setEnabled(False)
             self.dlg.ui.listViewIModes.setEnabled(False)
@@ -1542,7 +1347,10 @@ class TempusAccess:
             self.dlg.ui.groupBoxPerimetre.setEnabled(False)
             
             # 2nd tab
-            self.dlg.ui.groupBoxGTFSFeeds.setEnabled(True)
+            self.dlg.ui.groupBoxPTNetworks.setEnabled(True)
+            self.dlg.ui.listViewPTNetworks.setSelectionMode(QAbstractItemView.MultiSelection)
+            self.dlg.ui.listViewPTNetworks.selectAll()
+            self.dlg.ui.listViewPTNetworks.setEnabled(False)
             self.dlg.ui.groupBoxAgencies.setEnabled(False)
             self.dlg.ui.listViewPTModes.setEnabled(True)
             self.dlg.ui.listViewIModes.setEnabled(True)
@@ -1631,7 +1439,7 @@ class TempusAccess:
         
         
         if (self.node_type==0): # Stops area
-            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") ORDER BY 1"
+            s="SELECT stop_name as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") ORDER BY 1"
             self.modelNode.setQuery(unicode(s), self.db)
             
         elif (self.node_type==1): # Road nodes
@@ -1648,7 +1456,7 @@ class TempusAccess:
             self.dlg.ui.radioButtonAllServices.setEnabled(False)
             self.dlg.ui.radioButtonTimeInterval.setChecked(True)
         
-        self.iface.mapCanvas().refreshMap()
+        self.iface.mapCanvas().refresh()
 
     
     def _slotClickPoint(self, point, button): # 3rd argument gives the mouse button used for the clic 
@@ -1734,7 +1542,7 @@ class TempusAccess:
             elif (self.dlg.ui.comboBoxCombPathsTreesOD.currentText()=="Destination(s)"):
                 subset_d = s
             if (self.node_type==0): # Stop areas
-                t="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
+                t="SELECT stop_name as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
                    WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                    ORDER BY 1"
             elif (self.node_type==1): # Road nodes
@@ -1807,7 +1615,7 @@ class TempusAccess:
             self.root_nodes.remove(self.modelSelectedNodes.record(item.row()).value("id"))
         
         if (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==0): # Stop areas
-            s="SELECT stop_name || '-' || stop_id as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
+            s="SELECT stop_name as stop, feed_id, stop_id, stop_name, id FROM tempus_gtfs.stops \
                WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+ str(self.PTNetworks) + ") AND ARRAY[id] <@ ARRAY"+str(self.root_nodes)+"\
                ORDER BY 1"
         elif (self.modelNodeType.record(self.dlg.ui.comboBoxNodeType.currentIndex()).value("mod_code")==1): # Road nodes
@@ -1852,9 +1660,7 @@ class TempusAccess:
             s="SELECT '' as lib, '-1' as char_id"
         self.modelZone.setQuery(unicode(s), self.db)
         
-
-    
-    
+   
     def _slotComboBoxZoneIndexChanged(self):
         from_proj = QgsCoordinateReferenceSystem()
         from_proj.createFromSrid(4326)
@@ -1878,7 +1684,8 @@ class TempusAccess:
                 elif (layer.name() == self.modelZoningSource.record(i).value("comment")):
                     layer.setSubsetString("")
                     self.iface.legendInterface().setLayerVisible(layer, False)
-        self.iface.mapCanvas().refreshMap()
+        
+        self.iface.mapCanvas().refresh()
     
     
     def _slotPushButtonInvertODClicked(self):
@@ -1910,7 +1717,7 @@ class TempusAccess:
             # PT modes
             s="SELECT name, id, gtfs_feed_id, gtfs_route_type \
                FROM tempus.transport_mode \
-               WHERE ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.PTNetworks) 
+               WHERE gtfs_feed_id is not null AND ARRAY[gtfs_feed_id]::integer[] <@ ARRAY" + str(self.PTNetworks) 
             self.modelPTModes.setQuery(unicode(s), self.db)
             self.dlg.ui.listViewPTModes.selectAll()
             
@@ -1918,7 +1725,7 @@ class TempusAccess:
             self._slotComboBoxNodeTypeIndexChanged(self.dlg.ui.comboBoxNodeType.currentIndex())        
             
             # PT stops
-            s="SELECT DISTINCT stop_name || '-' || stop_id as stop, id, feed_id, stop_id, stop_name \
+            s="SELECT DISTINCT stop_name as stop, id, feed_id, stop_id, stop_name \
                FROM tempus_gtfs.stops\
                WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY" + str(self.PTNetworks) + ")\
                UNION SELECT '', -1, '', '', ''\
@@ -1969,7 +1776,7 @@ class TempusAccess:
                                                                                                 or (layer.name()=="Sections par mode"))]
             for lyr in layerList:
                 lyr.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+")")
-            self.iface.mapCanvas().refreshMap()
+            self.iface.mapCanvas().refresh()
     
 
     # Slot of the 3rd tab

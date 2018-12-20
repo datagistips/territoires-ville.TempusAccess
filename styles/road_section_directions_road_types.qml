@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.24" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
@@ -86,7 +86,7 @@
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{aa5a6447-56ec-495b-930a-6523b373eac8}" symbol="14" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{f1150514-418c-4c41-91a8-0a98164e0929}" label="Double sens"/>
       </rule>
-      <rule checkstate="0" filter="network_id > 0 AND &quot;road_type&quot; =5" key="{89cb829e-ca45-4820-90de-dc658fb14ac8}" symbol="15" label="Arcs de transfert entre arrêts / POI">
+      <rule filter="network_id > 0 AND &quot;road_type&quot; =5" key="{89cb829e-ca45-4820-90de-dc658fb14ac8}" symbol="15" label="Arcs de transfert entre arrêts / POI">
         <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{0035c8ae-a13e-4c34-b8c6-44f144e7045d}" symbol="16" label="Sens positif"/>
         <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{afa552d4-ac75-4846-9777-f2b8ab248f05}" symbol="17" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{666971e0-2ffb-4dd2-b9e2-282321a20de3}" label="Double sens"/>
@@ -960,16 +960,20 @@
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;network_id&quot;" sortOrder="1">
     <columns>
       <column width="-1" hidden="0" type="field" name="id"/>
       <column width="-1" hidden="0" type="field" name="vendor_id"/>
+      <column width="-1" hidden="0" type="field" name="network_id"/>
+      <column width="-1" hidden="0" type="field" name="chk"/>
       <column width="-1" hidden="0" type="field" name="road_type"/>
       <column width="-1" hidden="0" type="field" name="node_from"/>
       <column width="-1" hidden="0" type="field" name="node_to"/>
       <column width="-1" hidden="0" type="field" name="ft"/>
       <column width="-1" hidden="0" type="field" name="tf"/>
       <column width="-1" hidden="0" type="field" name="length"/>
+      <column width="-1" hidden="0" type="field" name="lane_ft"/>
+      <column width="-1" hidden="0" type="field" name="lane_tf"/>
       <column width="-1" hidden="0" type="field" name="car_speed_limit"/>
       <column width="-1" hidden="0" type="field" name="road_name"/>
       <column width="-1" hidden="0" type="field" name="roundabout"/>
@@ -978,10 +982,6 @@
       <column width="-1" hidden="0" type="field" name="ramp"/>
       <column width="-1" hidden="0" type="field" name="tollway"/>
       <column width="-1" hidden="1" type="actions"/>
-      <column width="-1" hidden="0" type="field" name="network_id"/>
-      <column width="-1" hidden="0" type="field" name="lane_ft"/>
-      <column width="-1" hidden="0" type="field" name="lane_tf"/>
-      <column width="-1" hidden="0" type="field" name="chk"/>
     </columns>
   </attributetableconfig>
   <editform></editform>
@@ -1008,7 +1008,11 @@ def my_form_open(dialog, layer, feature):
   <editorlayout>generatedlayout</editorlayout>
   <widgets/>
   <conditionalstyles>
-    <rowstyles/>
+    <rowstyles>
+      <style text_color_alpha="255" background_color_alpha="0" background_color="#000000" rule="road_type = 5" name="" text_color="#4a8c1d">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+    </rowstyles>
     <fieldstyles/>
   </conditionalstyles>
   <defaults>

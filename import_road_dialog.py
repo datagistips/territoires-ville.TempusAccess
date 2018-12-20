@@ -35,6 +35,7 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_import_road_dialog import Ui_Dialog
@@ -47,6 +48,7 @@ class import_road_dialog(QDialog):
         self.ui.setupUi(self)
         
         self.caller = caller
+        self.iface = self.caller.iface 
         
         self.plugin_dir = self.caller.plugin_dir
         
@@ -106,56 +108,55 @@ class import_road_dialog(QDialog):
     def _slotPushButtonChooseClicked(self):
         if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == ''):
             box = QMessageBox()
-            box.setText(u"Certains paramètres obligatoires ne sont pas renseignés. ")
+            box.setText(unicode("Certains paramètres obligatoires ne sont pas renseignés."))
             box.exec_()
-        else:cheminComplet = ''
-        if (self.path_type=="directory"):
-            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
         else:
-            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
-            
-        if cheminComplet != '':
-            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-            self.srid = self.ui.spinBoxSRID.value()
-            self.prefix = unicode(self.ui.lineEditPrefix.text())
-            self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
-            self.source_name = unicode(self.ui.lineEditSourceName.text())
-            self.source_comment = unicode(self.ui.lineEditSourceComment.text())
-            self.model_version = self.caller.modelRoadNetworkFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
-            self.visum_modes = unicode(self.ui.lineEditVisumModes.text())
-            
-            cmd = ["python", TEMPUSLOADER, "--action", "import", "--data-type", "road", "--data-format", self.format, "--source-name", self.source_name, "--source-comment", self.source_comment, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), "-d", dbstring]
-            if (self.prefix != ''):
-                cmd.append("--prefix")
-                cmd.append(self.prefix)
-            if (str(self.model_version) != 'NULL'):
-                cmd.append('--model-version')
-                cmd.append(str(self.model_version))
-            if (self.visum_modes != ''):
-                cmd.append('--visum-modes')
-                cmd.append(self.visum_modes)
-            
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-            
-            
-            rc = self.caller.execute_external_cmd( cmd )
-            box = QMessageBox()
-            if (rc==0):
-                self.caller.iface.mapCanvas().refreshMap()
-
-                box.setText(u"L'import de la source est terminé. " )
-                
-                self.caller.refreshRoadNetworks()
-                
-                # Zoom to the loaded zoning data
-                layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name() == u"Réseau piéton") or (layer.name() == u"Réseau voiture") or (layer.name() == u"Réseau vélo")) ]
-                self.caller.zoomToLayersList(layersList, True)
-                
-                self.iface.mapCanvas().refreshMap()
-                
+            cheminComplet = ''
+            if (self.path_type=="directory"):
+                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
             else:
-                box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
-            box.exec_()
+                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+                
+            if cheminComplet != '':
+                dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+                self.srid = self.ui.spinBoxSRID.value()
+                self.prefix = unicode(self.ui.lineEditPrefix.text())
+                self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+                self.source_name = unicode(self.ui.lineEditSourceName.text())
+                self.source_comment = unicode(self.ui.lineEditSourceComment.text())
+                self.model_version = str(self.caller.modelRoadNetworkFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version"))
+                self.visum_modes = unicode(self.ui.lineEditVisumModes.text())
+                
+                cmd = ["python", TEMPUSLOADER, "--action", "import", "--data-type", "road", "--data-format", self.format, "--source-name", self.source_name, "--source-comment", self.source_comment, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), "-d", dbstring]
+                if (self.prefix != ''):
+                    cmd.append("--prefix")
+                    cmd.append(self.prefix)
+                if (str(self.model_version) != 'NULL'):
+                    cmd.append('--model-version')
+                    cmd.append(str(self.model_version))
+                if (self.visum_modes != ''):
+                    cmd.append('--visum-modes')
+                    cmd.append(self.visum_modes)
+                
+                self.ui.lineEditCommand.setText(" ".join(cmd))
+                
+                rc = execute_external_cmd( cmd )
+                box = QMessageBox()
+                if (rc==0):
+                    self.caller.iface.mapCanvas().refreshMap()
+
+                    box.setText(u"L'import de la source est terminé.")
+                    
+                    self.caller.refreshRoadNetworks()
+                    if (self.caller.modelPTNetwork.rowCount()>0):
+                        self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
+                    else:
+                        self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type WHERE needs_pt = False ORDER BY code", self.caller.db)
+
+                    self.iface.mapCanvas().refreshMap()                
+                else:
+                    box.setText(u"Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
+                box.exec_()
         
         
     def _slotClose(self):

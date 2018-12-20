@@ -35,6 +35,7 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_import_pt_dialog import Ui_Dialog
@@ -47,6 +48,7 @@ class import_pt_dialog(QDialog):
         self.ui.setupUi(self)
         
         self.caller = caller
+        self.iface = self.caller.iface
         self.temp_data_dir = self.caller.data_dir        
         
         self.ui.comboBoxFormat.setModel(self.caller.modelPTNetworkFormat)
@@ -67,7 +69,7 @@ class import_pt_dialog(QDialog):
     
     
     def updatePushButtonImport(self):
-        if (self.ui.labelFile1.text() != '' and self.ui.labelFile2.text() != '' and self.ui.labelFile3.text() != '' and self.ui.lineEditSourceName.text()!=''):
+        if (self.ui.labelFile1.text() != ''):
             self.ui.pushButtonImport.setEnabled(True)
         else:
             self.ui.pushButtonImport.setEnabled(False)
@@ -92,7 +94,7 @@ class import_pt_dialog(QDialog):
                 self.ui.pushButtonChoose3.setEnabled(False)
                 self.ui.labelChoose2.setEnabled(False)
                 self.ui.labelChoose3.setEnabled(False)
-                self.ui.labelChoose1.setText('Choisir le fichier .zip')
+                self.ui.labelChoose1.setText(u'Choisir le fichier .zip')
                 self.ui.labelChoose2.setText('')
                 self.ui.labelChoose3.setText('')
                 self.ui.lineEditPrefix.setEnabled(False)
@@ -105,7 +107,7 @@ class import_pt_dialog(QDialog):
                 self.ui.pushButtonChoose3.setEnabled(True)
                 self.ui.labelChoose2.setEnabled(True)
                 self.ui.labelChoose3.setEnabled(True)
-                self.ui.labelChoose1.setText('Choisir le GTFS TER (.zip)')
+                self.ui.labelChoose1.setText(u'Choisir le GTFS TER (.zip)')
                 self.ui.labelChoose2.setText(u'Choisir le GTFS Intercités (.zip)')
                 self.ui.labelChoose3.setText(u'Choisir le répertoire contenant les données auxiliaires')
                 self.ui.lineEditPrefix.setEnabled(True)
@@ -140,43 +142,45 @@ class import_pt_dialog(QDialog):
         self.updatePushButtonImport()
         
 
-    def _slotPushButtonImportClicked(self):
-        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-        self.format = self.caller.modelPTNetworkFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.source_name = self.ui.lineEditSourceName.text()
-        self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
-        self.prefix = self.ui.lineEditPrefix.text()
-        self.srid = self.ui.spinBoxSRID.value()
-        
-        cmd = []
-        if (self.format == "gtfs"):
-            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, "--encoding", self.encoding, '--srid', str(self.srid), "--dbstring", dbstring]
-        elif (self.format == "sncf"):
-            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, self.cheminComplet2, self.cheminComplet3, '--srid', str(self.srid), "--dbstring", dbstring]
-        
-        if (self.ui.lineEditPrefix.text() != ""):
-            cmd.append("--prefix")
-            cmd.append(self.ui.lineEditPrefix.text())
-        if (str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")) != 'NULL'):
-            cmd.append('--model-version')
-            cmd.append(str(self.caller.modelZoningSourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")))
-        
-        self.ui.lineEditCommand.setText(" ".join(cmd))
-        r = subprocess.call( cmd )
-        
-        self.caller.iface.mapCanvas().refreshMap() 
-        
-        box = QMessageBox()
-        if (r == 0):
-            box.setText(u"L'import du réseau est terminé. " )
-            
-            self.caller.refreshPTNetworks()                
-                
-            layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"Arrêts par mode") or (layer.name()==u"Sections par mode"))]
-            self.caller.zoomToLayers(layersList)
+    def _slotPushButtonImportClicked(self):        
+        if (self.ui.lineEditSourceName.text() == '') or (self.format == "sncf" and (self.ui.labelFile1.text() == '' or self.ui.labelFile2.text() == '' or self.ui.labelFile3.text()=='')) or (self.format == "gtfs" and self.ui.labelFile1.text()==""):
+            box = QMessageBox()
+            box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")
+            box.exec_()
         else:
-            box.setText(u"Erreur pendant l'import, code de retour = "+str(r)+". ")
-        box.exec_()
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.srid = self.ui.spinBoxSRID.value()
+            self.prefix = unicode(self.ui.lineEditPrefix.text())
+            self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+            self.source_name = unicode(self.ui.lineEditSourceName.text())
+            self.model_version = str(self.caller.modelPTNetworkFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version"))
+            
+            if (self.format == "gtfs"):
+                cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, "--encoding", self.encoding, '--srid', str(self.srid), "--dbstring", dbstring]
+            elif (self.format == "sncf"):
+                cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "pt", "--data-format", self.format, "--source-name", self.source_name, "--path", self.cheminComplet1, self.cheminComplet2, self.cheminComplet3, '--srid', str(self.srid), "--dbstring", dbstring]
+
+            if (self.prefix != ""):
+                cmd.append("--prefix")
+                cmd.append(self.prefix)
+            if (self.model_version != 'NULL'):
+                cmd.append('--model-version')
+                cmd.append(self.model_version)
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))        
+            
+            rc = execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                box.setText(u"L'import de la source est terminé.")
+                
+                self.caller.refreshPTNetworks()
+                self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
+                
+                self.caller.iface.mapCanvas().refreshMap()
+            else:
+                box.setText(u"Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
+            box.exec_()
     
     
         

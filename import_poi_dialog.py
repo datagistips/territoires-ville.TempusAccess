@@ -35,6 +35,7 @@ import os
 import subprocess
 
 from config import *
+from thread_tools import execute_external_cmd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
 from Ui_import_poi_dialog import Ui_Dialog
@@ -107,44 +108,71 @@ class import_poi_dialog(QDialog):
     
     
     def _slotPushButtonChooseClicked(self):
-        cheminComplet = ''
-        if (self.path_type=="directory"):
-            cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+        if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''):
+            box = QMessageBox()
+            box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")
+            box.exec_()
         else:
-            cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
-        dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-        self.srid = self.ui.spinBoxSRID.value()
-        self.prefix = self.ui.lineEditPrefix.text()
-        self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
-        self.source_name = self.ui.lineEditSourceName.text()
-        self.model_version = self.caller.modelPOISourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version")
-        self.filter = self.ui.lineEditFilter.text()
-        self.poi_type = self.caller.modelPOIType.record(self.ui.comboBoxPOIType.currentIndex()).value("id")
-        self.id_field = self.ui.lineEditIdField.text()
-        self.name_field = self.ui.lineEditNameField.text()
-        
-        cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "poi", '--poi-type', str(self.poi_type), "--data-format", self.format, "--source-name", self.source_name, "--id-field", self.id_field, "--name-field", self.name_field, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), '--dbstring', dbstring]
-        if (self.prefix != ""):
-            cmd.append("--prefix")
-            cmd.append(self.prefix)
-        if (str(self.model_version) != 'NULL'):
-            cmd.append('--model-version')
-            cmd.append(str(self.model_version))
-        if (self.filter != ''):
-            cmd.append('--filter')
-            cmd.append(self.filter)
-        
-        self.ui.lineEditCommand.setText(" ".join(cmd))
-        r = subprocess.call( cmd )
-        
-        box = QMessageBox()
-        if r==0:
-            box.setText(u"L'import de la source est terminé. " )
-            layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
-            self.caller.zoomToLayersList(layersList)
-        else:
-            box.setText(u"Erreur pendant l'import, code de retour = "+str(r)+". ")
-        box.exec_()
+            cheminComplet = ''
+            if (self.path_type=="directory"):
+                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+            else:
+                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.srid = self.ui.spinBoxSRID.value()
+            self.prefix = unicode(self.ui.lineEditPrefix.text())
+            self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
+            self.source_name = unicode(self.ui.lineEditSourceName.text())
+            self.source_comment = unicode(self.ui.lineEditSourceComment.text())
+            self.model_version = str(self.caller.modelPOISourceFormatVersion.record(self.ui.comboBoxFormatVersion.currentIndex()).value("model_version"))
+            self.filter = unicode(self.ui.lineEditFilter.text())
+            self.poi_type = self.caller.modelPOIType.record(self.ui.comboBoxPOIType.currentIndex()).value("id")
+            self.id_field = unicode(self.ui.lineEditIdField.text())
+            self.name_field = unicode(self.ui.lineEditNameField.text())
+            
+            cmd=["python", TEMPUSLOADER, "--action", "import", "--data-type", "poi", '--poi-type', str(self.poi_type), "--data-format", self.format, "--source-name", self.source_name, "--source-comment", self.source_comment, "--id-field", self.id_field, "--name-field", self.name_field, "--path", cheminComplet, "--encoding", self.encoding, '--srid', str(self.srid), '--dbstring', dbstring]
+            if (self.prefix != ""):
+                cmd.append("--prefix")
+                cmd.append(self.prefix)
+            if (str(self.model_version) != 'NULL'):
+                cmd.append('--model-version')
+                cmd.append(str(self.model_version))
+            if (self.filter != ''):
+                cmd.append('--filter')
+                cmd.append(self.filter)
+            
+            self.ui.lineEditCommand.setText(" ".join(cmd))        
+            rc = execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                self.caller.iface.mapCanvas().refreshMap()
+
+                box.setText(unicode("L'import de la source est terminé."))
+                
+                self.caller.refreshZoningSources()
+                
+                self.caller.node_zoning.removeAllChildren()
+                
+                uri=QgsDataSourceURI()
+                uri.setConnection(self.caller.db.hostName(), str(self.caller.db.port()), self.caller.db.databaseName(), self.caller.db.userName(), self.caller.db.password())
+                
+                for i in range(0,self.caller.modelZoningSource.rowCount()):
+                    if (self.caller.modelZoningSource.record(i).value("id")!=-1):
+                        uri.setDataSource("zoning", self.caller.modelZoningSource.record(i).value("name"), "geom", "")
+                        layer = QgsVectorLayer(uri.uri(), self.caller.modelZoningSource.record(i).value("comment"), "postgres")
+                        if (layer.isValid()):
+                            QgsMapLayerRegistry.instance().addMapLayer(layer, False)
+                            node_layer = QgsLayerTreeLayer(layer)
+                            self.caller.node_zoning.insertChildNode(i, node_layer)
+                            self.iface.legendInterface().setLayerVisible(layer, False)
+                self.caller.node_zoning.setExpanded(True)
+                
+                # Zoom to the loaded zoning data
+                layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
+                self.caller.zoomToLayersList(layersList)
+            else:
+                box.setText(unicode("Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande."))
+            box.exec_()            
             
 
     def _slotClose(self):

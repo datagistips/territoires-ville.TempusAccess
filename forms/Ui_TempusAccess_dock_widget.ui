@@ -207,8 +207,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>321</width>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -335,8 +335,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>321</width>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -701,7 +701,7 @@
      <attribute name="title">
       <string>Réseaux et modes</string>
      </attribute>
-     <widget class="QGroupBox" name="groupBoxGTFSFeeds">
+     <widget class="QGroupBox" name="groupBoxPTNetworks">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -955,8 +955,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>291</width>
+          <height>227</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1232,8 +1232,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>147</height>
          </rect>
         </property>
         <attribute name="label">
