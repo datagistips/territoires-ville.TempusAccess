@@ -267,15 +267,10 @@ class TempusAccess:
         self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
         self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
         self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
-<<<<<<< HEAD
+
         self.action_delete_poi.setToolTip(u"Supprimer une source de points d'intérêt")
         self.action_import_zoning.setToolTip(u"Importer un zonage")
         self.action_delete_zoning.setToolTip(u"Supprimer un zonage")
-=======
-        self.action_delete_poi.setToolTip(u"Exporter ou supprimer des points d'intérêt")
-        self.action_import_zoning.setToolTip(u"Importer un zonage")
-        self.action_delete_zoning.setToolTip(u"Exporter ou supprimer un zonage")
->>>>>>> f9929be026e0076408622a0f9a53c7a6c1907e74
         self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
         
         # Connect the actions to the methods
