@@ -4,13 +4,31 @@
     <edittype widgetv2type="TextEdit" name="gid">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="path_id">
+    <edittype widgetv2type="TextEdit" name="stops_route_id_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="step_id">
+    <edittype widgetv2type="TextEdit" name="trip_ids_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="step_mode">
+    <edittype widgetv2type="TextEdit" name="feed_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="stop_names">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="stop_ids_int">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_id_int">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_short_name">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_long_name">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="ValueMap" name="route_type">
@@ -26,56 +44,68 @@
         <value key="Transport par câble (aérien)" value="6"/>
       </widgetv2config>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_route">
+    <edittype widgetv2type="TextEdit" name="agency_id_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_o_stop">
+    <edittype widgetv2type="TextEdit" name="agency_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_d_stop">
+    <edittype widgetv2type="TextEdit" name="agency_name">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="road_o_node">
+    <edittype widgetv2type="TextEdit" name="services_days">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="road_d_node">
+    <edittype widgetv2type="TextEdit" name="days">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="wait_o_time">
+    <edittype widgetv2type="TextEdit" name="serv_num">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="o_time">
+    <edittype widgetv2type="TextEdit" name="first_serv">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="d_time">
+    <edittype widgetv2type="TextEdit" name="veh_km">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="total_time">
+    <edittype widgetv2type="TextEdit" name="total_time2">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="total_dist">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="all_stops">
+    <edittype widgetv2type="TextEdit" name="total_time">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="speed_kmh">
+    <edittype widgetv2type="TextEdit" name="last_serv">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="time_ampl">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="zones_list">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="zones_pop">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="symbol_size">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="symbol_color">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
-    <rules key="{9394ed38-7431-4c96-afdc-011c7e7b0b49}">
-      <rule filter="&quot;route_type&quot; = 0" key="{6acc7f2e-9d64-4310-9e59-95f40f38c557}" symbol="0" label="Tram"/>
-      <rule filter="&quot;route_type&quot; = 1" key="{622a518c-68b7-4fcd-b161-bb919a5f8e5d}" symbol="1" label="Métro"/>
-      <rule filter="&quot;route_type&quot; = 2" key="{33b2eafa-75c2-4c10-8de3-07fd15f7840e}" symbol="2" label="Train"/>
-      <rule filter="&quot;route_type&quot; = 7" key="{4acfb3a5-2846-42cc-afdb-2efb4f40e39a}" symbol="3" label="Funiculaire"/>
-      <rule filter="&quot;route_type&quot; = 3" key="{dd552379-0a8c-4de0-9dcc-a7a72f599900}" symbol="4" label="Autocar"/>
-      <rule filter="&quot;route_type&quot; = 4" key="{555a5fb6-368d-44e1-90f3-7a26db37fef6}" symbol="5" label="Ferry"/>
-      <rule filter="&quot;route_type&quot; = 5" key="{2a686650-2c9f-48b3-ab8c-7bfc84d424c5}" symbol="6" label="Transport par câble (au sol)"/>
-      <rule filter="&quot;route_type&quot; = 6" key="{2cc5c5ba-0649-410a-8bad-c0e24089f389}" symbol="7" label="Transport par câble (aérien)"/>
-      <rule filter="step_mode = 'Walking'" key="{c224b4eb-f627-43f8-89c0-368120e7dc8f}" symbol="8" label="Marche"/>
-      <rule filter="step_mode = 'Private car'" key="{f2dc56a3-4633-4605-a684-45e34e642a8c}" symbol="9" label="Voiture"/>
-      <rule filter="step_mode = 'Private bicycle'" key="{9144f55a-8c3a-4dc1-87b8-541d07d8034a}" symbol="10" label="Vélo"/>
+    <rules key="{99a19c35-501a-456f-a121-d96b4dac731d}">
+      <rule filter="&quot;route_type&quot; = 0" key="{b17ce5dc-89cb-4cf4-a921-207c23234243}" symbol="0" label="Tram"/>
+      <rule filter="&quot;route_type&quot; = 1" key="{9654fee4-52cc-43a5-bd43-7f41f2b748c7}" symbol="1" label="Métro"/>
+      <rule filter="&quot;route_type&quot; = 2" key="{4ae28924-1832-46a8-8d34-cb244b85e37b}" symbol="2" label="Train"/>
+      <rule filter="&quot;route_type&quot; = 3" key="{4a9053b6-4e52-4657-b127-166905e784cb}" symbol="3" label="Autocar"/>
+      <rule filter="&quot;route_type&quot; = 4" key="{868995b0-dbcd-4832-a872-c6098b7428fe}" symbol="4" label="Ferry"/>
+      <rule filter="&quot;route_type&quot; = 5" key="{326385dc-31ea-4b9e-9789-3cb2017e4aec}" symbol="5" label="Transport par câble (au sol)"/>
+      <rule filter="&quot;route_type&quot; = 6" key="{49c8278a-4d2f-4068-be5f-2caa67047142}" symbol="6" label="Transport par câble (aérien)"/>
+      <rule filter="&quot;route_type&quot; = 7" key="{6526d21a-6445-48e7-b583-1c51926b6c9f}" symbol="7" label="Funiculaire"/>
     </rules>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="line" name="0">
@@ -83,17 +113,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="line_color" v="0,128,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.8"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -102,55 +136,22 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="line_color" v="255,0,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.8"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="10">
-        <layer pass="0" class="MarkerLine" locked="0">
-          <prop k="interval" v="3"/>
-          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="interval_unit" v="MM"/>
-          <prop k="offset" v="0"/>
-          <prop k="offset_along_line" v="0"/>
-          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_along_line_unit" v="MM"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="placement" v="interval"/>
-          <prop k="rotate" v="1"/>
-          <symbol alpha="1" clip_to_extent="1" type="marker" name="@10@0">
-            <layer pass="0" class="SimpleMarker" locked="0">
-              <prop k="angle" v="0"/>
-              <prop k="color" v="31,98,11,255"/>
-              <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="joinstyle" v="bevel"/>
-              <prop k="name" v="circle"/>
-              <prop k="offset" v="0,0"/>
-              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="offset_unit" v="MM"/>
-              <prop k="outline_color" v="0,0,0,255"/>
-              <prop k="outline_style" v="solid"/>
-              <prop k="outline_width" v="0"/>
-              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="outline_width_unit" v="MM"/>
-              <prop k="scale_method" v="diameter"/>
-              <prop k="size" v="2.8"/>
-              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="size_unit" v="MM"/>
-              <prop k="vertical_anchor_point" v="1"/>
-            </layer>
-          </symbol>
         </layer>
       </symbol>
       <symbol alpha="1" clip_to_extent="1" type="line" name="2">
@@ -158,17 +159,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="line_color" v="0,0,255,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.8"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -177,17 +182,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="128,0,128,255"/>
+          <prop k="line_color" v="255,165,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.5"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -196,17 +205,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="255,165,0,255"/>
+          <prop k="line_color" v="0,0,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.3"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -215,17 +228,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="0,0,0,255"/>
+          <prop k="line_color" v="255,255,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.3"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -234,17 +251,21 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="128,128,128,255"/>
+          <prop k="line_color" v="255,255,0,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.3"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
@@ -253,92 +274,22 @@
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
+          <prop k="customdash_unit" v="MapUnit"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="255,255,0,255"/>
+          <prop k="line_color" v="128,0,128,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="2.8"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width" v="0.3"/>
+          <prop k="line_width_unit" v="MapUnit"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
+          <prop k="offset_unit" v="MapUnit"/>
           <prop k="use_custom_dash" v="0"/>
+          <prop k="width_dd_active" v="1"/>
+          <prop k="width_dd_expression" v=""/>
+          <prop k="width_dd_field" v="symbol_size"/>
+          <prop k="width_dd_useexpr" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="8">
-        <layer pass="0" class="MarkerLine" locked="0">
-          <prop k="interval" v="3"/>
-          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="interval_unit" v="MM"/>
-          <prop k="offset" v="0"/>
-          <prop k="offset_along_line" v="0"/>
-          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_along_line_unit" v="MM"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="placement" v="interval"/>
-          <prop k="rotate" v="1"/>
-          <symbol alpha="1" clip_to_extent="1" type="marker" name="@8@0">
-            <layer pass="0" class="SimpleMarker" locked="0">
-              <prop k="angle" v="0"/>
-              <prop k="color" v="255,0,0,255"/>
-              <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="joinstyle" v="bevel"/>
-              <prop k="name" v="circle"/>
-              <prop k="offset" v="0,0"/>
-              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="offset_unit" v="MM"/>
-              <prop k="outline_color" v="0,0,0,255"/>
-              <prop k="outline_style" v="solid"/>
-              <prop k="outline_width" v="0"/>
-              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="outline_width_unit" v="MM"/>
-              <prop k="scale_method" v="diameter"/>
-              <prop k="size" v="2.8"/>
-              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="size_unit" v="MM"/>
-              <prop k="vertical_anchor_point" v="1"/>
-            </layer>
-          </symbol>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="9">
-        <layer pass="0" class="MarkerLine" locked="0">
-          <prop k="interval" v="3"/>
-          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="interval_unit" v="MM"/>
-          <prop k="offset" v="0"/>
-          <prop k="offset_along_line" v="0"/>
-          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_along_line_unit" v="MM"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="placement" v="interval"/>
-          <prop k="rotate" v="1"/>
-          <symbol alpha="1" clip_to_extent="1" type="marker" name="@9@0">
-            <layer pass="0" class="SimpleMarker" locked="0">
-              <prop k="angle" v="0"/>
-              <prop k="color" v="0,0,0,255"/>
-              <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="joinstyle" v="bevel"/>
-              <prop k="name" v="circle"/>
-              <prop k="offset" v="0,0"/>
-              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="offset_unit" v="MM"/>
-              <prop k="outline_color" v="0,0,0,255"/>
-              <prop k="outline_style" v="solid"/>
-              <prop k="outline_width" v="0"/>
-              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="outline_width_unit" v="MM"/>
-              <prop k="scale_method" v="diameter"/>
-              <prop k="size" v="2.8"/>
-              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="size_unit" v="MM"/>
-              <prop k="vertical_anchor_point" v="1"/>
-            </layer>
-          </symbol>
         </layer>
       </symbol>
     </symbols>
@@ -544,46 +495,68 @@
   <annotationform></annotationform>
   <aliases>
     <alias field="gid" index="0" name=""/>
-    <alias field="path_id" index="1" name="Numéro chemin"/>
-    <alias field="step_id" index="2" name="Numéro étape"/>
-    <alias field="step_mode" index="3" name="Mode transport"/>
-    <alias field="route_type" index="4" name="Sous-mode TC"/>
-    <alias field="pt_route" index="5" name="Ligne utilisée"/>
-    <alias field="pt_o_stop" index="6" name="Arrêt origine"/>
-    <alias field="pt_d_stop" index="7" name="Arrêt destination"/>
-    <alias field="road_o_node" index="8" name="Noeud routier origine"/>
-    <alias field="road_d_node" index="9" name="Noeud routier destination"/>
-    <alias field="wait_o_time" index="10" name="Attente à l'origine"/>
-    <alias field="o_time" index="11" name="Heure départ"/>
-    <alias field="d_time" index="12" name="Heure arrivée"/>
-    <alias field="total_time" index="13" name="Temps parcours"/>
-    <alias field="total_dist" index="14" name="Distance"/>
-    <alias field="all_stops" index="15" name="Arrêts desservis"/>
-    <alias field="speed_kmh" index="16" name="Vitesse (km/h)"/>
+    <alias field="stops_route_id_int" index="1" name="Id itinéraire de ligne"/>
+    <alias field="trip_ids_int" index="2" name="Id trajets"/>
+    <alias field="feed_id" index="3" name="Source données"/>
+    <alias field="stop_names" index="4" name="Noms arrêts desservis"/>
+    <alias field="stop_ids_int" index="5" name="Id arrêts desservis"/>
+    <alias field="route_id_int" index="6" name="Id unique ligne"/>
+    <alias field="route_id" index="7" name="Id initial ligne"/>
+    <alias field="route_short_name" index="8" name="Nom court ligne"/>
+    <alias field="route_long_name" index="9" name="Nom long ligne"/>
+    <alias field="route_type" index="10" name="Mode"/>
+    <alias field="agency_id_int" index="11" name="Id unique opérateur"/>
+    <alias field="agency_id" index="12" name="Id initial opérateur"/>
+    <alias field="agency_name" index="13" name="Nom opérateur"/>
+    <alias field="services_days" index="14" name="Jours desservis"/>
+    <alias field="days" index="15" name="Jours calcul"/>
+    <alias field="serv_num" index="16" name="Nb services"/>
+    <alias field="first_serv" index="17" name="Heure 1er service"/>
+    <alias field="veh_km" index="18" name="véh.km (jour)"/>
+    <alias field="total_time2" index="19" name="Temps parcours (s)"/>
+    <alias field="total_dist" index="20" name="Distance parcourue (km)"/>
+    <alias field="total_time" index="21" name="Temps parcours (HH:MM:SS)"/>
+    <alias field="last_serv" index="22" name="Heure dernier service"/>
+    <alias field="time_ampl" index="23" name="Amplitude horaire"/>
+    <alias field="zones_list" index="24" name="Zones desservies"/>
+    <alias field="zones_pop" index="25" name="Pop zones desservies"/>
+    <alias field="symbol_size" index="26" name=""/>
+    <alias field="symbol_color" index="27" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
   <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;gid&quot;" sortOrder="0">
     <columns>
+      <column width="31" hidden="0" type="field" name="gid"/>
+      <column width="113" hidden="0" type="field" name="stops_route_id_int"/>
+      <column width="91" hidden="0" type="field" name="feed_id"/>
+      <column width="69" hidden="0" type="field" name="route_type"/>
+      <column width="108" hidden="0" type="field" name="stop_ids_int"/>
+      <column width="301" hidden="0" type="field" name="stop_names"/>
+      <column width="105" hidden="0" type="field" name="services_days"/>
+      <column width="100" hidden="0" type="field" name="days"/>
+      <column width="115" hidden="0" type="field" name="trip_ids_int"/>
+      <column width="31" hidden="0" type="field" name="route_id_int"/>
+      <column width="100" hidden="0" type="field" name="route_id"/>
+      <column width="31" hidden="0" type="field" name="route_short_name"/>
+      <column width="296" hidden="0" type="field" name="route_long_name"/>
+      <column width="35" hidden="0" type="field" name="agency_id_int"/>
+      <column width="100" hidden="0" type="field" name="agency_id"/>
+      <column width="89" hidden="0" type="field" name="agency_name"/>
+      <column width="100" hidden="0" type="field" name="first_serv"/>
+      <column width="123" hidden="0" type="field" name="last_serv"/>
+      <column width="100" hidden="0" type="field" name="time_ampl"/>
+      <column width="68" hidden="0" type="field" name="serv_num"/>
+      <column width="145" hidden="0" type="field" name="total_time"/>
+      <column width="-1" hidden="0" type="field" name="total_time2"/>
+      <column width="132" hidden="0" type="field" name="total_dist"/>
+      <column width="92" hidden="0" type="field" name="veh_km"/>
+      <column width="100" hidden="0" type="field" name="zones_list"/>
+      <column width="130" hidden="0" type="field" name="zones_pop"/>
+      <column width="67" hidden="0" type="field" name="symbol_size"/>
+      <column width="76" hidden="0" type="field" name="symbol_color"/>
       <column width="-1" hidden="1" type="actions"/>
-      <column width="40" hidden="0" type="field" name="gid"/>
-      <column width="83" hidden="0" type="field" name="path_id"/>
-      <column width="80" hidden="0" type="field" name="step_id"/>
-      <column width="87" hidden="0" type="field" name="step_mode"/>
-      <column width="80" hidden="0" type="field" name="route_type"/>
-      <column width="91" hidden="0" type="field" name="pt_o_stop"/>
-      <column width="108" hidden="0" type="field" name="pt_d_stop"/>
-      <column width="113" hidden="0" type="field" name="road_o_node"/>
-      <column width="130" hidden="0" type="field" name="road_d_node"/>
-      <column width="104" hidden="0" type="field" name="wait_o_time"/>
-      <column width="-1" hidden="0" type="field" name="o_time"/>
-      <column width="-1" hidden="0" type="field" name="d_time"/>
-      <column width="-1" hidden="0" type="field" name="total_time"/>
-      <column width="-1" hidden="0" type="field" name="total_dist"/>
-      <column width="-1" hidden="0" type="field" name="speed_kmh"/>
-      <column width="271" hidden="0" type="field" name="all_stops"/>
-      <column width="237" hidden="0" type="field" name="pt_route"/>
     </columns>
   </attributetableconfig>
   <editform></editform>
@@ -610,27 +583,63 @@ def my_form_open(dialog, layer, feature):
   <editorlayout>generatedlayout</editorlayout>
   <widgets/>
   <conditionalstyles>
-    <rowstyles/>
+    <rowstyles>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#008000" rule="route_type=0" name="Tram" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#ff0000" rule="route_type=1" name="Métro" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#0000ff" rule="route_type=2" name="Fer" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#ffa500" rule="route_type=3" name="Car ou bus" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#00c3fe" rule="route_type=4" name="Ferry" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#ffff00" rule="route_type=5 or route_type=6" name="Transport par câble" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#800080" rule="route_type=7" name="Funiculaire" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+      <style text_color_alpha="0" background_color_alpha="102" background_color="#000000" rule="route_type = 8" name="Tous modes" text_color="#000000">
+        <font description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      </style>
+    </rowstyles>
     <fieldstyles/>
   </conditionalstyles>
   <defaults>
     <default field="gid" expression=""/>
-    <default field="path_id" expression=""/>
-    <default field="step_id" expression=""/>
-    <default field="step_mode" expression=""/>
+    <default field="stops_route_id_int" expression=""/>
+    <default field="trip_ids_int" expression=""/>
+    <default field="feed_id" expression=""/>
+    <default field="stop_names" expression=""/>
+    <default field="stop_ids_int" expression=""/>
+    <default field="route_id_int" expression=""/>
+    <default field="route_id" expression=""/>
+    <default field="route_short_name" expression=""/>
+    <default field="route_long_name" expression=""/>
     <default field="route_type" expression=""/>
-    <default field="pt_route" expression=""/>
-    <default field="pt_o_stop" expression=""/>
-    <default field="pt_d_stop" expression=""/>
-    <default field="road_o_node" expression=""/>
-    <default field="road_d_node" expression=""/>
-    <default field="wait_o_time" expression=""/>
-    <default field="o_time" expression=""/>
-    <default field="d_time" expression=""/>
-    <default field="total_time" expression=""/>
+    <default field="agency_id_int" expression=""/>
+    <default field="agency_id" expression=""/>
+    <default field="agency_name" expression=""/>
+    <default field="services_days" expression=""/>
+    <default field="days" expression=""/>
+    <default field="serv_num" expression=""/>
+    <default field="first_serv" expression=""/>
+    <default field="veh_km" expression=""/>
+    <default field="total_time2" expression=""/>
     <default field="total_dist" expression=""/>
-    <default field="all_stops" expression=""/>
-    <default field="speed_kmh" expression=""/>
+    <default field="total_time" expression=""/>
+    <default field="last_serv" expression=""/>
+    <default field="time_ampl" expression=""/>
+    <default field="zones_list" expression=""/>
+    <default field="zones_pop" expression=""/>
+    <default field="symbol_size" expression=""/>
+    <default field="symbol_color" expression=""/>
   </defaults>
   <previewExpression>COALESCE("stop_id1", '&lt;NULL>')</previewExpression>
   <layerGeometryType>1</layerGeometryType>

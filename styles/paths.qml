@@ -1,31 +1,43 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.19" simplifyAlgorithm="0" minimumScale="100000" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="0" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="100000" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="0" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="gid">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="path_id">
+    <edittype widgetv2type="TextEdit" name="dep">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="step_id">
+    <edittype widgetv2type="TextEdit" name="arr">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_o_stop">
+    <edittype widgetv2type="TextEdit" name="total_time">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_d_stop">
+    <edittype widgetv2type="TextEdit" name="total_dist">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="t_modes">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="stops_time">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="compo_time">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="compo_dist">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="tran_stops">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="all_stops">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="pt_route">
+    <edittype widgetv2type="TextEdit" name="routes">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="route_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="step_mode">
+    <edittype widgetv2type="TextEdit" name="wait_time">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
@@ -255,30 +267,38 @@
   <annotationform></annotationform>
   <aliases>
     <alias field="gid" index="0" name=""/>
-    <alias field="path_id" index="1" name=""/>
-    <alias field="step_id" index="2" name=""/>
-    <alias field="pt_o_stop" index="3" name=""/>
-    <alias field="pt_d_stop" index="4" name=""/>
-    <alias field="all_stops" index="5" name=""/>
-    <alias field="pt_route" index="6" name=""/>
-    <alias field="route_type" index="7" name=""/>
-    <alias field="step_mode" index="8" name=""/>
+    <alias field="dep" index="1" name="Heure départ"/>
+    <alias field="arr" index="2" name="Heure arrivée"/>
+    <alias field="total_time" index="3" name="Temps parcours"/>
+    <alias field="total_dist" index="4" name="Distance parcourue (km)"/>
+    <alias field="t_modes" index="5" name="Modes utilisés"/>
+    <alias field="stops_time" index="6" name="Temps entre premier et dernier arrêt"/>
+    <alias field="compo_time" index="7" name="Temps par mode"/>
+    <alias field="compo_dist" index="8" name="Distance par mode"/>
+    <alias field="tran_stops" index="9" name="Arrêts de correspondance"/>
+    <alias field="all_stops" index="10" name="Arrêts desservis"/>
+    <alias field="routes" index="11" name="Lignes utilisées"/>
+    <alias field="wait_time" index="12" name="Temps attente total"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;route_type&quot;" sortOrder="0">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;routes&quot;" sortOrder="0">
     <columns>
-      <column width="-1" hidden="0" type="field" name="route_type"/>
+      <column width="31" hidden="0" type="field" name="gid"/>
+      <column width="79" hidden="0" type="field" name="dep"/>
+      <column width="86" hidden="0" type="field" name="arr"/>
+      <column width="88" hidden="0" type="field" name="total_time"/>
+      <column width="193" hidden="0" type="field" name="stops_time"/>
+      <column width="131" hidden="0" type="field" name="total_dist"/>
+      <column width="143" hidden="0" type="field" name="t_modes"/>
+      <column width="119" hidden="0" type="field" name="compo_time"/>
+      <column width="114" hidden="0" type="field" name="wait_time"/>
+      <column width="223" hidden="0" type="field" name="compo_dist"/>
+      <column width="180" hidden="0" type="field" name="all_stops"/>
+      <column width="191" hidden="0" type="field" name="tran_stops"/>
+      <column width="195" hidden="0" type="field" name="routes"/>
       <column width="-1" hidden="1" type="actions"/>
-      <column width="-1" hidden="0" type="field" name="path_id"/>
-      <column width="-1" hidden="0" type="field" name="step_id"/>
-      <column width="-1" hidden="0" type="field" name="pt_o_stop"/>
-      <column width="175" hidden="0" type="field" name="pt_d_stop"/>
-      <column width="-1" hidden="0" type="field" name="all_stops"/>
-      <column width="-1" hidden="0" type="field" name="pt_route"/>
-      <column width="-1" hidden="0" type="field" name="step_mode"/>
-      <column width="-1" hidden="0" type="field" name="gid"/>
     </columns>
   </attributetableconfig>
   <editform></editform>
@@ -310,14 +330,18 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="gid" expression=""/>
-    <default field="path_id" expression=""/>
-    <default field="step_id" expression=""/>
-    <default field="pt_o_stop" expression=""/>
-    <default field="pt_d_stop" expression=""/>
+    <default field="dep" expression=""/>
+    <default field="arr" expression=""/>
+    <default field="total_time" expression=""/>
+    <default field="total_dist" expression=""/>
+    <default field="t_modes" expression=""/>
+    <default field="stops_time" expression=""/>
+    <default field="compo_time" expression=""/>
+    <default field="compo_dist" expression=""/>
+    <default field="tran_stops" expression=""/>
     <default field="all_stops" expression=""/>
-    <default field="pt_route" expression=""/>
-    <default field="route_type" expression=""/>
-    <default field="step_mode" expression=""/>
+    <default field="routes" expression=""/>
+    <default field="wait_time" expression=""/>
   </defaults>
   <previewExpression>COALESCE("stop_id1", '&lt;NULL>')</previewExpression>
   <layerGeometryType>1</layerGeometryType>

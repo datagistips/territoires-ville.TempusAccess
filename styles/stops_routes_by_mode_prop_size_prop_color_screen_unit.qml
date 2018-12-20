@@ -4,22 +4,31 @@
     <edittype widgetv2type="TextEdit" name="gid">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="section_id_int">
+    <edittype widgetv2type="TextEdit" name="stops_route_id_int">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="trip_ids_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="feed_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_id_from">
+    <edittype widgetv2type="TextEdit" name="stop_names">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_name_from">
+    <edittype widgetv2type="TextEdit" name="stop_ids_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_id_to">
+    <edittype widgetv2type="TextEdit" name="route_id_int">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_name_to">
+    <edittype widgetv2type="TextEdit" name="route_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_short_name">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="route_long_name">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="ValueMap" name="route_type">
@@ -35,16 +44,34 @@
         <value key="Transport par câble (aérien)" value="6"/>
       </widgetv2config>
     </edittype>
+    <edittype widgetv2type="TextEdit" name="agency_id_int">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="agency_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="agency_name">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
     <edittype widgetv2type="TextEdit" name="services_days">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="days">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
+    <edittype widgetv2type="TextEdit" name="serv_num">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
     <edittype widgetv2type="TextEdit" name="first_serv">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="time_ampl">
+    <edittype widgetv2type="TextEdit" name="veh_km">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="total_time2">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="total_dist">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="total_time">
@@ -53,19 +80,13 @@
     <edittype widgetv2type="TextEdit" name="last_serv">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="veh_km">
+    <edittype widgetv2type="TextEdit" name="time_ampl">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="total_dist">
+    <edittype widgetv2type="TextEdit" name="zones_list">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="total_time2">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="serv_num">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="routes">
+    <edittype widgetv2type="TextEdit" name="zones_pop">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="symbol_size">
@@ -3682,53 +3703,67 @@
   <annotationform></annotationform>
   <aliases>
     <alias field="gid" index="0" name=""/>
-    <alias field="section_id_int" index="1" name="Id unique section"/>
-    <alias field="feed_id" index="2" name="Source données"/>
-    <alias field="stop_id_from" index="3" name="Id arrêt origine"/>
-    <alias field="stop_name_from" index="4" name="Nom arrêt origine"/>
-    <alias field="stop_id_to" index="5" name="Id arrêt dest"/>
-    <alias field="stop_name_to" index="6" name="Nom arrêt dest"/>
-    <alias field="route_type" index="7" name="Mode"/>
-    <alias field="services_days" index="8" name="Jours desservis"/>
-    <alias field="days" index="9" name="Jours calcul"/>
-    <alias field="first_serv" index="10" name="Départ 1er service"/>
-    <alias field="time_ampl" index="11" name="Ampl. horaire"/>
-    <alias field="total_time" index="12" name="Tps parcours (HH:MM:SS)"/>
-    <alias field="last_serv" index="13" name="Départ dernier service"/>
-    <alias field="veh_km" index="14" name="véhicules.km"/>
-    <alias field="total_dist" index="15" name="Dist parcourue (km)"/>
-    <alias field="total_time2" index="16" name="Tps parcours (sec)"/>
-    <alias field="serv_num" index="17" name="Nb services"/>
-    <alias field="routes" index="18" name="Lignes empruntées"/>
-    <alias field="symbol_size" index="19" name=""/>
-    <alias field="symbol_color" index="20" name=""/>
+    <alias field="stops_route_id_int" index="1" name="Id itinéraire de ligne"/>
+    <alias field="trip_ids_int" index="2" name="Id trajets"/>
+    <alias field="feed_id" index="3" name="Source données"/>
+    <alias field="stop_names" index="4" name="Noms arrêts desservis"/>
+    <alias field="stop_ids_int" index="5" name="Id arrêts desservis"/>
+    <alias field="route_id_int" index="6" name="Id unique ligne"/>
+    <alias field="route_id" index="7" name="Id initial ligne"/>
+    <alias field="route_short_name" index="8" name="Nom court ligne"/>
+    <alias field="route_long_name" index="9" name="Nom long ligne"/>
+    <alias field="route_type" index="10" name="Mode"/>
+    <alias field="agency_id_int" index="11" name="Id unique opérateur"/>
+    <alias field="agency_id" index="12" name="Id initial opérateur"/>
+    <alias field="agency_name" index="13" name="Nom opérateur"/>
+    <alias field="services_days" index="14" name="Jours desservis"/>
+    <alias field="days" index="15" name="Jours calcul"/>
+    <alias field="serv_num" index="16" name="Nb services"/>
+    <alias field="first_serv" index="17" name="Heure 1er service"/>
+    <alias field="veh_km" index="18" name="véh.km (jour)"/>
+    <alias field="total_time2" index="19" name="Temps parcours (s)"/>
+    <alias field="total_dist" index="20" name="Distance parcourue (km)"/>
+    <alias field="total_time" index="21" name="Temps parcours (HH:MM:SS)"/>
+    <alias field="last_serv" index="22" name="Heure dernier service"/>
+    <alias field="time_ampl" index="23" name="Amplitude horaire"/>
+    <alias field="zones_list" index="24" name="Zones desservies"/>
+    <alias field="zones_pop" index="25" name="Pop zones desservies"/>
+    <alias field="symbol_size" index="26" name=""/>
+    <alias field="symbol_color" index="27" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
   <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;gid&quot;" sortOrder="0">
     <columns>
-      <column width="-1" hidden="0" type="field" name="gid"/>
-      <column width="-1" hidden="0" type="field" name="section_id_int"/>
-      <column width="-1" hidden="0" type="field" name="feed_id"/>
-      <column width="-1" hidden="0" type="field" name="stop_id_from"/>
-      <column width="-1" hidden="0" type="field" name="stop_id_to"/>
-      <column width="-1" hidden="0" type="field" name="stop_name_from"/>
-      <column width="-1" hidden="0" type="field" name="stop_name_to"/>
-      <column width="-1" hidden="0" type="field" name="route_type"/>
-      <column width="-1" hidden="0" type="field" name="serv_num"/>
-      <column width="-1" hidden="0" type="field" name="first_serv"/>
-      <column width="-1" hidden="0" type="field" name="last_serv"/>
-      <column width="-1" hidden="0" type="field" name="time_ampl"/>
-      <column width="-1" hidden="0" type="field" name="services_days"/>
-      <column width="-1" hidden="0" type="field" name="days"/>
-      <column width="-1" hidden="0" type="field" name="total_time"/>
+      <column width="31" hidden="0" type="field" name="gid"/>
+      <column width="113" hidden="0" type="field" name="stops_route_id_int"/>
+      <column width="91" hidden="0" type="field" name="feed_id"/>
+      <column width="69" hidden="0" type="field" name="route_type"/>
+      <column width="108" hidden="0" type="field" name="stop_ids_int"/>
+      <column width="301" hidden="0" type="field" name="stop_names"/>
+      <column width="105" hidden="0" type="field" name="services_days"/>
+      <column width="100" hidden="0" type="field" name="days"/>
+      <column width="115" hidden="0" type="field" name="trip_ids_int"/>
+      <column width="31" hidden="0" type="field" name="route_id_int"/>
+      <column width="100" hidden="0" type="field" name="route_id"/>
+      <column width="31" hidden="0" type="field" name="route_short_name"/>
+      <column width="296" hidden="0" type="field" name="route_long_name"/>
+      <column width="35" hidden="0" type="field" name="agency_id_int"/>
+      <column width="100" hidden="0" type="field" name="agency_id"/>
+      <column width="89" hidden="0" type="field" name="agency_name"/>
+      <column width="100" hidden="0" type="field" name="first_serv"/>
+      <column width="123" hidden="0" type="field" name="last_serv"/>
+      <column width="100" hidden="0" type="field" name="time_ampl"/>
+      <column width="68" hidden="0" type="field" name="serv_num"/>
+      <column width="145" hidden="0" type="field" name="total_time"/>
       <column width="-1" hidden="0" type="field" name="total_time2"/>
-      <column width="-1" hidden="0" type="field" name="total_dist"/>
-      <column width="-1" hidden="0" type="field" name="veh_km"/>
-      <column width="252" hidden="0" type="field" name="routes"/>
-      <column width="-1" hidden="0" type="field" name="symbol_size"/>
-      <column width="-1" hidden="0" type="field" name="symbol_color"/>
+      <column width="132" hidden="0" type="field" name="total_dist"/>
+      <column width="92" hidden="0" type="field" name="veh_km"/>
+      <column width="100" hidden="0" type="field" name="zones_list"/>
+      <column width="130" hidden="0" type="field" name="zones_pop"/>
+      <column width="67" hidden="0" type="field" name="symbol_size"/>
+      <column width="76" hidden="0" type="field" name="symbol_color"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -3786,24 +3821,31 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="gid" expression=""/>
-    <default field="section_id_int" expression=""/>
+    <default field="stops_route_id_int" expression=""/>
+    <default field="trip_ids_int" expression=""/>
     <default field="feed_id" expression=""/>
-    <default field="stop_id_from" expression=""/>
-    <default field="stop_name_from" expression=""/>
-    <default field="stop_id_to" expression=""/>
-    <default field="stop_name_to" expression=""/>
+    <default field="stop_names" expression=""/>
+    <default field="stop_ids_int" expression=""/>
+    <default field="route_id_int" expression=""/>
+    <default field="route_id" expression=""/>
+    <default field="route_short_name" expression=""/>
+    <default field="route_long_name" expression=""/>
     <default field="route_type" expression=""/>
+    <default field="agency_id_int" expression=""/>
+    <default field="agency_id" expression=""/>
+    <default field="agency_name" expression=""/>
     <default field="services_days" expression=""/>
     <default field="days" expression=""/>
+    <default field="serv_num" expression=""/>
     <default field="first_serv" expression=""/>
-    <default field="time_ampl" expression=""/>
+    <default field="veh_km" expression=""/>
+    <default field="total_time2" expression=""/>
+    <default field="total_dist" expression=""/>
     <default field="total_time" expression=""/>
     <default field="last_serv" expression=""/>
-    <default field="veh_km" expression=""/>
-    <default field="total_dist" expression=""/>
-    <default field="total_time2" expression=""/>
-    <default field="serv_num" expression=""/>
-    <default field="routes" expression=""/>
+    <default field="time_ampl" expression=""/>
+    <default field="zones_list" expression=""/>
+    <default field="zones_pop" expression=""/>
     <default field="symbol_size" expression=""/>
     <default field="symbol_color" expression=""/>
   </defaults>
