@@ -1,0 +1,90 @@
+
+# GTFS with checks (GTFS-Lib)
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t pt_gtfs2 -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/GTFS_simplifie_v5.zip -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --pt-network modus -R
+# GTFS fast
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t pt_gtfs -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/pt_gtfs/GTFS_simplifie_v5.zip -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --pt-network modus -R
+# BDCarto
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_ign_bdcarto -p C:/Donnees/IGN/BDCARTO_3-2_TOUSTHEMES_SHP_LAMB93_R11_2017-04-18/BDCARTO/1_DONNEES_LIVRAISON_2017-05-00261/BDC_3-2_SHP_LAMB93_R11-ED171/RESEAU_ROUTIER -S 2154 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W UTF-8
+# BDTopo
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_ign_bdtopo --road-network bdtopo -p C:/Donnees/IGN/BDTOPO_2-2_RESEAU-ROUTIER_SHP_LAMB93_D075_2017-10-02/BDTOPO/1_DONNEES_LIVRAISON_2017-10-00156/BDT_2-2_SHP_LAMB93_D075_ED172 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -W UTF-8 -S 2154 
+# Route120
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_ign_route120 -p C:/Donnees/IGN/R120_1-1_SHP_LAMB93_FR-ED121/RESEAU_ROUTIER -S 2154 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W LATIN1
+# Route500
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_ign_route500 -m 2.1 -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/IGN_Route500/RESEAU_ROUTIER -S 2154 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W LATIN1
+# Visum
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_visum --road-network visum_modus -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/road_visum -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --visum-modes P,B,V,T -W LATIN1 -R
+# Visum ancien loader
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py-1.2.3-py2.7.egg/tempus_loader-master/load_tempus.py -t visum -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/road_visum -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --visum-modes P,B,V,T  -R -W LATIN1
+# OSM
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_osm --road-network osm_idf -p C:/Donnees/OSM/ile-de-france-latest.osm.pbf -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W UTF-8
+# OSM ancien loader
+python C:/OSGeo4W64/apps/Python27/lib/site-packages/C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py-1.2.3-py2.7.egg/tempus_loader-master/load_tempus.py -t osm -p C:/Donnees/OSM/ile-de-france-latest.osm.pbf -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W UTF-8
+
+# Création d'une base OSM Ile-de-France + GTFS simplifié Modus + POI BPE
+
+# Base "idf1"
+# Initialiser la base
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action reset --tempusaccess --path C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/system.zip --sep ; -W LATIN1 -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet"
+
+# Charger le réseau routier OSM pour l'Île-de-France
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type road --data-format osm --source-name osm_idf --path C:/Donnees/OSM/ile-de-france-latest.osm.pbf -S 4326 -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" -W UTF-8
+# Exporter le réseau routier OSM
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action export --data-type road --source-name osm_idf -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" --path "C:/Donnees/OSM"
+# Effacer le réseau routier OSM
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action delete --road-network osm_idf -d "host=localhost dbname=tempusaccess_idf_route_osm_tc_modus port=55432 user=aurelie-p.bousquet"
+
+# Charger le réseau routier de Modus (Visum)
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type road --data-format visum --source-name modus --source-comment "Réseau MODUS (Visum)" --path C:\Donnees\demo_DRIEA\road_visum --encoding LATIN1 --srid 4326 --dbstring "host=localhost user=aurelie-p.bousquet dbname=tempusaccess_idf port=55432" --visum-modes "P,B,V,T"
+# Supprimer le réseau routier de Modus
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action delete --data-type road --source-name modus --dbstring "host=localhost user=aurelie-p.bousquet dbname=tempusaccess_idf port=55432"
+
+# Charger le réseau TC GTFS simplifié de Modus
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type pt --data-format gtfs --path C:/Donnees/demo_DRIEA/pt_gtfs/GTFS_simplifie_v5.zip -S 4326 -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" --source-name idfm_simpl
+# Effacer le réseau TC GTFS
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --delete --pt-network modus -d "host=localhost dbname=tempusaccess_idf_route_osm_tc_modus port=55432 user=aurelie-p.bousquet"
+
+# Charger les services d'urgence de la BPE (INSEE) sur l'Île-de-France
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type poi --data-format insee_bpe --source-name urgences_bpe_2017 --path "C:/Donnees/INSEE/BPE 2017" -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" -W LATIN1 --poi-type 5 --filter "TYPEQU='D106' AND DEP IN ('75', '77', '78', '91', '95', '92', '93', '94')"
+# Charger les stations Veligo d'IdF Mobilité
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type poi --data-format tempus --id-field id_veligo --name-field nom_gare --source-name stations_veligo --path "C:\Donnees\open-data_poi\stations_veligo.shp" -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" -W LATIN1 --poi-type 3
+
+# Charger les zonages d'AdminExpress
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type zoning --data-format ign_adminexpress -p C:\Donnees\IGN\AdminExpress -S 2154 --dbstring "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" -s adminexpress
+# Charger le zonage de Modus
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import --data-type zoning --data-format tempus  --source-name modus --source_comment "Zonage Modus" --id-field char_id --name-field nom_zone -p C:\Donnees\demo_DRIEA\zoning_modus\ZONAGE_NIV_L93_region.shp -S 2154 -d "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet"
+# Supprimer le zonage communal d'AdminExpress
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action delete --data-type zoning --dbstring "host=localhost dbname=tempusaccess_idf port=55432 user=aurelie-p.bousquet" --source-name admin_commune
+
+
+
+
+
+# Effacer les POI de la BPE
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --delete --poi_source bpe_insee_2017 -d "host=localhost dbname=tempusaccess_idf_route_osm_tc_modus port=55432 user=aurelie-p.bousquet"
+
+
+# Création d'une base GTFS STIF
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t pt_gtfs -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/pt_gtfs/20170111_stif_gtfs.zip -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --pt-network stif -R
+
+
+# Création d'une base Visum Modus + GTFS simplifié Modus
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_visum --road-network visum_modus -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/road_visum -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --visum-modes P,B,V,T -W LATIN1 -R
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t pt_gtfs -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/demo_DRIEA/pt_gtfs/GTFS_simplifie_v5.zip -S 4326 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" --pt-network modus
+
+# Base "sncf"
+## Initialiser la base
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action reset --tempusaccess --path C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/system.zip --sep ; -W LATIN1 -d "host=localhost dbname=tempusaccess_sncf port=55432 user=aurelie-p.bousquet"
+
+## Importer et fusionner les réseaux TER et Intercités
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action import -t pt -f sncf --source-name sncf --path C:/Donnees/demo_SNCF/open_data/export-ter-gtfs-last.zip C:/Donnees/demo_SNCF/open_data/export-intercites-gtfs-last.zip C:/Donnees/demo_SNCF/cerema -S 2154 -d "host=localhost dbname=tempusaccess_sncf port=55432 user=aurelie-p.bousquet" -W UTF-8
+
+# Base "sncf2"
+
+## Importer le réseau Route500
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py -t road_ign_route500 -m 2.1 -p C:/Users/aurelie-p.bousquet/.qgis2/python/plugins/TempusAccess/data/IGN_Route500/RESEAU_ROUTIER -S 2154 -d "host=localhost dbname=tempusaccess_test port=55432 user=aurelie-p.bousquet" -R -W LATIN1
+
+
+
+# Exporter le réseau SNCF
+python C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\scripts\tempusloader\load_tempus.py --action export --data-type pt --source-name sncf -d "host=localhost dbname=tempusaccess_idf_route_osm_tc_modus port=55432 user=aurelie-p.bousquet" --path "C:/Donnees/export_gtfs_sncf.zip"
+
