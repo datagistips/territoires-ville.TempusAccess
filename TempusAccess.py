@@ -565,18 +565,18 @@ class TempusAccess:
         # Stops by mode (view)
         uri.setDataSource("tempus_gtfs", "stops_by_mode", "geom", "", "gid") 
         layer = QgsVectorLayer(uri.uri(), u"Arrêts par mode", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/stops_by_mode.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_stop_by_mode.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
             self.node_pt_offer.insertChildNode(0, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True) 
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
-                
+        
         # Sections by mode (view)
         uri.setDataSource("tempus_gtfs", "sections_by_mode", "geom", "", "gid")
         layer = QgsVectorLayer(uri.uri(), "Sections par mode", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/sections_by_mode.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_section_by_mode.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -587,7 +587,7 @@ class TempusAccess:
         # Trips by mode (view)
         uri.setDataSource("tempus_gtfs", "trips_by_mode", "geom_multi", "", "gid")
         layer = QgsVectorLayer(uri.uri(), u"Itinéraires de ligne par mode", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/trips_by_mode.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_trip_by_mode.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -598,7 +598,7 @@ class TempusAccess:
         # Stops
         uri.setDataSource("tempus_gtfs", "stops", "geom", "", "id") 
         layer = QgsVectorLayer(uri.uri(), u"Arrêts", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/stops.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_stop.qml')
         if (layer.isValid):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -610,7 +610,7 @@ class TempusAccess:
         # Stop areas
         uri.setDataSource("tempus_gtfs", "stops", "geom", "", "id") 
         layer = QgsVectorLayer(uri.uri(), u"Zones d'arrêts et entrées de stations", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/stop_areas.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_stop_area.qml')
         if (layer.isValid):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -619,10 +619,11 @@ class TempusAccess:
             layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
         
         
+        
         # Sections
         uri.setDataSource("tempus_gtfs", "sections", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), "Sections", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/sections.qml')
+        layer.loadNamedStyle(self.styles_dir + '/pt_section.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -630,17 +631,6 @@ class TempusAccess:
             self.iface.legendInterface().setLayerVisible(layer, False)
             layer.setSubsetString("ARRAY[feed_id] <@ ARRAY"+str(self.PTNetworks)+"::integer[]")
         
-        # Transfer arcs
-        uri.setDataSource("tempus_access", "transfers_geom", "geom", "", "id")
-        layer = QgsVectorLayer(uri.uri(), "Arcs de transfert", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/sections.qml')
-        if (layer.isValid()):
-            QgsMapLayerRegistry.instance().addMapLayer(layer, False)
-            node_layer = QgsLayerTreeLayer(layer)
-            self.node_pt_offer.insertChildNode(6, node_layer)
-            self.iface.legendInterface().setLayerVisible(layer, False)
-            layer.setSubsetString("feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+"::integer[])")
-
         # Car/Bicycle parks and user POIs
         uri.setDataSource("tempus", "poi", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"POI et stationnements", "postgres")
@@ -692,7 +682,7 @@ class TempusAccess:
         # Penalized road movements
         uri.setDataSource("tempus", "view_penalized_movements_cars", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"Mouvements pénalisés voitures", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/penalized_movements.qml')
+        layer.loadNamedStyle(self.styles_dir + '/road_penalized_movement.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -701,7 +691,7 @@ class TempusAccess:
             
         uri.setDataSource("tempus", "view_penalized_movements_cyclists", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"Mouvements pénalisés vélos", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/penalized_movements.qml')
+        layer.loadNamedStyle(self.styles_dir + '/road_penalized_movements.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
