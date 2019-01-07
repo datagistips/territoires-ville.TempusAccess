@@ -163,7 +163,7 @@
      <item>
       <widget class="QPushButton" name="pushButtonLoad">
        <property name="text">
-        <string>Charger</string>
+        <string>Charger dans QGIS</string>
        </property>
       </widget>
      </item>

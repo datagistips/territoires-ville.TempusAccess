@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_db_dialog.ui'
 #
-# Created: Thu Nov 29 18:22:50 2018
+# Created: Mon Jan 07 15:02:02 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -161,7 +161,7 @@ class Ui_Dialog(object):
         self.labelIndicDataSize.setText(_translate("Dialog", "...", None))
         self.labelAuxDataSize.setText(_translate("Dialog", "...", None))
         self.label_4.setText(_translate("Dialog", "tempusaccess_", None))
-        self.pushButtonLoad.setText(_translate("Dialog", "Charger", None))
+        self.pushButtonLoad.setText(_translate("Dialog", "Charger dans QGIS", None))
         self.pushButtonDelete.setText(_translate("Dialog", "Supprimer", None))
         self.pushButtonExport.setToolTip(_translate("Dialog", "<html><head/><body><p>Sauvegarde la base dans un fichier externe pour pouvoir la recharger ultérieurement. </p></body></html>", None))
         self.pushButtonExport.setText(_translate("Dialog", "Sauvegarder...", None))
