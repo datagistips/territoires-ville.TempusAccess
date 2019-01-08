@@ -108,50 +108,5 @@ class ImportPTGTFSTemp(DataImporter):
             ('stops', True),
             ('trips', True)]
     POSTLOADSQL = [ "import_pt_gtfs.sql" ]
-            
-# Slow GTFS Importer based on GTFSLib 
-class ImportPTGTFS2:
-    """Public transportation GTFS data loader class, based on GTFS-lib (slow)."""   
-    def __init__(self, path = "", dbstring = "", logfile = None, pt_network = None):
-        self.db_string, self.db_uri = parse_db_string(dbstring)
-        self.path = path
-        self.logfile = logfile
-        self.pt_network = pt_network
-
-    def load(self):
-        print "DB params:", self.db_string
-        print "DB URI:", self.db_uri
-        logger = logging.getLogger('libgtfs')
-        logger.setLevel(logging.INFO)
-        logger.addHandler(StreamHandler(sys.stdout))
-        dao = Dao(self.db_uri, sql_logging = self.logfile, schema="tempus_gtfs")
-
-        dao.load_gtfs(self.path, feed_id=self.pt_network)
-
-        loader = PsqlLoader(dbstring = self.db_string, logfile = self.logfile)
-        loader.set_sqlfile(os.path.join(os.path.dirname(__file__), 'sql', 'pt_gtfs2.sql'))
-        return loader.load()
-
-def list_gtfs_feeds(dbstring):
-    db_string, db_uri = parse_db_string(dbstring)
-    logger = logging.getLogger('libgtfs')
-    logger.setLevel(logging.INFO)
-    logger.addHandler(StreamHandler(sys.stdout))
-    dao = Dao(db_uri, schema="tempus_gtfs")
-    for feed in dao.feeds():
-        print feed.feed_id if feed.feed_id != "" else "(default)"
-
-def delete_gtfs_feed(dbstring, feed_id):
-    db_string, db_uri = parse_db_string(dbstring)
-    logger = logging.getLogger('libgtfs')
-    logger.setLevel(logging.INFO)
-    logger.addHandler(StreamHandler(sys.stdout))
-    dao = Dao(db_uri, schema="tempus_gtfs")
-    feed = dao.feed(feed_id)
-    if not feed:
-        sys.stderr.write("PT network {} does not exist in the database\n".format(feed_id))
-        sys.exit(1)
-    dao.delete_feed(feed_id)
-    dao.commit()
 
 

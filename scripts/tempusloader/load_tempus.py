@@ -142,9 +142,6 @@ def main():
         elif args.data_type == 'pt' and args.data_format == 'gtfs':
             args.path = args.path[0]
             r = import_pt_gtfs(args)
-        elif args.data_type == 'pt' and args.data_format == 'gtfs2':
-            args.path=args.path[0]
-            r = import_pt_gtfs2(args)
         elif args.data_type == 'pt' and args.data_format == 'sncf':
             if (args.path[0] is None or args.path[1] is None or args.path[2] is None):
                 sys.stderr.write("Please provide three path parameters: 2 paths to GTFS zip files (TER and IC) and 1 path to the shapefiles directory.\n")
@@ -161,7 +158,7 @@ def main():
         else:
             sys.stderr.write("Please provide coherent --data-type and --data-format parameters.\n")
             sys.exit(1)
-
+        
         if not r:
             print "Error during import !"
             sys.exit(1)

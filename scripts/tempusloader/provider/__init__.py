@@ -33,7 +33,6 @@ from import_road_visum import ImportRoadVisum
 
 from import_pt_gtfs import ImportPTGTFS
 from import_pt_gtfs import ImportPTGTFSTemp
-from import_pt_gtfs import ImportPTGTFS2
 from import_pt_sncf import ImportPTSNCF
 
 from import_poi_tempus import ImportPOITempus

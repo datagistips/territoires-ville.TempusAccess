@@ -15,16 +15,6 @@ def import_pt_gtfs(args):
     gtfsi = provider.ImportPTGTFS(path=args.path, dbstring=args.dbstring, logfile=args.logfile, sep=",", encoding=args.encoding, copymode=args.copymode, doclean=not args.noclean, subs=subs)
     return gtfsi.load()
 
-    
-def import_pt_gtfs2(args):
-    """Load Public Transport from GTFS' data into a Tempus database."""    
-    if args.source_name is None:
-        sys.stderr.write("A PT network name must be supplied. Use --source-name\n")
-        sys.exit(1)
-    gtfs2i = provider.ImportPTGTFS2(args.path, args.dbstring, args.logfile, args.source_name)
-    return gtfs2i.load()
-
-    
 def import_pt_sncf(args, shape_options):
     """Load Public Transport from SNCF and IGN open-data into a Tempus database."""
     subs={}
