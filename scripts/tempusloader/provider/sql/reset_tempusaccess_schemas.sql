@@ -288,37 +288,40 @@ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION tempus_access.days(
-                                                   day date, -- A fixed day
-                                                   day_type integer, -- Weekday type code
-                                                   per_type integer, -- Period type code
-                                                   per_start date, -- Begining date of the period
-                                                   per_end date -- End date of the period
-                                             )
-RETURNS date[] AS
+    day date,
+    day_type integer,
+    per_type integer,
+    per_start date,
+    per_end date)
+  RETURNS date[] AS
 $BODY$
 
-DECLARE
-days_filter character varying;
-r record;
-days date[];
+    DECLARE
+    s character varying;
+    r record;
+    days date[];
 
-BEGIN
+    BEGIN    
+        IF (day IS NOT NULL)
+        THEN days = ARRAY[day];
+        ELSE
+            s=$$SELECT array_agg(dd::date)
+            FROM generate_series('$$ || per_start || $$'::date, '$$ || per_end || $$'::date, '1 day'::interval) dd
+            WHERE ARRAY[extract('dow' FROM dd::date)] <@ '$$ || (SELECT mod_data FROM tempus_access.modalities WHERE var='day_type' AND mod_code = day_type) || $$' -- days of the week
+              AND $$ || (SELECT mod_data FROM tempus_access.modalities WHERE var = 'per_type' AND mod_code = per_type) -- holidays
+              ;
+              RAISE NOTICE '%', s;
+            
+            FOR r in EXECUTE(s)
+            LOOP days=r.array_agg;
+            END LOOP;
+        END IF;
+        RETURN days;
+    END;
 
-    IF (day IS NOT NULL)
-    THEN days_filter = $$calendar_dates.date='$$ || day::character varying || $$'::date$$;
-    ELSE days_filter = $$ARRAY[extract('dow' FROM calendar_dates.date)] <@ '$$ || (SELECT mod_data FROM tempus_access.modalities WHERE var='day_type' AND mod_code = day_type) || $$' 
-                        AND calendar_dates.date IN $$ || (SELECT mod_data FROM tempus_access.modalities WHERE var = 'per_type' AND mod_code = per_type) || $$ 
-                        AND calendar_dates.date >= '$$ || per_start::character varying || $$'::date AND calendar_dates.date <= '$$ || per_end::character varying || $$'::date$$;
-    END IF;
-    raise notice '%', days_filter;
-    FOR r IN EXECUTE ($$SELECT array_agg(DISTINCT date ORDER BY Date) AS days FROM tempus_gtfs.calendar_dates WHERE $$ || days_filter)
-    LOOP
-        days=r.days; 
-    END LOOP; 
-    RETURN days;
-END;
 $BODY$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql; 
+
 
 CREATE TABLE tempus_access.tempus_paths_results
 (

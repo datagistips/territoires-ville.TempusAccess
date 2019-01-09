@@ -220,7 +220,7 @@ class manage_indicators_dialog(QDialog):
                     self.caller.dlg.ui.listViewPTNetworks.selectionModel().select(self.modelPTSources.index(row,0), QItemSelectionModel.Select)
             
             # "pt_modes" field
-            if (self.caller.modelReq.record(indexChosenLine).isNull("pt_modes")==False):
+            if (self.caller.modelReq.record(indexChosenLine).isNull("pt_modes")==False and self.caller.modelReq.record(indexChosenLine).value("pt_modes")!="{}"):
                 for i in ((str(self.caller.modelReq.record(indexChosenLine).value("pt_modes"))).translate(None, "{}").split(",")):
                     if (i!="NULL"):
                         row = self.caller.modelPTModes.match(self.caller.modelPTModes.index(0,1), 0, i, 1)[0].row()
@@ -516,9 +516,13 @@ class manage_indicators_dialog(QDialog):
     
     def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
         if (layer_name!=''): 
+            layerList = [layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if (layer.name()==layer_name)]
+            for lyr in layerList:
+                QgsMapLayerRegistry.instance().removeMapLayer(lyr.id())
+        
             uri=QgsDataSourceURI()
             uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
-            uri.setDataSource("indic", layer_name, col_geom, "", col_id) 
+            uri.setDataSource("indic", layer_name, col_geom, "", col_id)
             
             layer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
             layer.setProviderEncoding(u'UTF-8')
@@ -608,9 +612,9 @@ class manage_indicators_dialog(QDialog):
             self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir+'/styles/pt_agency_by_mode.qml', 'gid', None, '')
         # Paths
         elif (self.obj_def_name == "paths"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path.qml", "gid", "the_geom", "")
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path.qml", "gid", "geom", "")
         elif (self.obj_def_name=="paths_details"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path_by_mode.qml", "gid", "the_geom", "") 
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path_by_mode.qml", "gid", "geom", "") 
         # Paths tree described by nodes
         elif (self.obj_def_name=="paths_tree") and (self.ui.toolBoxDisplay.currentIndex()==0):            
             self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_node.qml", "to_node", "geom_point", "") 

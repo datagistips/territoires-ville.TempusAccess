@@ -164,6 +164,7 @@ class pathIndicThread(QThread):
                 
                     while (current_timestamp != bound_timestamp):
                         s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
+                        print s
                         q=QtSql.QSqlQuery(self.db)
                         q.exec_(unicode(s))
                         

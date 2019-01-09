@@ -76,7 +76,7 @@ BEGIN
                    routes.route_type as route_type, 
                    CASE WHEN tempus_paths_results.step_type = 0 THEN 'Attente' WHEN tempus_paths_results.step_type = 1 THEN 'Public transport' WHEN tempus_paths_results.step_type = 2 THEN transport_mode.name END as step_mode, 
                    CASE WHEN tempus_paths_results.step_type = 1 THEN (SELECT st_multi(st_force2d(tempus_access.pt_section(stop_o.id, stop_d.id, tempus_paths_results.pt_trip_id::integer)))) 
-                        WHEN tempus_paths_results.step_type = 2 AND (source_road_vertex_id IS NOT NULL AND target_road_vertex_id IS NOT NULL) THEN (SELECT st_multi(st_force2d(geom)) FROM tempus.road_section WHERE (node_from = tempus_paths_results.target_road_vertex_id AND node_to = tempus_paths_results.source_road_vertex_id) OR (node_to = tempus_paths_results.source_road_vertex_id AND node_from = tempus_paths_results.target_road_vertex_id))
+                        WHEN tempus_paths_results.step_type = 2 AND (source_road_vertex_id IS NOT NULL AND target_road_vertex_id IS NOT NULL) THEN (SELECT st_multi(st_force2d(geom)) FROM tempus.road_section WHERE (node_from = tempus_paths_results.target_road_vertex_id AND node_to = tempus_paths_results.source_road_vertex_id) OR (node_from = tempus_paths_results.source_road_vertex_id AND node_to = tempus_paths_results.target_road_vertex_id))
                         WHEN tempus_paths_results.step_type = 2 AND (source_road_vertex_id IS NOT NULL AND target_pt_stop_id IS NOT NULL) THEN (SELECT st_multi(st_force2d(tempus_access.road_section(target_pt_stop_id::integer, source_road_vertex_id::integer))))
                         WHEN tempus_paths_results.step_type = 2 AND (target_road_vertex_id IS NOT NULL AND source_pt_stop_id IS NOT NULL) THEN (SELECT st_multi(st_force2d(tempus_access.road_section(source_pt_stop_id::integer, target_road_vertex_id::integer))))
                    END AS geom
@@ -134,7 +134,7 @@ BEGIN
                o_time, 
                d_time, 
                $$ || indics_str || $$
-               geom AS the_geom
+               geom
         FROM tempus_access.tempus_paths_results
         ORDER BY path_id, step_id
     );

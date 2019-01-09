@@ -985,6 +985,7 @@ class TempusAccess:
         elif ((self.obj_def_name=="paths") or (self.obj_def_name=="paths_details") or (self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")):
             self.days = []
             s1="SELECT unnest(days)::character varying FROM tempus_access.days("+self.day+"::date,"+str(self.day_type)+"::integer,"+str(self.per_type)+"::integer,"+self.per_start+"::date,"+self.per_end+"::date);"
+            print s1
             q1=QtSql.QSqlQuery(self.db)
             q1.exec_(unicode(s1))
             while q1.next():
