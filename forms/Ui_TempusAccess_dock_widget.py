@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.ui'
 #
-# Created: Sun Dec 09 10:29:20 2018
+# Created: Wed Jan 09 16:59:21 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,7 +105,7 @@ class Ui_DockWidget(object):
         self.toolBoxPaths.setGeometry(QtCore.QRect(10, 100, 321, 251))
         self.toolBoxPaths.setObjectName(_fromUtf8("toolBoxPaths"))
         self.page = QtGui.QWidget()
-        self.page.setGeometry(QtCore.QRect(0, 0, 321, 170))
+        self.page.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.page.setObjectName(_fromUtf8("page"))
         self.layoutWidget_3 = QtGui.QWidget(self.page)
         self.layoutWidget_3.setGeometry(QtCore.QRect(10, 0, 301, 95))
@@ -169,7 +169,7 @@ class Ui_DockWidget(object):
         self.gridLayout.addWidget(self.pushButtonInvertOD, 1, 2, 1, 1)
         self.toolBoxPaths.addItem(self.page, _fromUtf8(""))
         self.page_2 = QtGui.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 321, 170))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.layoutWidget1 = QtGui.QWidget(self.page_2)
         self.layoutWidget1.setGeometry(QtCore.QRect(10, 0, 311, 29))
@@ -539,7 +539,7 @@ class Ui_DockWidget(object):
         self.toolBoxTime.setGeometry(QtCore.QRect(10, 110, 271, 201))
         self.toolBoxTime.setObjectName(_fromUtf8("toolBoxTime"))
         self.page_6 = QtGui.QWidget()
-        self.page_6.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_6.setGeometry(QtCore.QRect(0, 0, 271, 147))
         self.page_6.setObjectName(_fromUtf8("page_6"))
         self.layoutWidget4 = QtGui.QWidget(self.page_6)
         self.layoutWidget4.setGeometry(QtCore.QRect(0, 10, 271, 22))
@@ -552,7 +552,7 @@ class Ui_DockWidget(object):
         self.horizontalLayout_14.addWidget(self.labelTimeConstraint)
         self.timeEditTimePoint = QtGui.QTimeEdit(self.layoutWidget4)
         self.timeEditTimePoint.setEnabled(True)
-        self.timeEditTimePoint.setTime(QtCore.QTime(8, 0, 0))
+        self.timeEditTimePoint.setTime(QtCore.QTime(17, 0, 0))
         self.timeEditTimePoint.setCalendarPopup(True)
         self.timeEditTimePoint.setObjectName(_fromUtf8("timeEditTimePoint"))
         self.horizontalLayout_14.addWidget(self.timeEditTimePoint)
@@ -773,7 +773,7 @@ class Ui_DockWidget(object):
         self.Tabs.setCurrentIndex(0)
         self.toolBoxPaths.setCurrentIndex(2)
         self.toolBoxDays.setCurrentIndex(0)
-        self.toolBoxTime.setCurrentIndex(1)
+        self.toolBoxTime.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(DockWidget)
 
     def retranslateUi(self, DockWidget):
