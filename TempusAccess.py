@@ -1255,16 +1255,29 @@ class TempusAccess:
         self.obj_type = self.modelObjType.record(self.dlg.ui.comboBoxObjType.currentIndex()).value("code")
         self.obj_def_name = self.modelObjType.record(self.dlg.ui.comboBoxObjType.currentIndex()).value("def_name")
 
-        self.modelIndic.setQuery("SELECT lib, code, col_name\
-                                    FROM tempus_access.indicators\
-                                    WHERE code IN \
-                                    (\
-                                        SELECT unnest(indic_list::integer[]) as code \
-                                        FROM tempus_access.obj_type \
-                                        WHERE code=" + str(self.obj_type) + "\
-                                    )\
-                                    ORDER BY 2", self.db
-                                )
+        if (self.modelPTNetwork.rowCount()>0):
+            self.modelIndic.setQuery("SELECT lib, code, col_name\
+                                        FROM tempus_access.indicators\
+                                        WHERE code IN \
+                                        (\
+                                            SELECT unnest(indic_list::integer[]) as code \
+                                            FROM tempus_access.obj_type \
+                                            WHERE code=" + str(self.obj_type) + "\
+                                        )\
+                                        ORDER BY 2", self.db
+                                    )
+        elif (self.modelRoadNetwork.rowCount()>1):
+            self.modelIndic.setQuery("SELECT lib, code, col_name\
+                                        FROM tempus_access.indicators\
+                                        WHERE needs_pt=False AND code IN \
+                                        (\
+                                            SELECT unnest(indic_list::integer[]) as code \
+                                            FROM tempus_access.obj_type \
+                                            WHERE code=" + str(self.obj_type) + "\
+                                        )\
+                                        ORDER BY 2", self.db
+                                    )
+        
         
         layerList = [layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"Origines") or (layer.name()==u"Destinations"))]
         for lyr in layerList:
@@ -1362,6 +1375,8 @@ class TempusAccess:
             self.manage_indicators_dialog.ui.toolBoxDisplay.setItemEnabled(1,False) # Isochron representations
         
             if (self.obj_def_name=="paths" or self.obj_def_name=="paths_details"):
+                self.addODLayers()
+                
                 # 1st tab
                 self.dlg.ui.toolBoxPaths.setCurrentIndex(0)
                 self.dlg.ui.toolBoxPaths.setItemEnabled(0,True) # Paths
@@ -1377,8 +1392,8 @@ class TempusAccess:
                 self.dlg.ui.comboBoxTimeConstraint.setEnabled(True)
         
             elif (self.obj_def_name=="paths_tree"):
-
                 self._slotComboBoxCombPathsTreesODIndexChanged(self.dlg.ui.comboBoxPathsTreeOD.currentIndex())
+                self.addODLayers()
                 
                # 1st tab
                 self.dlg.ui.toolBoxPaths.setCurrentIndex(1)
@@ -1392,9 +1407,9 @@ class TempusAccess:
                 self.dlg.ui.radioButtonDayType.setEnabled(False)
                 self.dlg.ui.comboBoxTimeConstraint.setEnabled(False)
                         
-            elif (self.obj_def_name=="comb_paths_trees"):
-                
+            elif (self.obj_def_name=="comb_paths_trees"):                
                 self._slotComboBoxCombPathsTreesODIndexChanged(self.dlg.ui.comboBoxCombPathsTreesOD.currentIndex())
+                self.addODLayers()
                 
                 # 1st tab
                 self.dlg.ui.toolBoxPaths.setCurrentIndex(2)
@@ -1413,7 +1428,6 @@ class TempusAccess:
                 self.dlg.ui.radioButtonDayType.setEnabled(True)
                 self.dlg.ui.comboBoxTimeConstraint.setEnabled(False)
                 
-            self.addODLayers()
             self.updateSelectedNodes()
             self.dlg.ui.listViewPTModes.selectAll()
         self.dlg.ui.listViewIndic.selectAll()
@@ -1423,7 +1437,6 @@ class TempusAccess:
         s=""
         self.node_type = self.modelNodeType.record(indexChosenLine).value("mod_code")
         self.root_nodes=[]
-        self.updateSelectedNodes()
         
         # Origine and destination layers are removed
         layerList = [layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"Origines") or (layer.name()==u"Destinations"))]
@@ -1491,7 +1504,6 @@ class TempusAccess:
         
         subset_o = "id is null"
         subset_d = "id is null"  
-        
         if (self.node_type==0): # Stops area
             uriOrigines.setDataSource("tempus_gtfs", "stops", "geom", subset_o, "id") 
             uriDestinations.setDataSource("tempus_gtfs", "stops", "geom", subset_d, "id")
@@ -1505,14 +1517,14 @@ class TempusAccess:
             node_layer = QgsLayerTreeLayer(layer)
             self.node_indicators.insertChildNode(0, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True) 
-            layer.loadNamedStyle(self.styles_dir + '/origines.qml')
+            layer.loadNamedStyle(self.styles_dir + '/mm_path_orig.qml')
         layer = QgsVectorLayer(uriDestinations.uri(), u"Destinations", "postgres")
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
             self.node_indicators.insertChildNode(1, node_layer)
             self.iface.legendInterface().setLayerVisible(layer, True)
-            layer.loadNamedStyle(self.styles_dir + '/destinations.qml')
+            layer.loadNamedStyle(self.styles_dir + '/mm_path_dest.qml')
     
        
     def updateSelectedNodes(self):

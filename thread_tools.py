@@ -121,8 +121,10 @@ class pathIndicThread(QThread):
     def buildGraph(self):
         if (self.path_tree==True):
             s="DELETE FROM tempus_access.tempus_paths_tree_results; SELECT init_isochrone_plugin('"+self.dbstring+"');"
+            print s
         else:
             s="DELETE FROM tempus_access.tempus_paths_results; SELECT init_multimodal_plugin('"+self.dbstring+"');"
+            print s
         
         q=QtSql.QSqlQuery(self.db)
         q.exec_(unicode(s))
@@ -135,12 +137,14 @@ class pathIndicThread(QThread):
             if (self.time_point != "NULL"): # Simple time constraint
                 if (self.path_tree==False): 
                     s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
+                    print s
                     q=QtSql.QSqlQuery(self.db)
                     q.exec_(unicode(s))
                 elif (self.path_tree==True): 
                     for node in self.road_nodes: # For each source node
                         s = "SELECT tempus_access.shortest_paths_tree(("+str(node)+"), ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+d \
                             + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
+                        print s
                         q=QtSql.QSqlQuery(self.db)
                         q.exec_(unicode(s))
             
@@ -162,8 +166,9 @@ class pathIndicThread(QThread):
                         s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
                         q=QtSql.QSqlQuery(self.db)
                         q.exec_(unicode(s))
-                            
+                        
                         s1 = "SELECT next_pt_timestamp::character varying FROM tempus_access.next_pt_timestamp("+bound_time+"::time, '"+str(d)+"'::date, "+str(self.constraint_date_after)+")"
+                        print s1
                         q1=QtSql.QSqlQuery(self.db)
                         q1.exec_(unicode(s1))
                         while q1.next():
@@ -189,16 +194,19 @@ class pathIndicThread(QThread):
                     while (current_timestamp != bound_timestamp):
                         if (self.path_tree==False): 
                             s = "SELECT tempus_access.shortest_path(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
+                            print s
                             q=QtSql.QSqlQuery(self.db)
                             q.exec_(unicode(s))
                             
                         elif (self.path_tree==True):
                             for node in self.road_nodes: # For each source/target node
                                 s = "SELECT tempus_access.shortest_paths_tree("+str(node)+", ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
+                                print s
                                 q=QtSql.QSqlQuery(self.db)
                                 q.exec_(unicode(s))
-                        
+                                
                         s1 = "SELECT next_timestamp::character varying FROM tempus_access.next_timestamp('"+current_timestamp+"'::timestamp, "+str(self.time_interval)+", '"+bound_timestamp+"'::timestamp, "+str(self.constraint_date_after)+")"
+                        print s1
                         q1=QtSql.QSqlQuery(self.db)
                         q1.exec_(unicode(s1))
                         while q1.next():
@@ -208,3 +216,7 @@ class pathIndicThread(QThread):
         done=r.exec_(self.query_str)
         
         self.resultAvailable.emit(done, self.query_str)
+        
+        
+        
+        

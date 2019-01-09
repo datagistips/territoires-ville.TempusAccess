@@ -52,6 +52,7 @@ CREATE TABLE tempus_access.modalities
     mod_code integer, 
     mod_lib character varying,
     mod_data character varying,
+    needs_pt boolean, 
     CONSTRAINT modalities_pkey PRIMARY KEY (var, mod_code)
 ); 
 COMMENT ON TABLE tempus_access.modalities IS 'Plugin system table: do not modify !';
@@ -96,7 +97,8 @@ CREATE TABLE tempus_access.indicators
     day_ag_routes character varying,
     day_ag_agencies character varying,
     day_ag_paths character varying, 
-    needs_zoning boolean
+    needs_zoning boolean, 
+    needs_pt boolean
 );
 COMMENT ON TABLE tempus_access.indicators
   IS 'Plugin system table: do not modify !';

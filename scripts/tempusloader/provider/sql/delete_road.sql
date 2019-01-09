@@ -11,6 +11,7 @@ $$;
 
 DROP TRIGGER IF EXISTS delete_isolated_road_nodes ON tempus.road_section;
 
+SELECT _drop_index('tempus', 'road_section', 'id');
 SELECT _drop_index('tempus', 'road_node', 'geom');
 SELECT _drop_index('tempus', 'road_node', 'network_id');
 SELECT _drop_index('tempus', 'road_section', 'geom');

@@ -71,7 +71,8 @@ class import_road_dialog(QDialog):
         self.ui.comboBoxFormatVersion.currentIndexChanged.connect(self._slotComboBoxFormatVersionCurrentIndexChanged)
         self.ui.lineEditSourceName.textChanged.connect(self._slotLineEditSourceNameTextChanged)
         self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
-        
+    
+    
     def _slotLineEditSourceNameTextChanged(self, text):
         if (self.ui.lineEditSourceName.text()!=""):
             self.ui.pushButtonChoose.setEnabled(True)
@@ -143,8 +144,6 @@ class import_road_dialog(QDialog):
                 rc = execute_external_cmd( cmd )
                 box = QMessageBox()
                 if (rc==0):
-                    self.caller.iface.mapCanvas().refreshMap()
-
                     box.setText(u"L'import de la source est terminé.")
                     
                     self.caller.refreshRoadNetworks()

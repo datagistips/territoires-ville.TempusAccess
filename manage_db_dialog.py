@@ -295,7 +295,10 @@ class manage_db_dialog(QDialog):
             self.caller.modelPOIType.setQuery("SELECT name, id FROM tempus.poi_type ORDER BY id", self.caller.db)
             self.caller.refreshZoningSources()
             self.caller.modelZoningSourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning' ORDER BY data_format_name", self.caller.db)
-            self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
+            if (self.caller.modelPTNetwork.rowCount()>0):
+                self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
+            elif (self.caller.modelRoadNetwork.rowCount()>1):
+                self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' AND needs_pt = False ORDER BY mod_code", self.caller.db) 
             
             if (self.caller.modelPTNetwork.rowCount()>0):
                 self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
