@@ -38,14 +38,14 @@ import platform
 
 def display_and_clear_python_console():
     pythonConsole = qgis.utils.iface.mainWindow().findChild( QDockWidget, 'PythonConsole' )
-    pythonConsole.console.shellOut.clearConsole()
+    #pythonConsole.console.shellOut.clearConsole()
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
 
 
 def execute_external_cmd( cmd ):
     pythonConsole = qgis.utils.iface.mainWindow().findChild( QDockWidget, 'PythonConsole' )
-    pythonConsole.console.shellOut.clearConsole()
+    # pythonConsole.console.shellOut.clearConsole()
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
     
