@@ -111,13 +111,18 @@ WITH r AS
 ) 
 DELETE FROM tempus.road_node WHERE id not in (SELECT node_id FROM r); 
 
-
-CREATE TRIGGER delete_isolated_road_nodes
-  AFTER DELETE
-  ON tempus.road_section
-  FOR EACH ROW
-  EXECUTE PROCEDURE tempus.delete_isolated_road_nodes_f();
-
+DELETE FROM tempus.road_section_speed
+WHERE road_section_id IN
+(
+	SELECT distinct road_section_id
+	FROM
+	(
+		SELECT road_section_speed.road_section_id, road_section.id
+		FROM tempus.road_section_speed LEFT JOIN tempus.road_section ON (road_section_speed.road_section_id = road_section.id)
+    ) t
+	WHERE id IS NULL  
+  
+);
 
 do $$
 begin
@@ -147,5 +152,10 @@ create index
 create index 
   on tempus.road_section(node_to);
   
+CREATE TRIGGER delete_isolated_road_nodes
+  AFTER DELETE
+  ON tempus.road_section
+  FOR EACH ROW
+  EXECUTE PROCEDURE tempus.delete_isolated_road_nodes_f();
   
 VACUUM FULL ANALYSE;
