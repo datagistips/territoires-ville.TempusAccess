@@ -106,64 +106,10 @@ BEGIN
     WHERE q2.path_id = tempus_paths_results.path_id AND q2.step_id = tempus_paths_results.step_id; 
     
     indics_str = ''; 
-    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics ORDER BY code)
-    LOOP
-        IF (r.col_name = 't_modes') -- Transport modes
-        THEN
-            indics_str = indics_str || $$array_agg(step_mode order by step_mode) as t_modes, $$;
-        END IF;
-        
-        IF (r.col_name = 'stops_time') -- Total time from the first to the last stop of the path
-        THEN
-            indics_str = indics_str || $$max(case when step_mode = 'Public transport' then (last_d_time - first_o_time)::time end) as stops_time, $$;
-        END IF;
-        
-        IF (r.col_name = 'total_dist') -- Distance decomposition, by mode
-        THEN 
-            indics_str = indics_str || $$sum(distance/1000)::numeric(10,3) as total_dist, $$;
-        END IF; 
-        
-        IF (r.col_name = 'wait_time') -- Waiting time
-        THEN 
-            indics_str = indics_str || $$max(wait_o_time::time) as wait_time, $$;
-        END IF;
-        
-        IF (r.col_name = 'dep_stop') -- Departure time from the first road node
-        THEN 
-            indics_str = indics_str || $$min(CASE WHEN step_mode = 'Public transport' THEN first_o_time ELSE NULL END) as dep_stops, $$;
-        END IF; 
-        
-        IF (r.col_name = 'arr_stop') -- Arrival time to the last road node
-        THEN 
-            indics_str = indics_str || $$max(CASE WHEN step_mode= 'Public transport' THEN last_d_time ELSE NULL END) as arr_stops, $$;
-        END IF;
-                
-        IF (r.col_name = 'compo_time') -- Time decomposition, by mode
-        THEN 
-            indics_str = indics_str || $$array_agg(travel_time::time order by step_mode) as compo_time, $$;
-        END IF;
-        
-        IF (r.col_name = 'compo_dist') -- Distance decomposition, by mode
-        THEN 
-            indics_str = indics_str || $$array_agg(distance/1000 order by step_mode) as compo_dist, $$;
-        END IF; 
-        
-        IF (r.col_name = 'tran_stops') -- Transfer stops
-        THEN 
-            indics_str = indics_str || $$(max(tran_stops))[2:] as tran_stops, $$;
-        END IF;
-        
-        IF (r.col_name = 'all_stops') -- All served stops
-        THEN
-            indics_str = indics_str || $$max(all_stops.all_stops) as all_stops, $$;
-        END IF; 
-        
-        IF (r.col_name = 'routes') -- List of used routes
-        THEN
-            indics_str = indics_str || $$max(routes) as routes, $$;
-        END IF; 
-        
-    END LOOP;
+    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics)
+    LOOP 
+        indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths, '%(day_ag)', day_ag_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
+    END LOOP; 
     
     s = $$DROP TABLE IF EXISTS indic.paths; 
         CREATE TABLE indic.paths AS
