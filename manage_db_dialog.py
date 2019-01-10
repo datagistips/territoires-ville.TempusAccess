@@ -116,9 +116,11 @@ class manage_db_dialog(QDialog):
             
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
+            box.setModal(True)
             if (rc==0):
                 self.caller.iface.mapCanvas().refresh()
-                box.setText(u"L'import de la base s'est terminé avec succès. Vous pouvez maintenant la charger. " )
+                box.setText(u"L'import de la base s'est terminé avec succès. ")
+                self._slotPushButtonLoadClicked()
             else:
                 box.setText(u"L'import de la base a échoué ou a retourné des avertissements.\nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
             box.exec_()    
@@ -155,13 +157,16 @@ class manage_db_dialog(QDialog):
                 
                 rc = execute_external_cmd( cmd )
                 box = QMessageBox()
+                box.setModal(True)
                 if (rc==0):
                     self.iface.mapCanvas().refreshMap()
-                    box.setText(u"La base a été créée. Vous pouvez maintenant la charger et y importer des données.")                    
+                    box.setText(u"La base a été créée. Vous pouvez maintenant y importer des données.")                    
                     self.ui.comboBoxDB.setCurrentIndex( self.ui.comboBoxDB.findText( self.ui.lineEditNewDB.text() ) )
+                    self._slotPushButtonLoadClicked()
                 else:
                     box.setText(u"Erreur pendant la création de la base.\nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
                 box.exec_()
+            
                 
                 
                 

@@ -56,6 +56,7 @@ import sys
 import string
 import csv
 
+
 from thread_tools import *
 
 class TempusAccess:
@@ -106,6 +107,7 @@ class TempusAccess:
         self.modelDB = QtSql.QSqlQueryModel()
         
         self.set_db_connection_dialog = set_db_connection_dialog(self, self.iface)
+        self.set_db_connection_dialog.setModal(True)
         self.manage_db_dialog=manage_db_dialog(self, self.iface)
         
         # PT networks    
