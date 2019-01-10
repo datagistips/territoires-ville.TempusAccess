@@ -1,31 +1,5 @@
-do $$
-begin
-raise notice '==== Restore road constraints and geometry indexes ===';
-end$$;
 
-ALTER TABLE tempus.road_section_speed 
-    ADD CONSTRAINT road_section_speed_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id) ON DELETE CASCADE ON UPDATE CASCADE; 
-ALTER TABLE tempus.poi 
-    ADD CONSTRAINT poi_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
-ALTER TABLE tempus_gtfs.stops 
-    ADD CONSTRAINT stops_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
-ALTER TABLE tempus.road_section 
-    ADD CONSTRAINT road_section_node_from_fkey FOREIGN KEY (node_from) REFERENCES tempus.road_node(id);
-ALTER TABLE tempus.road_section
-    ADD CONSTRAINT road_section_node_to_fkey FOREIGN KEY (node_to) REFERENCES tempus.road_node(id);
 
-CREATE INDEX road_node_geom_idx
-  ON tempus.road_node 
-  USING gist(geom);
-  
-create index 
-  on tempus.road_section 
-  using gist(geom);
-create index 
-  on tempus.road_section(node_from);
-create index 
-  on tempus.road_section(node_to);
-  
 
 do $$
 begin
@@ -34,7 +8,6 @@ end$$;
 
 --
 -- clean up a road network
-
 -- remove cycles
 DELETE FROM tempus.road_section as rs
 WHERE node_from = node_to;
@@ -145,4 +118,34 @@ CREATE TRIGGER delete_isolated_road_nodes
   FOR EACH ROW
   EXECUTE PROCEDURE tempus.delete_isolated_road_nodes_f();
 
+
+do $$
+begin
+raise notice '==== Restore road constraints and geometry indexes ===';
+end$$;
+
+ALTER TABLE tempus.road_section_speed 
+    ADD CONSTRAINT road_section_speed_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id) ON DELETE CASCADE ON UPDATE CASCADE; 
+ALTER TABLE tempus.poi 
+    ADD CONSTRAINT poi_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
+ALTER TABLE tempus_gtfs.stops 
+    ADD CONSTRAINT stops_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
+ALTER TABLE tempus.road_section 
+    ADD CONSTRAINT road_section_node_from_fkey FOREIGN KEY (node_from) REFERENCES tempus.road_node(id);
+ALTER TABLE tempus.road_section
+    ADD CONSTRAINT road_section_node_to_fkey FOREIGN KEY (node_to) REFERENCES tempus.road_node(id);
+
+CREATE INDEX road_node_geom_idx
+  ON tempus.road_node 
+  USING gist(geom);
+  
+create index 
+  on tempus.road_section 
+  using gist(geom);
+create index 
+  on tempus.road_section(node_from);
+create index 
+  on tempus.road_section(node_to);
+  
+  
 VACUUM FULL ANALYSE;

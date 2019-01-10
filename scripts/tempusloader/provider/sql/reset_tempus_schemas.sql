@@ -275,11 +275,11 @@ VALUES (0,'artificial','Artificial road network used to connect PT stops and POI
 CREATE TABLE tempus.road_node
 (
     id bigint PRIMARY KEY,
+    bifurcation boolean, -- total number of incident edges is > 2 
+    geom Geometry(PointZ, 4326) NOT NULL,
     network_id integer REFERENCES tempus.road_network ON DELETE CASCADE ON UPDATE CASCADE,
     vendor_id character varying,
-    bifurcation boolean, -- total number of incident edges is > 2
-    chk boolean, 
-    geom Geometry(PointZ, 4326) NOT NULL
+    chk boolean
 );
 COMMENT ON TABLE tempus.road_node IS 'Road nodes description';
 COMMENT ON COLUMN tempus.road_node.bifurcation IS 'If true, total number of incident edges is > 2';
@@ -293,7 +293,6 @@ CREATE INDEX ON tempus.road_node(network_id);
 CREATE TABLE tempus.road_section
 (
     id bigint PRIMARY KEY,
-    network_id integer REFERENCES tempus.road_network ON DELETE CASCADE ON UPDATE CASCADE, 
     vendor_id character varying, 
     road_type integer,
     node_from bigint NOT NULL REFERENCES tempus.road_node ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
@@ -304,15 +303,16 @@ CREATE TABLE tempus.road_section
     car_speed_limit double precision, -- in km/h
     road_name varchar,
     lane integer,
-    lane_ft integer,
-    lane_tf integer,
     roundabout boolean,
     bridge boolean,
     tunnel boolean,
     ramp boolean, -- or sliproads
-    tollway boolean,     
-    chk boolean, 
-    geom Geometry(LinestringZ, 4326)
+    tollway boolean, 
+    geom Geometry(LinestringZ, 4326), 
+    network_id integer REFERENCES tempus.road_network ON DELETE CASCADE ON UPDATE CASCADE, 
+    lane_ft integer,
+    lane_tf integer,
+    chk boolean
 );
 COMMENT ON TABLE tempus.road_section IS 'Road sections description';
 COMMENT ON COLUMN tempus.road_section.road_type IS '1: fast links between urban areas, 2: links between 1 level links, heavy traffic with lower speeds, 3: local links with heavy traffic, 4: low traffic, 5: transfers between PT stops/POI';
@@ -346,7 +346,7 @@ CREATE TABLE tempus.road_section_speed
     road_section_id bigint NOT NULL REFERENCES tempus.road_section ON DELETE CASCADE ON UPDATE CASCADE,
     period_id integer NOT NULL REFERENCES tempus.road_validity_period ON DELETE CASCADE ON UPDATE CASCADE,
     profile_id integer NOT NULL, -- road_daily_profile
-    PRIMARY KEY (road_section_id, period_id)
+    PRIMARY KEY (road_section_id, period_id, profile_id)
 );
 COMMENT ON TABLE tempus.road_section_speed IS 'Speed, vehicle types and validity period associated to road sections';
 COMMENT ON COLUMN tempus.road_section_speed.period_id IS '0 if always applies';
@@ -1155,7 +1155,7 @@ COST 100;
 --
 CREATE VIEW tempus.chk_inconsistent_road_sections AS
 (
-    SELECT rs.*
+    SELECT road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, car_speed_limit, road_name, lane, roundabout, bridge, tunnel, ramp, tollway, rs.geom
     FROM
       tempus.road_section as rs
       LEFT JOIN tempus.road_node as rn1 ON (rs.node_from = rn1.id)
@@ -1165,7 +1165,7 @@ CREATE VIEW tempus.chk_inconsistent_road_sections AS
 
 CREATE VIEW tempus.chk_cycles AS
 (
-    SELECT *
+    SELECT road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, car_speed_limit, road_name, lane, roundabout, bridge, tunnel, ramp, tollway, geom
     FROM tempus.road_section 
     WHERE node_from = node_to
 );

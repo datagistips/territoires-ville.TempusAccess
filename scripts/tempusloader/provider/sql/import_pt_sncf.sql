@@ -683,12 +683,6 @@ WHERE transfers.feed_id = '%(source_name)'
   AND urban_pt_transfers.to_stop::character varying = transfers.to_stop_id 
   AND urban_pt_transfers.min_time < transfers.min_transfer_time;
  
-
--- Speed is defined for pedestrians on road sections
-INSERT INTO tempus.road_daily_profile(
-            profile_id, begin_time, speed_rule, end_time, average_speed)
-VALUES(1,0,1,1440,3.6);
-
 -- Transfers are converted to road sections
 DROP TABLE IF EXISTS _tempus_import.transfers_without_doubles;
 CREATE TABLE _tempus_import.transfers_without_doubles AS
@@ -864,9 +858,15 @@ FROM
   JOIN _tempus_import.road_transfers nn1 ON nn1.id = s1.id
   JOIN _tempus_import.road_transfers nn2 ON nn2.id = s2.id;  
 
+
+-- Speed is defined for pedestrians on road sections
+INSERT INTO tempus.road_daily_profile(
+            profile_id, begin_time, speed_rule, end_time, average_speed)
+VALUES((SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile),0,1,1440,3.6);
+  
 INSERT INTO tempus.road_section_speed(
             road_section_id, period_id, profile_id)
-SELECT id, 0, 1
+SELECT id, 0, (SELECT max(profile_id) FROM tempus.road_daily_profile)
 FROM tempus.road_section
 WHERE (road_section.traffic_rules_ft::integer & 1) > 0 OR (road_section.traffic_rules_tf::integer & 1) > 0; 
 

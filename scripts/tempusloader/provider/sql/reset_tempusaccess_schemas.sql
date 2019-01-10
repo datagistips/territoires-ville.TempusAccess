@@ -686,7 +686,8 @@ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION tempus_access.road_section(stop_id integer, road_node_id integer)
 RETURNS Geometry AS
 $BODY$
-    SELECT CASE WHEN stop.abscissa_road_section = st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2)) then null else st_linesubstring(road_section.geom, least(stop.abscissa_road_section, st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2))), greatest(stop.abscissa_road_section, st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2)))) end
+    SELECT CASE WHEN stop.abscissa_road_section = st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2)) THEN NULL -- extreme road node and pt stop are at the same place 
+                ELSE st_linesubstring(road_section.geom, least(stop.abscissa_road_section, st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2))), greatest(stop.abscissa_road_section, st_linelocatepoint(road_section.geom, (SELECT geom FROM tempus.road_node WHERE id = $2)))) end
     FROM tempus_gtfs.stops stop JOIN tempus.road_section ON stop.road_section_id = road_section.id
     WHERE stop.id = $1; 
 $BODY$

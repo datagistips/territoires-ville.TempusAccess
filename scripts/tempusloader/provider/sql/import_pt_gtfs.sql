@@ -719,3 +719,15 @@ FROM
   JOIN _tempus_import.transfers_new_nodes nn2 ON nn2.id = idmap2.id;  
 
 
+-- Speed is defined for pedestrians on road sections
+INSERT INTO tempus.road_daily_profile(
+            profile_id, begin_time, speed_rule, end_time, average_speed)
+VALUES((SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile),0,1,1440,3.6); 
+  
+INSERT INTO tempus.road_section_speed(
+            road_section_id, period_id, profile_id)
+SELECT id, 0, (SELECT max(profile_id) FROM tempus.road_daily_profile)
+FROM tempus.road_section
+WHERE (road_section.traffic_rules_ft::integer & 1) > 0 OR (road_section.traffic_rules_tf::integer & 1) > 0; 
+
+
