@@ -144,6 +144,7 @@ class import_poi_dialog(QDialog):
             self.ui.lineEditCommand.setText(" ".join(cmd))        
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
+            box.setModal(True)
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 

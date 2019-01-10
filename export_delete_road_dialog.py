@@ -74,6 +74,7 @@ class export_delete_road_dialog(QDialog):
             
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
+            box.setModal(True)
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 
@@ -101,6 +102,7 @@ class export_delete_road_dialog(QDialog):
             self.ui.lineEditCommand.setText(" ".join(cmd))
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
+            box.setModal(True)
             if (rc == 0):
                 box.setText(u"Source exportée avec succès" )                
             else:

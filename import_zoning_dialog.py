@@ -165,6 +165,7 @@ class import_zoning_dialog(QDialog):
                         
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
+            box.setModal(True)
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 

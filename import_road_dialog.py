@@ -109,6 +109,7 @@ class import_road_dialog(QDialog):
     def _slotPushButtonChooseClicked(self):
         if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == ''):
             box = QMessageBox()
+            box.setModal(True)
             box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")
             box.exec_()
         else:
@@ -143,6 +144,7 @@ class import_road_dialog(QDialog):
                 
                 rc = execute_external_cmd( cmd )
                 box = QMessageBox()
+                box.setModal(True)
                 if (rc==0):
                     box.setText(u"L'import de la source est terminé.")
                     
@@ -152,7 +154,7 @@ class import_road_dialog(QDialog):
                     else:
                         self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type WHERE needs_pt = False ORDER BY code", self.caller.db)
 
-                    self.iface.mapCanvas().refreshMap()                
+                    self.caller.manage_db_dialog._slotPushButtonLoadClicked()
                 else:
                     box.setText(u"Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
                 box.exec_()

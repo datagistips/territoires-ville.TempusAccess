@@ -221,6 +221,7 @@ class manage_db_dialog(QDialog):
             rc = execute_external_cmd( cmd )
             
             box = QMessageBox()
+            box.setModal(True)
             if (rc==0):
                 box.setText(u"La sauvegarde s'est terminée avec succès.")
             else:
@@ -331,6 +332,7 @@ class manage_db_dialog(QDialog):
             self.caller._slotComboBoxObjTypeIndexChanged(0)
         else:
             box = QMessageBox()
+            box.setModal(True)
             box.setText(u"La connexion à la base a échoué.")
             box.exec_()
     

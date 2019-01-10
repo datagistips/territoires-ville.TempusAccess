@@ -177,7 +177,7 @@ class import_pt_dialog(QDialog):
                 self.caller.refreshPTNetworks()
                 self.caller.modelObjType.setQuery("SELECT lib, code, indic_list, def_name FROM tempus_access.obj_type ORDER BY code", self.caller.db)
                 
-                self.caller.iface.mapCanvas().refreshMap()
+                self.caller.manage_db_dialog._slotPushButtonLoadClicked()
             else:
                 box.setText(u"Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
             box.exec_()
