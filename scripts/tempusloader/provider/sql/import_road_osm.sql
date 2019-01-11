@@ -37,37 +37,29 @@ WHERE network_id IS NULL;
 do $$
 begin
 raise notice '==== road_section_speed tables ===';
-end$$;
-    
--- Speed profile for pedestrians (speed_rule = 1) : 3.6 km/h
+end$$; 
+CREATE TABLE _tempus_import.speed_profiles
+(
+	id serial, 
+	car_speed_limit integer
+);
+
+SELECT setval('_tempus_import.speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
+
+INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
+(
+        SELECT DISTINCT car_speed_limit
+        FROM tempus.road_section
+        ORDER BY 1
+);
+
+-- Speed profile for cars (speed_rule = 5), one for each car speed limit value
 INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
-VALUES(1,0,1,1440,3.6); 
+SELECT id,0,5,1440,car_speed_limit
+FROM _tempus_import.speed_profiles;
 
--- Speed profile for bicycles (speed_rule = 2) : 15 km/h
-INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
-VALUES(2,0,2,1440,15); 
-
--- Speed profile for cars (speed_rule = 5) : 30 km/h
-INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
-VALUES(3,0,5,1440,30); 
-
-INSERT INTO tempus.road_section_speed(
-            road_section_id, period_id, profile_id)
-SELECT id, 0, 1
+INSERT INTO tempus.road_section_speed(road_section_id, period_id, profile_id)
+SELECT id, 0, (SELECT profile_id FROM tempus.road_daily_profile WHERE speed_rule=5 AND road_section.car_speed_limit = road_daily_profile.average_speed)
 FROM tempus.road_section
-WHERE (road_section.traffic_rules_ft::integer & 1) > 0 OR (road_section.traffic_rules_tf::integer & 1) > 0; 
+WHERE (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0; 
 
-INSERT INTO tempus.road_section_speed(
-            road_section_id, period_id, profile_id)
-SELECT id, 0, 2
-FROM tempus.road_section
-WHERE (road_section.traffic_rules_ft::integer & 2) > 0 OR (road_section.traffic_rules_tf::integer & 2) > 0; 
-
--- Cars at 30 km/h
-INSERT INTO tempus.road_section_speed(
-            road_section_id, period_id, profile_id)
-SELECT id, 0, 3
-FROM tempus.road_section
-WHERE (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0;
-
- 

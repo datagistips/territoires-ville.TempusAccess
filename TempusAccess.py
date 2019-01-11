@@ -656,7 +656,7 @@ class TempusAccess:
         # Road sections
         uri.setDataSource("tempus", "road_section_pedestrians", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"Réseau piéton", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/road_section_directions_road_types.qml')
+        layer.loadNamedStyle(self.styles_dir + '/road_section_pedestrians.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)

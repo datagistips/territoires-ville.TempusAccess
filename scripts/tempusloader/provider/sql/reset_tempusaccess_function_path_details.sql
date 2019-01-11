@@ -93,30 +93,13 @@ BEGIN
     WHERE q2.path_id = tempus_paths_results.path_id AND q2.step_id = tempus_paths_results.step_id; 
 
     indics_str = ''; 
-    CREATE SCHEMA IF NOT EXISTS indic;
-    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics ORDER BY code)
-    LOOP
-        IF (r.col_name = 'total_time') -- Total time from the first to the last road node of the path
-        THEN
-            indics_str = indics_str || $$(d_time - o_time)::time as total_time, $$;
-        END IF;
-        
-        IF (r.col_name = 'total_dist') -- Distance decomposition, by mode
-        THEN 
-            indics_str = indics_str || $$(st_length(st_transform(geom, 2154))/1000)::numeric(10,3) as total_dist, $$;
-        END IF; 
-        
-        IF (r.col_name = 'all_stops') -- All served stops
-        THEN
-            indics_str = indics_str || $$all_stops, $$;
-        END IF; 
-        
-        IF (r.col_name = 'speed_kmh') -- Speed in km/h
-        THEN 
-            indics_str = indics_str || $$((st_length(st_transform(geom, 2154))/1000)/(extract(hour from (d_time - o_time)) + extract(minute from (d_time - o_time))/60.0 + extract(second from (d_time - o_time))/3600.0))::numeric(10,1) as speed_kmh, $$;
-        END IF;
+    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics)
+    LOOP 
+        indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths, '%(day_ag)', day_ag_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
     END LOOP; 
-        
+    
+    
+    
     s=$$DROP TABLE IF EXISTS indic.paths_details;
     CREATE TABLE indic.paths_details AS
     (
