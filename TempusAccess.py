@@ -1073,7 +1073,7 @@ class TempusAccess:
                 
                 elif (self.node_type==1): # Node type = Road node
                     if (self.obj_def_name=="paths_tree"):
-                        self.road_nodes.append(self.root_node)
+                        self.road_nodes.append(int(self.root_node))
                     elif (self.obj_def_name=="comb_paths_trees"):
                         self.road_nodes = self.root_nodes
                 

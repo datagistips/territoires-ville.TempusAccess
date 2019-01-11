@@ -140,7 +140,7 @@ class pathIndicThread(QThread):
                     print s
                     q=QtSql.QSqlQuery(self.db)
                     q.exec_(unicode(s))
-                elif (self.path_tree==True): 
+                else:
                     for node in self.road_nodes: # For each source node
                         s = "SELECT tempus_access.shortest_paths_tree(("+str(node)+"), ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+d \
                             + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
