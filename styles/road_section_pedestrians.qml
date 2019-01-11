@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.27" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
@@ -61,19 +61,24 @@
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
     <rules key="{808d0135-4f27-4436-ab4f-b322ba0959da}">
-      <rule filter="network_id > 0" key="{bf6c5382-7d5a-4a8e-b21f-0497d576eb4f}" symbol="0" label="Réseau principal">
-        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{dadf4a96-6e28-4457-a09d-b1e52b59dea4}" symbol="1" label="Sens positif"/>
-        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{aa5a6447-56ec-495b-930a-6523b373eac8}" symbol="2" label="Sens négatif"/>
-        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{f1150514-418c-4c41-91a8-0a98164e0929}" label="Double sens"/>
+      <rule filter="network_id > 0 and car_speed_limit > 0" key="{bf6c5382-7d5a-4a8e-b21f-0497d576eb4f}" symbol="0" label="Réseau principal avec circulation automobile">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{7a106848-171c-4713-b4ea-582d335d3459}" symbol="1" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{a7744857-7920-4012-ace7-71bfcbbc6639}" symbol="2" label="Sens négatif"/>
+        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{dc63f315-3bad-468c-a579-baf207d94276}" label="Double sens"/>
       </rule>
-      <rule filter="network_id > 0 AND &quot;road_type&quot; =5" key="{89cb829e-ca45-4820-90de-dc658fb14ac8}" symbol="3" label="Arcs de transfert entre arrêts / POI">
-        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{0035c8ae-a13e-4c34-b8c6-44f144e7045d}" symbol="4" label="Sens positif"/>
-        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{afa552d4-ac75-4846-9777-f2b8ab248f05}" symbol="5" label="Sens négatif"/>
+      <rule filter="network_id>0 AND car_speed_limit=0" key="{9401d020-5085-4ddc-a689-a30d1043df30}" symbol="3" label="Réseau principal - Circulation automobile interdite">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{179b8b75-efe0-4690-81b4-7b438e8a70db}" symbol="4" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{7c4338f6-b203-4067-8098-cbb3885b6956}" symbol="5" label="Sens négatif"/>
+        <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{6085b731-cebc-4cc8-b254-b3ab88a07e36}" label="Double sens"/>
+      </rule>
+      <rule filter="network_id > 0 AND &quot;road_type&quot; =5" key="{89cb829e-ca45-4820-90de-dc658fb14ac8}" symbol="6" label="Arcs de transfert entre arrêts / POI">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{0035c8ae-a13e-4c34-b8c6-44f144e7045d}" symbol="7" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{afa552d4-ac75-4846-9777-f2b8ab248f05}" symbol="8" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{666971e0-2ffb-4dd2-b9e2-282321a20de3}" label="Double sens"/>
       </rule>
-      <rule filter="network_id=0" key="{43e1982d-fa28-47c1-86aa-5c5529f8f786}" symbol="6" label="Réseau virtuel">
-        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{d75f697d-9ba2-4bf3-9cd8-469b54a4079e}" symbol="7" label="Sens positif"/>
-        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{536fee3d-b873-4f58-8450-149c54182d91}" symbol="8" label="Sens négatif"/>
+      <rule filter="network_id=0" key="{43e1982d-fa28-47c1-86aa-5c5529f8f786}" symbol="9" label="Réseau virtuel">
+        <rule filter="&quot;ft&quot; = 't' AND &quot;tf&quot;='f'" key="{d75f697d-9ba2-4bf3-9cd8-469b54a4079e}" symbol="10" label="Sens positif"/>
+        <rule filter="&quot;ft&quot; = 'f' AND &quot;tf&quot; = 't'" key="{536fee3d-b873-4f58-8450-149c54182d91}" symbol="11" label="Sens négatif"/>
         <rule filter="&quot;ft&quot; = 't' and &quot;tf&quot; = 't'" key="{47e7496a-757e-4338-b29b-6534ed1e897c}" label="Double sens"/>
       </rule>
     </rules>
@@ -133,6 +138,78 @@
           </symbol>
         </layer>
       </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="10">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="5.55112e-17"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@10@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v=">"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="miter"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,255,255,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="11">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="5"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0.4"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="interval"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@11@0">
+            <layer pass="0" class="FontMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="chr" v="&lt;"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="font" v="Dingbats"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="bevel"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,127,0,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="size" v="2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
       <symbol alpha="1" clip_to_extent="1" type="line" name="2">
         <layer pass="0" class="MarkerLine" locked="0">
           <prop k="interval" v="5"/>
@@ -177,8 +254,8 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="128,2,2,255"/>
-          <prop k="line_style" v="dot"/>
+          <prop k="line_color" v="0,128,0,255"/>
+          <prop k="line_style" v="solid"/>
           <prop k="line_width" v="0.26"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
@@ -205,7 +282,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="128,2,2,255"/>
+              <prop k="color" v="0,128,0,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -216,7 +293,7 @@
               <prop k="outline_width" v="0"/>
               <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="outline_width_unit" v="MM"/>
-              <prop k="size" v="2"/>
+              <prop k="size" v="4"/>
               <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="size_unit" v="MM"/>
               <prop k="vertical_anchor_point" v="1"/>
@@ -241,7 +318,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="128,2,2,255"/>
+              <prop k="color" v="0,128,0,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -252,7 +329,7 @@
               <prop k="outline_width" v="0"/>
               <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="outline_width_unit" v="MM"/>
-              <prop k="size" v="2"/>
+              <prop k="size" v="4"/>
               <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="size_unit" v="MM"/>
               <prop k="vertical_anchor_point" v="1"/>
@@ -268,7 +345,7 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="102,103,105,255"/>
+          <prop k="line_color" v="128,2,2,255"/>
           <prop k="line_style" v="dot"/>
           <prop k="line_width" v="0.26"/>
           <prop k="line_width_unit" v="MM"/>
@@ -296,7 +373,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v=">"/>
-              <prop k="color" v="0,0,0,255"/>
+              <prop k="color" v="128,2,2,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="miter"/>
@@ -332,7 +409,7 @@
             <layer pass="0" class="FontMarker" locked="0">
               <prop k="angle" v="0"/>
               <prop k="chr" v="&lt;"/>
-              <prop k="color" v="0,0,0,255"/>
+              <prop k="color" v="128,2,2,255"/>
               <prop k="font" v="Dingbats"/>
               <prop k="horizontal_anchor_point" v="1"/>
               <prop k="joinstyle" v="bevel"/>
@@ -349,6 +426,25 @@
               <prop k="vertical_anchor_point" v="1"/>
             </layer>
           </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="9">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="102,103,105,255"/>
+          <prop k="line_style" v="dot"/>
+          <prop k="line_width" v="0.26"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
     </symbols>
