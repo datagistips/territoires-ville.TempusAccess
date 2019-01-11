@@ -1210,7 +1210,7 @@ class TempusAccess:
             
             if (r.value(0)>0): # has returned at least one row
                 display_and_clear_python_console()
-                print u"La requête suivante a été exécutée : "+query_str  
+                print query_str  
                 if (self.isosurfaces==False):
                     self.manage_indicators_dialog.refreshReq()
                     self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 
