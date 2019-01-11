@@ -665,7 +665,7 @@ class TempusAccess:
         
         uri.setDataSource("tempus", "road_section_cyclists", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"Réseau vélo", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/road_section_directions_road_types.qml')
+        layer.loadNamedStyle(self.styles_dir + '/road_section_bicycles.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
@@ -674,7 +674,7 @@ class TempusAccess:
             
         uri.setDataSource("tempus", "road_section_cars", "geom", "", "id")
         layer = QgsVectorLayer(uri.uri(), u"Réseau voiture", "postgres")
-        layer.loadNamedStyle(self.styles_dir + '/road_section_directions_road_types.qml')
+        layer.loadNamedStyle(self.styles_dir + '/road_section_cars.qml')
         if (layer.isValid()):
             QgsMapLayerRegistry.instance().addMapLayer(layer, False)
             node_layer = QgsLayerTreeLayer(layer)
