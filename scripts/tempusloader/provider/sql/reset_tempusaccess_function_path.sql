@@ -108,7 +108,7 @@ BEGIN
     indics_str = ''; 
     FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics)
     LOOP 
-        indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths, '%(day_ag)', day_ag_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
+        indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths, '%(day_ag)', indics_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
     END LOOP; 
     
     s = $$DROP TABLE IF EXISTS indic.paths; 
