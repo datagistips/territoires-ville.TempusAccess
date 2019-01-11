@@ -38,6 +38,7 @@ do $$
 begin
 raise notice '==== road_section_speed tables ===';
 end$$; 
+
 CREATE TABLE _tempus_import.speed_profiles
 (
 	id serial, 
