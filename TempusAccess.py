@@ -1494,7 +1494,7 @@ class TempusAccess:
         elif (self.choosePathsTreeRoot == True):
             self.dlg.ui.comboBoxPathsTreeRootNode.setCurrentIndex(self.modelNode.match(self.modelNode.index(0,i), 0, q.value(0), 1)[0].row())
         elif (self.choosePathsTreesRoots == True):
-            self.root_nodes.append(q.value(0))
+            self.root_nodes.append(int(q.value(0)))
         
         self.updateSelectedNodes()
     
