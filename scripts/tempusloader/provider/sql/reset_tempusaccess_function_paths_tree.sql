@@ -112,7 +112,7 @@ BEGIN
     SET pt_section_id = sections.id
     FROM tempus.transport_mode, tempus_gtfs.sections
     WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = FALSE 
-      AND ((sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) OR (sections.stop_to = ptnode_from AND sections.node_from = pt_node_to));
+      AND ((sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) OR (sections.stop_to = pt_node_from AND sections.node_from = pt_node_to));
     
     -- Add facultative indicators
     indics_str = ''; 
