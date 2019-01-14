@@ -76,6 +76,8 @@ CREATE TABLE _tempus_import.indicators
     day_ag_agencies character varying,
     day_ag_paths character varying, 
     day_ag_paths_details character varying,
+    day_ag_paths_trees character varying,
+    day_ag_comb_paths_trees character varying,
     needs_zoning boolean,
     needs_pt boolean
 );
