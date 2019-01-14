@@ -31,13 +31,13 @@ DECLARE
     r record;
 
 BEGIN
-	IF nodes_ag = 0 THEN nodes_ag = 1; END IF;
-    IF time_ag = 0 THEN time_ag = 1; END IF;
-    IF day_ag = 0 THEN day_ag = 1; END IF; 
+	IF param_nodes_ag = 0 THEN param_nodes_ag = 1; END IF;
+    IF param_time_ag = 0 THEN param_time_ag = 1; END IF;
+    IF param_day_ag = 0 THEN param_day_ag = 1; END IF; 
     
     indics_str = ''; 
     CREATE SCHEMA IF NOT EXISTS indic;
-    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ indics ORDER BY code)
+    FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics ORDER BY code)
     LOOP
         IF (r.col_name = 'total_time2') -- Total time to the destination node of the section
         THEN
@@ -64,17 +64,17 @@ BEGIN
         FROM   
         (
             SELECT cast(dep_arr_time as date) as day,
-                   CASE WHEN $$ || time_ag || $$ = 1 THEN avg(total_time) WHEN $$ || time_ag || $$ = 2 THEN min(total_time) WHEN $$ || time_ag || $$ = 3 THEN max(total_time) END AS total_time, 
-                   CASE WHEN $$ || time_ag || $$ = 1 THEN avg(tran_numb) WHEN $$ || time_ag || $$ = 2 THEN min(tran_numb) WHEN $$ || time_ag || $$ = 3 THEN max(tran_numb) END AS tran_numb,
-                   CASE WHEN $$ || time_ag || $$ = 1 THEN avg(mode_chang) WHEN $$ || time_ag || $$ = 2 THEN min(mode_chang) WHEN $$ || time_ag || $$ = 3 THEN max(mode_chang) END AS mode_chang, 
+                   CASE WHEN $$ || param_time_ag || $$ = 1 THEN avg(total_time) WHEN $$ || time_ag || $$ = 2 THEN min(total_time) WHEN $$ || time_ag || $$ = 3 THEN max(total_time) END AS total_time, 
+                   CASE WHEN $$ || param_time_ag || $$ = 1 THEN avg(tran_numb) WHEN $$ || time_ag || $$ = 2 THEN min(tran_numb) WHEN $$ || time_ag || $$ = 3 THEN max(tran_numb) END AS tran_numb,
+                   CASE WHEN $$ || param_time_ag || $$ = 1 THEN avg(mode_chang) WHEN $$ || time_ag || $$ = 2 THEN min(mode_chang) WHEN $$ || time_ag || $$ = 3 THEN max(mode_chang) END AS mode_chang, 
                    geom
             FROM
                 (
                     SELECT dep_arr_time, 
                            constraint_date_after,
-                           CASE WHEN $$ || nodes_ag || $$ = 1 THEN avg(total_cost) WHEN $$ || nodes_ag || $$ = 2 THEN min(total_cost) WHEN $$ || nodes_ag || $$ = 3 THEN max(total_cost) END AS total_time, 
-                           CASE WHEN $$ || nodes_ag || $$ = 1 THEN avg(pt_changes) WHEN $$ || nodes_ag || $$ = 2 THEN min(pt_changes) WHEN $$ || nodes_ag || $$ = 3 THEN max(pt_changes) END AS tran_numb, 
-                           CASE WHEN $$ || nodes_ag || $$ = 1 THEN avg(mode_changes) WHEN $$ || nodes_ag || $$ = 2 THEN min(mode_changes) WHEN $$ || nodes_ag || $$ = 3 THEN max(mode_changes) END AS mode_chang, 
+                           CASE WHEN $$ || param_nodes_ag || $$ = 1 THEN avg(total_cost) WHEN $$ || nodes_ag || $$ = 2 THEN min(total_cost) WHEN $$ || nodes_ag || $$ = 3 THEN max(total_cost) END AS total_time, 
+                           CASE WHEN $$ || param_nodes_ag || $$ = 1 THEN avg(pt_changes) WHEN $$ || nodes_ag || $$ = 2 THEN min(pt_changes) WHEN $$ || nodes_ag || $$ = 3 THEN max(pt_changes) END AS tran_numb, 
+                           CASE WHEN $$ || param_nodes_ag || $$ = 1 THEN avg(mode_changes) WHEN $$ || nodes_ag || $$ = 2 THEN min(mode_changes) WHEN $$ || nodes_ag || $$ = 3 THEN max(mode_changes) END AS mode_chang, 
                            st_setsrid(st_makepoint(x, y), 4326) as geom
                     FROM tempus_access.tempus_paths_tree_results
                     GROUP BY x, y, constraint_date_after, dep_arr_time
