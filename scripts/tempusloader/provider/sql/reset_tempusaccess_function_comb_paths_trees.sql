@@ -1,24 +1,25 @@
 CREATE OR REPLACE FUNCTION tempus_access.create_comb_paths_trees_indicator_layer (
-                                                                            indics integer[], 
-                                                                            node_type integer, 
-                                                                            nodes bigint[], 
-                                                                            nodes_ag integer, 
-                                                                            tran_modes integer[], 
-                                                                            day date,
-                                                                            day_type integer,
-                                                                            per_type integer, 
-                                                                            per_start date, 
-                                                                            per_end date, 
-                                                                            day_ag integer,
-                                                                            time_point time, 
-                                                                            time_start time,
-                                                                            time_end time, 
-                                                                            time_interval integer, 
-                                                                            time_ag integer,
-                                                                            time_const_after boolean,
-                                                                            max_cost integer, 
-                                                                            walk_speed double precision,
-                                                                            cycl_speed double precision
+                                                                            param_indics integer[], 
+                                                                            param_node_type integer, 
+                                                                            param_nodes bigint[], 
+                                                                            param_nodes_ag integer, 
+                                                                            param_i_modes integer[], 
+                                                                            param_pt_modes integer[],
+                                                                            param_day date,
+                                                                            param_day_type integer,
+                                                                            param_per_type integer, 
+                                                                            param_per_start date, 
+                                                                            param_per_end date, 
+                                                                            param_day_ag integer,
+                                                                            param_time_point time, 
+                                                                            param_time_start time,
+                                                                            param_time_end time, 
+                                                                            param_time_interval integer, 
+                                                                            param_time_ag integer,
+                                                                            param_time_const_after boolean,
+                                                                            param_max_cost integer, 
+                                                                            param_walking_speed double precision,
+                                                                            param_cycling_speed double precision
                                                                            )
 RETURNS void AS
 $BODY$
@@ -89,28 +90,30 @@ BEGIN
     
     -- Update of the indicators catalog 
     t=$$DELETE FROM tempus_access.indic_catalog WHERE layer_name = 'comb_paths_trees';
-		INSERT INTO tempus_access.indic_catalog(layer_name,obj_type,indics,node_type,o_nodes,d_nodes,nodes_ag,days,day_type,per_type,per_start,per_end,time_start,time_end,time_inter,time_point,constraint_date_after, max_cost, walk_speed, cycl_speed)
+		INSERT INTO tempus_access.indic_catalog(layer_name,obj_type,indics,node_type,o_nodes,d_nodes,i_modes,pt_modes,nodes_ag,days,day_type,per_type,per_start,per_end,time_start,time_end,time_inter,time_point,constraint_date_after, max_cost, walk_speed, cycl_speed)
 		VALUES ('comb_paths_trees', 
 		   (SELECT code FROM tempus_access.obj_type WHERE def_name = 'comb_paths_trees')::character varying, 
-		   $$ || coalesce($$'$$ || indics::character varying || $$'$$, $$NULL$$) || $$::integer[], 
-		   $$ || coalesce(node_type::character varying, $$NULL$$) || $$::integer, 
-		   $$ || CASE WHEN time_const_after = True THEN $$'$$ || nodes::character varying || $$'$$ ELSE $$NULL$$ END || $$::integer[],   
-		   $$ || CASE WHEN time_const_after = False THEN $$'$$ || nodes::character varying || $$'$$ ELSE $$NULL$$ END || $$::integer[],            
-		   $$ || coalesce(nodes_ag::character varying, $$NULL$$) || $$::integer, 
-		   $$ || coalesce($$'$$ || (SELECT tempus_access.days(day, day_type, per_type, per_start, per_end))::character varying || $$'$$, $$NULL$$) || $$::date[], 
-		   $$ || coalesce(day_type::character varying, $$NULL$$) || $$::integer, 
-		   $$ || coalesce(per_type::character varying, $$NULL$$) || $$::integer, 
-		   $$ || coalesce($$'$$ || per_start::character varying || $$'$$, $$NULL$$)|| $$::date, 
-		   $$ || coalesce($$'$$ || per_end::character varying || $$'$$, $$NULL$$) || $$::date,
-		   $$ || coalesce($$'$$ || time_start::character varying || $$'$$, $$NULL$$) || $$::time, 
-		   $$ || coalesce($$'$$ || time_end::character varying || $$'$$, $$NULL$$) || $$::time, 
-		   $$ || coalesce($$'$$ || time_interval::character varying || $$'$$, $$NULL$$) || $$::integer, 
-           $$ || coalesce($$'$$ || time_point::character varying || $$'$$, $$NULL$$) || $$::time, 
-		   $$ || time_const_after::character varying || $$::boolean, 
-		   $$ || coalesce(max_cost::character varying, $$NULL$$) || $$::integer, 
-		   $$ || coalesce(walk_speed::character varying, $$NULL$$) || $$::double precision, 
-		   $$ || coalesce(cycl_speed::character varying, $$NULL$$) || $$::double precision
-		);$$;
+		   $$ || coalesce($$'$$ || param_indics::character varying || $$'$$, $$NULL$$) || $$::integer[], 
+		   $$ || coalesce(param_node_type::character varying, $$NULL$$) || $$::integer, 
+		   $$ || CASE WHEN param_time_const_after = True THEN $$'$$ || nodes::character varying || $$'$$ ELSE $$NULL$$ END || $$::integer[],   
+		   $$ || CASE WHEN param_time_const_after = False THEN $$'$$ || nodes::character varying || $$'$$ ELSE $$NULL$$ END || $$::integer[],            
+		   $$ || coalesce($$'$$ || param_i_modes::character varying || $$'$$, $$NULL$$) || $$::integer[],
+           $$ || coalesce($$'$$ || param_pt_modes::character varying || $$'$$, $$NULL$$) || $$::integer[],
+           $$ || coalesce(param_nodes_ag::character varying, $$NULL$$) || $$::integer, 
+		   $$ || coalesce($$'$$ || (SELECT tempus_access.days(param_day, param_day_type, param_per_type, param_per_start, param_per_end))::character varying || $$'$$, $$NULL$$) || $$::date[], 
+		   $$ || coalesce(param_day_type::character varying, $$NULL$$) || $$::integer, 
+		   $$ || coalesce(param_per_type::character varying, $$NULL$$) || $$::integer, 
+		   $$ || coalesce($$'$$ || param_per_start::character varying || $$'$$, $$NULL$$)|| $$::date, 
+		   $$ || coalesce($$'$$ || param_per_end::character varying || $$'$$, $$NULL$$) || $$::date,
+		   $$ || coalesce($$'$$ || param_time_start::character varying || $$'$$, $$NULL$$) || $$::time, 
+		   $$ || coalesce($$'$$ || param_time_end::character varying || $$'$$, $$NULL$$) || $$::time, 
+		   $$ || coalesce($$'$$ || param_time_interval::character varying || $$'$$, $$NULL$$) || $$::integer, 
+           $$ || coalesce($$'$$ || param_time_point::character varying || $$'$$, $$NULL$$) || $$::time, 
+		   $$ || param_time_const_after::character varying || $$::boolean, 
+		   $$ || coalesce(param_max_cost::character varying, $$NULL$$) || $$::integer, 
+		   $$ || coalesce(param_walking_speed::character varying, $$NULL$$) || $$::double precision, 
+		   $$ || coalesce(param_cycling_speed::character varying, $$NULL$$) || $$::double precision
+		);$$; 
     RAISE NOTICE '%', t;
     EXECUTE(t);
     
