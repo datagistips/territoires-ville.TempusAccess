@@ -47,8 +47,8 @@ BEGIN
     )
     UPDATE tempus_access.tempus_paths_tree_results
     SET road_node_from = q.id
-    FROM q
-    WHERE q.gid = tempus_paths_tree_results.gid;
+    FROM q, tempus.transport_mode
+    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = False;
     
     WITH q AS
     (
@@ -64,8 +64,8 @@ BEGIN
     )
     UPDATE tempus_access.tempus_paths_tree_results
     SET road_node_to = q.id
-    FROM q
-    WHERE q.gid = tempus_paths_tree_results.gid;
+    FROM q, tempus.transport_mode
+    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = False;
         
     UPDATE tempus_access.tempus_paths_tree_results
     SET road_section_id = road_section.id
@@ -88,8 +88,8 @@ BEGIN
     )
     UPDATE tempus_access.tempus_paths_tree_results
     SET pt_node_from = q.id
-    FROM q
-    WHERE q.gid = tempus_paths_tree_results.gid;
+    FROM q, tempus.transport_mode
+    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = True;
     
     WITH q AS
     (
@@ -105,13 +105,13 @@ BEGIN
     )
     UPDATE tempus_access.tempus_paths_tree_results
     SET pt_node_to = q.id
-    FROM q
-    WHERE q.gid = tempus_paths_tree_results.gid;
+    FROM q, tempus.transport_mode
+    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = True;
     
     UPDATE tempus_access.tempus_paths_tree_results
     SET pt_section_id = sections.id
     FROM tempus.transport_mode, tempus_gtfs.sections
-    WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = FALSE 
+    WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = True
       AND ((sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) OR (sections.stop_to = pt_node_from AND sections.stop_from = pt_node_to));
     
     -- Add facultative indicators
