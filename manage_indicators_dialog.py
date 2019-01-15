@@ -617,8 +617,8 @@ class manage_indicators_dialog(QDialog):
             self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path_by_mode.qml", "gid", "geom", "") 
         # Paths tree described by nodes
         elif (self.obj_def_name=="paths_tree") and (self.ui.toolBoxDisplay.currentIndex()==0):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText()+"_nodes", self.plugin_dir + "/styles/mm_isochron_node.qml", "d_node", "geom_point", "") 
             self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText()+"_edges", self.plugin_dir + "/styles/mm_isochron_edge.qml", "d_node", "geom_section", "")
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText()+"_nodes", self.plugin_dir + "/styles/mm_isochron_node.qml", "d_node", "geom_point", "") 
         elif ((self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")) and (self.ui.toolBoxDisplay.currentIndex()==1):
             self.indicDisplay(self.ui.comboBoxDerivedRep.currentText(), self.ui.comboBoxDerivedRep.currentText(), self.plugin_dir + "/styles/mm_isochron_surface.qml", "id", "geom", "")
         elif (self.obj_def_name=="comb_paths_trees") and (self.ui.toolBoxDisplay.currentIndex()==0):

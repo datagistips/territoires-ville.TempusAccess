@@ -419,7 +419,9 @@ CREATE TABLE tempus_access.tempus_paths_tree_results
   pt_node_from integer, 
   pt_node_to integer, 
   road_section_id integer, 
-  pt_section_id integer
+  pt_section_id integer, 
+  ft boolean, 
+  route_type integer
 ); 
 
 CREATE INDEX tempus_paths_tree_results_from_geom_idx

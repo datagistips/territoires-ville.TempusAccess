@@ -48,7 +48,9 @@ BEGIN
     UPDATE tempus_access.tempus_paths_tree_results
     SET road_node_from = q.id
     FROM q, tempus.transport_mode
-    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = False;
+    WHERE q.gid = tempus_paths_tree_results.gid 
+      AND transport_mode.id = tempus_paths_tree_results.transport_mode 
+      AND transport_mode.public_transport = False;
     
     WITH q AS
     (
@@ -65,12 +67,17 @@ BEGIN
     UPDATE tempus_access.tempus_paths_tree_results
     SET road_node_to = q.id
     FROM q, tempus.transport_mode
-    WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = False;
+    WHERE q.gid = tempus_paths_tree_results.gid 
+      AND transport_mode.id = tempus_paths_tree_results.transport_mode 
+      AND transport_mode.public_transport = False;
         
     UPDATE tempus_access.tempus_paths_tree_results
-    SET road_section_id = road_section.id
+    SET road_section_id = road_section.id, 
+        ft = CASE WHEN (road_section.node_from = road_node_from AND road_section.node_to = road_node_to) THEN True ELSE False END, 
+        geom_to = CASE WHEN (road_section.node_from = road_node_from AND road_section.node_to = road_node_to) THEN st_force2d(st_endpoint(road_section.geom)) ELSE st_force2d(st_startpoint(road_section.geom)) END
     FROM tempus.transport_mode, tempus.road_section
-    WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = FALSE 
+    WHERE tempus_paths_tree_results.transport_mode = transport_mode.id 
+      AND transport_mode.public_transport = False 
       AND ((road_section.node_from = road_node_from AND road_section.node_to = road_node_to) OR (road_section.node_to = road_node_from AND road_section.node_from = road_node_to));
     
     -- Update PT nodes and sections
@@ -109,8 +116,10 @@ BEGIN
     WHERE q.gid = tempus_paths_tree_results.gid AND transport_mode.id = tempus_paths_tree_results.transport_mode AND transport_mode.public_transport = True;
     
     UPDATE tempus_access.tempus_paths_tree_results
-    SET pt_section_id = sections.id
-    FROM tempus.transport_mode, tempus_gtfs.sections
+    SET pt_section_id = sections.section_id, route_type = sections.route_type, 
+        ft = CASE WHEN (sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) THEN True ELSE False END,         
+        geom_to = CASE WHEN (sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) THEN st_endpoint(st_force2d(sections.geom)) ELSE st_startpoint(st_force2d(sections.geom)) END
+    FROM tempus.transport_mode, tempus_gtfs.sections_by_mode sections
     WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = True
       AND ((sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) OR (sections.stop_to = pt_node_from AND sections.stop_from = pt_node_to));
     
@@ -133,10 +142,12 @@ BEGIN
                (total_cost::character varying || ' minutes')::interval::character varying AS d_time, 		
                ((total_cost - cost)::character varying || ' minutes')::interval::character varying AS o_time,    
                $$ || indics_str || $$
+               route_type, 
+               ft, 
                CASE WHEN road_section_id IS NOT NULL THEN road_section.geom
                     WHEN pt_section_id IS NOT NULL THEN sections.geom
                END AS geom_section, 
-               st_setsrid(st_makepoint(x, y), 4326) AS geom_point
+               geom_to AS geom_point
             FROM tempus_access.tempus_paths_tree_results JOIN tempus.transport_mode ON (tempus_paths_tree_results.transport_mode = transport_mode.id)
                                                          LEFT JOIN tempus.road_section ON (tempus_paths_tree_results.road_section_id = road_section.id)
                                                          LEFT JOIN tempus_gtfs.sections ON (tempus_paths_tree_results.pt_section_id = sections.id)
