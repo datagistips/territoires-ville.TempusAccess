@@ -1219,6 +1219,7 @@ class TempusAccess:
             r.next()
             
             if (r.value(0)>0): # has returned at least one row
+                print query_str
                 if (self.isosurfaces==False):
                     self.manage_indicators_dialog.refreshReq()
                     self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 
