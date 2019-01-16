@@ -165,7 +165,7 @@ BEGIN
     END LOOP; 
     
     
-    indics_node_ag = substring(indics_day_ag from 1 for length(indics_node_ag) - 2); 
+    indics_node_ag = substring(indics_node_ag from 1 for length(indics_node_ag) - 2); 
     indics_time_ag = substring(indics_time_ag from 1 for length(indics_time_ag) - 2); 
     indics_day_ag = substring(indics_day_ag from 1 for length(indics_day_ag) - 2); 
     

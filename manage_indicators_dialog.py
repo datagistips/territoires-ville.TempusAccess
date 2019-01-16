@@ -622,7 +622,7 @@ class manage_indicators_dialog(QDialog):
         elif ((self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")) and (self.ui.toolBoxDisplay.currentIndex()==1):
             self.indicDisplay(self.ui.comboBoxDerivedRep.currentText(), self.ui.comboBoxDerivedRep.currentText(), self.plugin_dir + "/styles/mm_isochron_surface.qml", "id", "geom", "")
         elif (self.obj_def_name=="comb_paths_trees") and (self.ui.toolBoxDisplay.currentIndex()==0):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_node.qml", "id", "geom", "")
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_node.qml", "id", "geom", "")
         
         if (self.obj_def_name == "paths" or self.obj_def_name=="paths_details" or self.obj_def_name=="paths_tree" or self.obj_def_name=="comb_paths_trees"):
             for layer in self.caller.node_indicators.findLayers():
