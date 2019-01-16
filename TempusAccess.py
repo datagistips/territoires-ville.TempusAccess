@@ -32,6 +32,7 @@ from qgis.utils import iface
 import osgeo.ogr
 # Initialize Qt resources from file resources.py
 import resources
+import pdb
 import config
 
 # import the code for the dialogs
@@ -1109,7 +1110,7 @@ class TempusAccess:
                                                                                             param_indics := ARRAY"+str(self.indics)+", \
                                                                                             param_node_type := "+str(self.node_type)+", \
                                                                                             param_root_nodes := ARRAY"+str(self.root_nodes)+", \
-                                                                                            param_nodes_ag := "+str(self.nodes_ag)+",\
+                                                                                            param_node_ag := "+str(self.nodes_ag)+",\
                                                                                             param_i_modes := ARRAY"+str(self.i_modes)+"::integer[], \
                                                                                             param_pt_modes := ARRAY"+str(self.pt_modes)+"::integer[], \
                                                                                             param_day := "+self.day+"::date, \
@@ -1145,6 +1146,7 @@ class TempusAccess:
         self.isosurfaces=False
         self.buildQuery()
         
+        
         self.done=False
         self.time.start()
         self.timer.start()
@@ -1157,9 +1159,7 @@ class TempusAccess:
             (self.obj_def_name == "routes") or \
             (self.obj_def_name == "agencies")\
            ):
-            self.gen_indic_thread = genIndicThread(self.query, \
-                                                    self.db \
-                                                  )
+            self.gen_indic_thread = genIndicThread(self.query, self.db)
             self.gen_indic_thread.finished.connect(self._slotDone)
             self.gen_indic_thread.resultAvailable.connect(self._slotResultAvailable)
             self.gen_indic_thread.start()
@@ -1172,6 +1172,7 @@ class TempusAccess:
             path_tree=False
             if (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees"):
                 path_tree=True
+            
             
             dbstring="host="+self.db.hostName()+" dbname="+self.db.databaseName()+" port="+str(self.db.port())
             
@@ -1205,6 +1206,7 @@ class TempusAccess:
     def _slotResultAvailable(self, done, query_str): 
         if (done==True):
             s="UPDATE tempus_access.indic_catalog SET calc_time = "+str(self.time.elapsed()/1000)+" WHERE layer_name = '"+self.obj_def_name+"';"
+            print s
             q=QtSql.QSqlQuery(self.db)
             q.exec_(unicode(s))
             
@@ -1212,12 +1214,11 @@ class TempusAccess:
                 t="SELECT count(*) FROM indic."+self.obj_def_name+" as count;"
             else:
                 t="SELECT count(*) FROM indic.isosurfaces as count;"
+            print t
             r=QtSql.QSqlQuery(unicode(t), self.db)
             r.next()
             
             if (r.value(0)>0): # has returned at least one row
-                display_and_clear_python_console()
-                print query_str  
                 if (self.isosurfaces==False):
                     self.manage_indicators_dialog.refreshReq()
                     self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 

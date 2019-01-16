@@ -17,7 +17,7 @@ $BODY$
 DECLARE
     t character varying;
     s character varying;
-    indics_str character varying;
+    indics_str character varying; 
     r record;
 
 BEGIN
@@ -123,11 +123,10 @@ BEGIN
     WHERE tempus_paths_tree_results.transport_mode = transport_mode.id AND transport_mode.public_transport = True
       AND ((sections.stop_from = pt_node_from AND sections.stop_to = pt_node_to) OR (sections.stop_to = pt_node_from AND sections.stop_from = pt_node_to));
     
-    -- Add facultative indicators
     indics_str = ''; 
     FOR r IN (SELECT col_name FROM tempus_access.indicators WHERE ARRAY[code] <@ param_indics)
     LOOP 
-        indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths_trees, '%(day_ag)', indics_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
+        indics_str = indics_str || (SELECT coalesce(indic_paths_trees || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
     END LOOP;  
     
     -- Create final table
