@@ -32,7 +32,6 @@ from qgis.utils import iface
 import osgeo.ogr
 # Initialize Qt resources from file resources.py
 import resources
-import pdb
 import config
 
 # import the code for the dialogs
@@ -1090,53 +1089,46 @@ class TempusAccess:
                 
                 if (self.isosurfaces==False):
                     if (self.obj_def_name == "paths_tree"):
-                        self.query="SELECT tempus_access.create_paths_tree_indicator_layer(\
-                                                                                            param_indics := ARRAY"+str(self.indics)+", \
-                                                                                            param_node_type := "+str(self.node_type)+", \
-                                                                                            param_root_node := "+str(self.root_node)+", \
-                                                                                            param_i_modes := ARRAY"+str(self.i_modes)+"::integer[], \
-                                                                                            param_pt_modes := ARRAY"+str(self.pt_modes)+"::integer[], \
-                                                                                            param_day := "+self.day+"::date, \
-                                                                                            param_time_point := "+self.time_point+"::time, \
-                                                                                            param_constraint_date_after := "+str(self.constraint_date_after)+"::boolean,\
-                                                                                            param_max_cost := "+str(self.max_cost)+",\
-                                                                                            param_walking_speed := "+str(self.walking_speed)+",\
-                                                                                            param_cycling_speed := "+str(self.cycling_speed)+"\
-                                                                                          );"
+                        self.query="SELECT tempus_access.create_paths_tree_indicator_layer(ARRAY"+str(self.indics)+", \
+                                                                           "+str(self.node_type)+", \
+                                                                           "+str(self.root_node)+", \
+                                                                           ARRAY"+str(self.tran_modes)+", \
+                                                                           "+self.day+"::date, \
+                                                                           "+self.time_point+"::time, \
+                                                                           "+str(self.constraint_date_after)+"::boolean,\
+                                                                           "+str(self.max_cost)+",\
+                                                                           "+str(self.walking_speed)+",\
+                                                                           "+str(self.cycling_speed)+");"
                                                                            
                     elif (self.obj_def_name == "comb_paths_trees"):
                         self.nodes_ag = self.modelAgreg.record(self.dlg.ui.comboBoxNodeAg.currentIndex()).value("code")
-                        self.query="SELECT tempus_access.create_comb_paths_trees_indicator_layer(\
-                                                                                            param_indics := ARRAY"+str(self.indics)+", \
-                                                                                            param_node_type := "+str(self.node_type)+", \
-                                                                                            param_root_nodes := ARRAY"+str(self.root_nodes)+", \
-                                                                                            param_node_ag := "+str(self.nodes_ag)+",\
-                                                                                            param_i_modes := ARRAY"+str(self.i_modes)+"::integer[], \
-                                                                                            param_pt_modes := ARRAY"+str(self.pt_modes)+"::integer[], \
-                                                                                            param_day := "+self.day+"::date, \
-                                                                                            param_day_type := "+str(self.day_type)+"::integer, \
-                                                                                            param_per_type := "+str(self.per_type)+"::integer, \
-                                                                                            param_per_start := "+self.per_start+"::date, \
-                                                                                            param_per_end := "+self.per_end+"::date, \
-                                                                                            param_day_ag := "+str(self.day_ag)+",\
-                                                                                            param_time_point := "+self.time_point+"::time, \
-                                                                                            param_time_start := "+self.time_start+"::time, \
-                                                                                            param_time_end := "+self.time_end+"::time, \
-                                                                                            param_time_interval := "+str(self.time_interval)+"::integer, \
-                                                                                            param_time_ag := "+str(self.time_ag)+",\
-                                                                                            param_constraint_date_after := "+str(self.constraint_date_after)+"::boolean,\
-                                                                                            param_max_cost := "+str(self.max_cost)+",\
-                                                                                            param_walking_speed := "+str(self.walking_speed)+",\
-                                                                                            param_cycling_speed := "+str(self.cycling_speed)+"\
-                                                                                          );"
+                        self.query="SELECT tempus_access.create_comb_paths_trees_indicator_layer(ARRAY"+str(self.indics)+", \
+                                                                           "+str(self.node_type)+", \
+                                                                           ARRAY"+str(self.root_nodes)+", \
+                                                                           "+str(self.nodes_ag)+",\
+                                                                           ARRAY"+str(self.tran_modes)+", \
+                                                                           "+self.day+"::date, \
+                                                                           "+str(self.day_type)+"::integer, \
+                                                                           "+str(self.per_type)+"::integer, \
+                                                                           "+self.per_start+"::date, \
+                                                                           "+self.per_end+"::date, \
+                                                                           "+str(self.day_ag)+",\
+                                                                           "+self.time_point+"::time, \
+                                                                           "+self.time_start+"::time, \
+                                                                           "+self.time_end+"::time, \
+                                                                           "+str(self.time_interval)+"::integer, \
+                                                                           "+str(self.time_ag)+",\
+                                                                           "+str(self.constraint_date_after)+"::boolean,\
+                                                                           "+str(self.max_cost)+",\
+                                                                           "+str(self.walking_speed)+",\
+                                                                           "+str(self.cycling_speed)+");"
                                                                            
                 elif (self.parent_layer!=""):
-                    self.query="SELECT tempus_access.create_isosurfaces_indicator_layer(\
-                                                                                         param_indics := ARRAY"+str(self.indics)+", \
-                                                                                         param_parent_layer := '"+self.parent_layer+"',\
-                                                                                         param_classes_num := "+str(self.classes_num)+"::integer, \
-                                                                                         param_param := "+str(self.param)+"::double precision, \
-                                                                                         param_rep_meth := "+str(self.rep_meth)+"::integer);"
+                    self.query="SELECT tempus_access.create_isosurfaces_indicator_layer("+str(self.indic)+"::integer,\
+                                                                                        '"+self.parent_layer+"',\
+                                                                                        "+str(self.classes_num)+"::integer, \
+                                                                                        "+str(self.param)+"::double precision, \
+                                                                                        "+str(self.rep_meth)+"::integer);"
         self.query=self.query.replace("  ", "")
             
     
@@ -1145,7 +1137,6 @@ class TempusAccess:
     def _slotPushButtonIndicCalculateClicked(self):
         self.isosurfaces=False
         self.buildQuery()
-        
         
         self.done=False
         self.time.start()
@@ -1159,7 +1150,9 @@ class TempusAccess:
             (self.obj_def_name == "routes") or \
             (self.obj_def_name == "agencies")\
            ):
-            self.gen_indic_thread = genIndicThread(self.query, self.db)
+            self.gen_indic_thread = genIndicThread(self.query, \
+                                                    self.db \
+                                                  )
             self.gen_indic_thread.finished.connect(self._slotDone)
             self.gen_indic_thread.resultAvailable.connect(self._slotResultAvailable)
             self.gen_indic_thread.start()
@@ -1172,7 +1165,6 @@ class TempusAccess:
             path_tree=False
             if (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees"):
                 path_tree=True
-            
             
             dbstring="host="+self.db.hostName()+" dbname="+self.db.databaseName()+" port="+str(self.db.port())
             
@@ -1206,7 +1198,6 @@ class TempusAccess:
     def _slotResultAvailable(self, done, query_str): 
         if (done==True):
             s="UPDATE tempus_access.indic_catalog SET calc_time = "+str(self.time.elapsed()/1000)+" WHERE layer_name = '"+self.obj_def_name+"';"
-            print s
             q=QtSql.QSqlQuery(self.db)
             q.exec_(unicode(s))
             
@@ -1214,11 +1205,12 @@ class TempusAccess:
                 t="SELECT count(*) FROM indic."+self.obj_def_name+" as count;"
             else:
                 t="SELECT count(*) FROM indic.isosurfaces as count;"
-            print t
             r=QtSql.QSqlQuery(unicode(t), self.db)
             r.next()
             
             if (r.value(0)>0): # has returned at least one row
+                display_and_clear_python_console()
+                print query_str  
                 if (self.isosurfaces==False):
                     self.manage_indicators_dialog.refreshReq()
                     self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 
