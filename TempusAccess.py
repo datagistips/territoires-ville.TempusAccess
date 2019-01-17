@@ -107,9 +107,7 @@ class TempusAccess:
         self.set_db_connection_dialog.setModal(True)
         self.manage_db_dialog=manage_db_dialog(self, self.iface)
         self.manage_db_dialog.setModal(True) 
-        
-        
-        
+       
         # PT networks    
         self.modelPTNetwork = QtSql.QSqlQueryModel()
         self.modelPTNetworkFormat = QtSql.QSqlQueryModel()
@@ -118,7 +116,9 @@ class TempusAccess:
         self.PTNetworks = []
         
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
+        self.import_pt_dialog.setModal(True)         
         self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
+        self.export_delete_pt_dialog.setModal(True) 
 
         # Road networks
         self.modelRoadNetwork = QtSql.QSqlQueryModel()
@@ -126,7 +126,9 @@ class TempusAccess:
         self.modelRoadNetworkFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_road_dialog=import_road_dialog(self, self.iface)
+        self.import_road_dialog.setModal(True) 
         self.export_delete_road_dialog=export_delete_road_dialog(self, self.iface)
+        self.export_delete_road_dialog.setModal(True) 
         
         # POI
         self.modelPOISource = QtSql.QSqlQueryModel()
@@ -135,7 +137,9 @@ class TempusAccess:
         self.modelPOISourceFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
+        self.import_poi_dialog.setModal(True) 
         self.delete_poi_dialog=delete_poi_dialog(self, self.iface)
+        self.delete_poi_dialog.setModal(True) 
         
         # Zonings
         self.modelZoningSource=QtSql.QSqlQueryModel()  
@@ -148,7 +152,9 @@ class TempusAccess:
         self.dlg.ui.comboBoxZone.setModel(self.modelZone)
 
         self.import_zoning_dialog=import_zoning_dialog(self, self.iface)
+        self.import_zoning_dialog.setModal(True) 
         self.delete_zoning_dialog=delete_zoning_dialog(self, self.iface)
+        self.delete_zoning_dialog.setModal(True) 
         
         # Indicators, requests and representations
         self.modelIndic = QtSql.QSqlQueryModel()
@@ -163,6 +169,7 @@ class TempusAccess:
         self.dlg.ui.listViewIndic.setModel(self.modelIndic)        
         
         self.manage_indicators_dialog=manage_indicators_dialog(self, self.iface)
+        self.manage_indicators_dialog.setModal(True) 
         
         # Object types
         self.modelObjType = QtSql.QSqlQueryModel()

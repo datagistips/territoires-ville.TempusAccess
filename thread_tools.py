@@ -50,7 +50,7 @@ def execute_external_cmd( cmd ):
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
     
-    if ((platform.system() == 'Windows')): # and (platform.release() == '7')):
+    if ((platform.system() == 'Windows') and (platform.release() == '7')):
         line_cmd = string.replace( cmd[0] + ' "' +'" "'.join(cmd[1:]) + '"', '\\', '/' )
         r = os.system (line_cmd)
         print line_cmd
