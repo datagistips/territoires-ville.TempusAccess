@@ -26,13 +26,14 @@ from PyQt4.QtGui import *
 from PyQt4 import QtSql
 from PyQt4.QtGui import QDockWidget
 
+from config import *
+
 import os
 import sys
 import string
 import subprocess
 import qgis
-import platform
-
+import platform 
 
 # Thread for general import/export operations
 
@@ -49,7 +50,7 @@ def execute_external_cmd( cmd ):
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
     
-    if ((platform.system() == 'Windows') and (platform.release() == '7')):
+    if ((platform.system() == 'Windows')): # and (platform.release() == '7')):
         line_cmd = string.replace( cmd[0] + ' "' +'" "'.join(cmd[1:]) + '"', '\\', '/' )
         r = os.system (line_cmd)
         print line_cmd
@@ -77,15 +78,13 @@ class genIndicThread(QThread):
     
     def __del__(self):
         self.wait()
-
-
+        
     def run(self): 
         r=QtSql.QSqlQuery(self.db)
         done=r.exec_(self.query_str)
         self.resultAvailable.emit(done, self.query_str)
 
         
-# Thread for paths and paths trees building
 class pathIndicThread(QThread):
     resultAvailable = pyqtSignal(bool, str)
     
@@ -111,43 +110,35 @@ class pathIndicThread(QThread):
         self.walking_speed = walking_speed
         self.cycling_speed = cycling_speed
         self.constraint_date_after = constraint_date_after
-        self.plugin_dir = os.path.dirname(__file__)
+        self.plugin_dir = os.path.dirname(__file__) 
         
+        self.file = open(self.plugin_dir+"/scripts/temp.sql", "w")
         
     def __del__(self):
-        self.wait()
-    
+        self.wait() 
     
     def buildGraph(self):
-        print self.path_tree
         if (self.path_tree==True):
-            s="DELETE FROM tempus_access.tempus_paths_tree_results; SELECT init_isochrone_plugin('"+self.dbstring+"');"
-            print s
+            s="DELETE FROM tempus_access.tempus_paths_tree_results; SELECT init_isochrone_plugin('"+self.dbstring+"');\n"
+            self.file.write(s)
         else:
-            s="DELETE FROM tempus_access.tempus_paths_results; SELECT init_multimodal_plugin('"+self.dbstring+"');"
-            print s
+            s="DELETE FROM tempus_access.tempus_paths_results; SELECT init_multimodal_plugin('"+self.dbstring+"');\n"
+            self.file.write(s)    
         
-        q=QtSql.QSqlQuery(self.db)
-        q.exec_(unicode(s))
-    
-    
     def run(self):
         self.buildGraph()
         
         for d in self.days:
+            print d
             if (self.time_point != "NULL"): # Simple time constraint
                 if (self.path_tree==False): 
-                    s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                    print s
-                    q=QtSql.QSqlQuery(self.db)
-                    q.exec_(unicode(s))
-                else:
+                    s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");\n"
+                    self.file.write(s)
+                else:   
                     for node in self.road_nodes: # For each source node
                         s = "SELECT tempus_access.shortest_paths_tree(("+str(node)+"), ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+d \
-                            + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        print s
-                        q=QtSql.QSqlQuery(self.db)
-                        q.exec_(unicode(s))
+                            + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");\n"
+                        self.file.write(s)
             
             else: # Time period constraint
                 if (self.all_services==True): # All possible services of the period - only fo simple paths 
@@ -164,10 +155,8 @@ class pathIndicThread(QThread):
                         bound_time = self.time_start
                 
                     while (current_timestamp != bound_timestamp):
-                        s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                        print s
-                        q=QtSql.QSqlQuery(self.db)
-                        q.exec_(unicode(s))
+                        s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");\n"
+                        self.file.write(s) 
                         
                         s1 = "SELECT next_pt_timestamp::character varying FROM tempus_access.next_pt_timestamp("+bound_time+"::time, '"+str(d)+"'::date, "+str(self.constraint_date_after)+")"
                         print s1
@@ -178,8 +167,8 @@ class pathIndicThread(QThread):
                                 current_timestamp = bound_timestamp
                             else:
                                 current_timestamp = str(q1.value(0))
-                             
-                
+                            
+                                
                 elif (self.time_interval!="NULL"): # Search at a regular time interval
                     current_timestamp=""
                     bound_timestamp=""
@@ -195,17 +184,13 @@ class pathIndicThread(QThread):
                     
                     while (current_timestamp != bound_timestamp):
                         if (self.path_tree==False): 
-                            s = "SELECT tempus_access.shortest_path(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                            print s
-                            q=QtSql.QSqlQuery(self.db)
-                            q.exec_(unicode(s))
-                            
+                            s = "SELECT tempus_access.shortest_path(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");\n"
+                            self.file.write(s)
+                                                        
                         elif (self.path_tree==True):
                             for node in self.road_nodes: # For each source/target node
-                                s = "SELECT tempus_access.shortest_paths_tree("+str(node)+", ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");"
-                                print s
-                                q=QtSql.QSqlQuery(self.db)
-                                q.exec_(unicode(s))
+                                s = "SELECT tempus_access.shortest_paths_tree("+str(node)+", ARRAY"+str(self.tran_modes)+", "+str(self.max_cost)+", "+str(self.walking_speed)+", "+str(self.cycling_speed)+", '"+current_timestamp+"'::timestamp, "+str(self.constraint_date_after)+");\n"
+                                self.file.write(s)
                                 
                         s1 = "SELECT next_timestamp::character varying FROM tempus_access.next_timestamp('"+current_timestamp+"'::timestamp, "+str(self.time_interval)+", '"+bound_timestamp+"'::timestamp, "+str(self.constraint_date_after)+")"
                         print s1
@@ -214,8 +199,16 @@ class pathIndicThread(QThread):
                         while q1.next():
                             current_timestamp = str(q1.value(0))       
                         
-        r=QtSql.QSqlQuery(self.db)
-        done=r.exec_(self.query_str)
+        self.file.write(self.query_str) 
+        
+        self.file.close()
+        print "closed"
+        
+        cmd = [ PSQL, "-h", self.db.hostName(), "-p", str(self.db.port()), "-d", self.db.databaseName(), "-U", self.db.userName(), "-f", self.plugin_dir+"\scripts\temp.sql" ]
+        print cmd
+        done = execute_external_cmd(cmd)
+        print "exe"
+        
         self.resultAvailable.emit(done, self.query_str)
         
         
