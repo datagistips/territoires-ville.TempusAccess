@@ -50,7 +50,7 @@ def execute_external_cmd( cmd ):
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
     
-    if ((platform.system() == 'Windows') and (platform.release() == '7')):
+    if ((platform.system() == 'Windows')):# and (platform.release() == '7')):
         line_cmd = string.replace( cmd[0] + ' "' +'" "'.join(cmd[1:]) + '"', '\\', '/' )
         r = os.system (line_cmd)
         print line_cmd
@@ -129,7 +129,6 @@ class pathIndicThread(QThread):
         self.buildGraph()
         
         for d in self.days:
-            print d
             if (self.time_point != "NULL"): # Simple time constraint
                 if (self.path_tree==False): 
                     s = "SELECT tempus_access.shortest_path2(("+str(self.road_node_from)+"), ("+str(self.road_node_to)+"), ARRAY"+str(self.tran_modes)+", '"+d + " " +self.time_point[1:len(self.time_point)-1]+"'::timestamp, "+str(self.constraint_date_after)+");\n"
@@ -202,14 +201,13 @@ class pathIndicThread(QThread):
         self.file.write(self.query_str) 
         
         self.file.close()
-        print "closed"
         
         cmd = [ PSQL, "-h", self.db.hostName(), "-p", str(self.db.port()), "-d", self.db.databaseName(), "-U", self.db.userName(), "-f", self.plugin_dir+"\\scripts\\temp.sql" ]
-        print cmd
         done = execute_external_cmd(cmd)
-        print "exe"
-        
-        self.resultAvailable.emit(done, self.query_str)
+        res=False
+        if (done==0):
+            res=True
+        self.resultAvailable.emit(res, self.query_str)
         
         
         
