@@ -249,7 +249,7 @@ class TempusAccess:
         self._connectSlots()
         
         # Create actions that will start plugin configuration 
-        self.action = QAction(QIcon(self.icon_dir + "/icon_tempus.jpg"), u"Lancer le plugin",self.iface.mainWindow())
+        self.action = QAction(QIcon(self.icon_dir + "/icon_tempus.jpg"), u"Lancer le serveur",self.iface.mainWindow())
         self.action_set_db_connection = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Définir la connexion à la base de données", self.iface.mainWindow())
         self.action_manage_db = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Gérer les bases de données", self.iface.mainWindow())
         self.action_import_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
@@ -264,7 +264,7 @@ class TempusAccess:
 
         self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
         
-        self.action.setToolTip(u"Lancer le plugin")
+        self.action.setToolTip(u"Lancer le serveur")
         self.action_set_db_connection.setToolTip(u"Définir la connexion à la base de données")
         self.action_manage_db.setToolTip(u"Gérer les bases de données")
         self.action_import_road.setToolTip(u"Importer un réseau routier")
@@ -324,7 +324,12 @@ class TempusAccess:
         self.first = False
     
     
-    def load(self):
+    def load(self):           
+        cmd = [ "python", "-m", "pglite", "init" ]
+        r = subprocess.call( cmd )
+        cmd = [ "python", "-m", "pglite", "start" ]
+        r = subprocess.call( cmd )
+        
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
         
         # Set on-the-fly projection
@@ -430,14 +435,9 @@ class TempusAccess:
         self.dlg.ui.radioButtonTimePoint.toggled.connect(self._slotRadioButtonTimePointToggled)
         self.dlg.ui.comboBoxTimeConstraint.currentIndexChanged.connect(self._slotComboBoxTimeConstraintIndexChanged)
         self.dlg.ui.radioButtonTimeInterval.toggled.connect(self._slotRadioButtonTimeIntervalToggled)
-            
+       
     
     def set_db_connection(self):        
-        cmd = [ "python", "-m", "pglite", "init" ]
-        r = subprocess.call( cmd )
-        cmd = [ "python", "-m", "pglite", "start" ]
-        r = subprocess.call( cmd )
-        
         self.set_db_connection_dialog.show()
     
     
