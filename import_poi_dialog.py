@@ -89,7 +89,7 @@ class import_poi_dialog(QDialog):
             self.path_type = self.caller.modelPOISourceFormatVersion.record(indexChosenLine).value("path_type")
             if (self.format == 'insee_bpe'):
                 self.ui.lineEditSourceComment.setText('')
-                self.ui.lineEditSourceComment.setEnabled(False)
+                self.ui.lineEditSourceComment.setEnabled(True)
                 self.ui.lineEditIdField.setText("")
                 self.ui.lineEditIdField.setEnabled(False)
                 self.ui.lineEditNameField.setText("")
@@ -108,7 +108,8 @@ class import_poi_dialog(QDialog):
     
     
     def _slotPushButtonChooseClicked(self):
-        if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''):
+        if ((self.format == 'insee_bpe') and ((self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '')))\
+        or ((self.format == 'tempus') and ((self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
             box = QMessageBox()
             box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")
             box.exec_()
@@ -148,7 +149,7 @@ class import_poi_dialog(QDialog):
             if (rc==0):
                 self.caller.iface.mapCanvas().refreshMap()
 
-                box.setText(unicode("L'import de la source est terminé."))
+                box.setText(unicode(u"L'import de la source est terminé."))
                 
                 self.caller.refreshZoningSources()
                 
@@ -169,8 +170,8 @@ class import_poi_dialog(QDialog):
                 self.caller.node_zoning.setExpanded(True)
                 
                 # Zoom to the loaded zoning data
-                layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
-                self.caller.zoomToLayersList(layersList)
+                #layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
+                #self.caller.zoomToLayersList(layersList)
             else:
                 box.setText(unicode("Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande."))
             box.exec_()            
