@@ -514,9 +514,9 @@ class manage_indicators_dialog(QDialog):
         self._slotResultAvailable(done, self.query)
     
     
-    def indicDisplay(self, layer_name, layer_alias, layer_style_path, col_id, col_geom, filter):
+    def indicDisplay(self, layer_name, layer_style_path, col_id, col_geom, filter):
         if (layer_name!=''): 
-            layerList = [layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if (layer.name()==layer_alias)]
+            layerList = [layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if (layer.name()==layer_name)]
             for lyr in layerList:
                 QgsMapLayerRegistry.instance().removeMapLayer(lyr.id())
         
@@ -524,7 +524,7 @@ class manage_indicators_dialog(QDialog):
             uri.setConnection(self.db.hostName(), str(self.db.port()), self.db.databaseName(), self.db.userName(), self.db.password())
             uri.setDataSource("indic", layer_name, col_geom, "", col_id)
             
-            layer = QgsVectorLayer(uri.uri(), layer_alias, "postgres")
+            layer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
             layer.setProviderEncoding(u'UTF-8')
             layer.dataProvider().setEncoding(u'UTF-8')
             
@@ -551,7 +551,7 @@ class manage_indicators_dialog(QDialog):
             
                 # Center map display on result layer
                 for name, l in QgsMapLayerRegistry.instance().mapLayers().iteritems(): 
-                    if (l.name()==layer_alias): 
+                    if (l.name()==layer_name): 
                         self.iface.mapCanvas().setExtent(crd.transform(l.extent()))
                 
             self.iface.mapCanvas().refresh()
@@ -586,41 +586,41 @@ class manage_indicators_dialog(QDialog):
         
         # Stop areas or stops
         if (((self.obj_def_name=="stops") or (self.obj_def_name=="stop_areas")) and self.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
         elif (((self.obj_def_name=="stops") or (self.obj_def_name=="stop_areas")) and self.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
         # Sections
         elif ((self.obj_def_name=="sections") and self.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_section_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_section_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
         elif ((self.obj_def_name=="sections") and self.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_section_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_section_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
         # Trips
         elif ((self.obj_def_name=="trips") and self.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_trip_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_trip_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
         elif ((self.obj_def_name=="trips") and self.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_trip_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_trip_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
         # Stops routes
         elif ((self.obj_def_name=="stops_routes") and self.ui.radioButtonScreenUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_routes_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_routes_by_mode_prop_size_prop_color_screen_unit.qml', 'gid', "geom", '')
         elif ((self.obj_def_name=="stops_routes") and self.ui.radioButtonMapUnit.isChecked()):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_routes_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + '/styles/pt_stop_routes_by_mode_prop_size_prop_color_map_unit.qml', 'gid', "geom", '')
         # Routes
         elif (self.obj_def_name =="routes"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir+'/styles/pt_route_by_mode.qml', 'gid', None, '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir+'/styles/pt_route_by_mode.qml', 'gid', None, '')
         # Agencies
         elif (self.obj_def_name == "agencies"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir+'/styles/pt_agency_by_mode.qml', 'gid', None, '')
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir+'/styles/pt_agency_by_mode.qml', 'gid', None, '')
         # Paths
         elif (self.obj_def_name == "paths"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path.qml", "gid", "geom", "")
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path.qml", "gid", "geom", "")
         elif (self.obj_def_name=="paths_details"):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path_by_mode.qml", "gid", "geom", "") 
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_path_by_mode.qml", "gid", "geom", "") 
         # Paths tree described by nodes
-        elif (self.obj_def_name=="paths_tree") and (self.ui.toolBoxDisplay.currentIndex()==0):
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText()+"_edges", self.plugin_dir + "/styles/mm_isochron_edge.qml", "d_node", "geom_section", "")
-            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText()+"_nodes", self.plugin_dir + "/styles/mm_isochron_node.qml", "d_node", "geom_point", "") 
+        elif (self.obj_def_name=="paths_tree") and (self.ui.toolBoxDisplay.currentIndex()==0):            
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_node.qml", "to_node", "geom_point", "") 
+            self.indicDisplay(self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_edge.qml", "to_node", "geom_section", "")
         elif ((self.obj_def_name=="paths_tree") or (self.obj_def_name=="comb_paths_trees")) and (self.ui.toolBoxDisplay.currentIndex()==1):
-            self.indicDisplay(self.ui.comboBoxDerivedRep.currentText(), self.ui.comboBoxDerivedRep.currentText(), self.plugin_dir + "/styles/mm_isochron_surface.qml", "id", "geom", "")
+            self.indicDisplay(self.ui.comboBoxDerivedRep.currentText(), self.plugin_dir + "/styles/mm_isochron_surface.qml", "id", "geom", "")
         elif (self.obj_def_name=="comb_paths_trees") and (self.ui.toolBoxDisplay.currentIndex()==0):
             self.indicDisplay(self.ui.comboBoxReq.currentText(), self.ui.comboBoxReq.currentText(), self.plugin_dir + "/styles/mm_isochron_node.qml", "id", "geom", "")
         

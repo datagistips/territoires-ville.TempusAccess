@@ -50,7 +50,7 @@ def execute_external_cmd( cmd ):
     if not pythonConsole.isVisible():
         pythonConsole.setVisible( True )
     
-    if ((platform.system() == 'Windows')): # and (platform.release() == '7')):
+    if (platform.system() == 'Windows' and platform.release() == '7'):
         line_cmd = string.replace( cmd[0] + ' "' +'" "'.join(cmd[1:]) + '"', '\\', '/' )
         r = os.system (line_cmd)
         print line_cmd
@@ -64,7 +64,7 @@ def execute_external_cmd( cmd ):
             if output:
                 print output.strip()
         return r.poll()
-    
+
 
 # Thread for general indicators building (no path calculation)
 class genIndicThread(QThread):
@@ -197,8 +197,7 @@ class pathIndicThread(QThread):
                         q1=QtSql.QSqlQuery(self.db)
                         q1.exec_(unicode(s1))
                         while q1.next():
-                            current_timestamp = str(q1.value(0))       
-                        
+                            current_timestamp = str(q1.value(0)) 
         self.file.write(self.query_str) 
         
         self.file.close()

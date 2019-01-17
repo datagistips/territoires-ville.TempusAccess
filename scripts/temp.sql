@@ -1,0 +1,3 @@
+DELETE FROM tempus_access.tempus_paths_tree_results; SELECT init_isochrone_plugin('host=localhost dbname=tempusaccess_road_visum port=55432');
+SELECT tempus_access.shortest_paths_tree((1), ARRAY[1, 2, 3, 4, 5], 60, 3.6, 11.0, '2019-01-16 17:00:00'::timestamp, True);
+SELECT tempus_access.create_paths_tree_indicator_layer(param_indics := ARRAY[6, 24], param_node_type := 1, param_root_node := 1, param_i_modes := ARRAY[1, 2, 3, 4, 5]::integer[], param_pt_modes := ARRAY[]::integer[], param_day := '2019-01-16'::date, param_time_point := '17:00:00'::time, param_constraint_date_after := True::boolean,param_max_cost := 60,param_walking_speed := 3.6,param_cycling_speed := 11.0);
