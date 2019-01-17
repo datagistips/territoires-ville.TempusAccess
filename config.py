@@ -24,4 +24,8 @@ import os
 TEMPUSLOADER=(os.path.dirname(__file__)+"/scripts/tempusloader/load_tempus.py" if sys.platform.startswith('win') else "load_tempus")
 PGRESTORE=(os.path.dirname(__file__)+"/exe/runtime/pg_restore.exe" if sys.platform.startswith('win') else "pg_restore")
 PGDUMP=(os.path.dirname(__file__)+"/exe/runtime/pg_dump.exe" if sys.platform.startswith('win') else "pg_dump")
+PSQL=(os.path.dirname(__file__)+"/exe/runtime/psql.exe" if sys.platform.startswith('win') else "psql") 
+
+
+
 
