@@ -98,6 +98,9 @@ CREATE TABLE tempus_access.indicators
     day_ag_agencies character varying,
     day_ag_paths character varying, 
     day_ag_paths_details character varying,
+    indic_paths_trees character varying,
+    day_ag_comb_paths_trees character varying, 
+    node_ag_comb_paths_trees character varying,
     needs_zoning boolean, 
     needs_pt boolean
 );
@@ -409,9 +412,28 @@ CREATE TABLE tempus_access.tempus_paths_tree_results
   wait_time float,       -- waiting time (possibly for PT stop), in minutes
   x_from float, 
   y_from float,
-  pt_node_id integer, 
-  road_node_id integer
+  geom_from Geometry('Point', 4326), 
+  geom_to Geometry('Point', 4326), 
+  geom_section Geometry('Linestring', 4326), 
+  road_node_from bigint, 
+  road_node_to bigint, 
+  pt_node_from integer, 
+  pt_node_to integer, 
+  road_section_id integer, 
+  pt_section_id integer, 
+  ft boolean, 
+  route_type integer
 ); 
+
+CREATE INDEX tempus_paths_tree_results_from_geom_idx
+ON tempus_access.tempus_paths_tree_results
+USING gist
+   (geom_from);
+   
+CREATE INDEX tempus_paths_tree_results_to_geom_idx
+ON tempus_access.tempus_paths_tree_results
+USING gist
+   (geom_to);
 
 COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.path_tree_id IS 'ID of the path tree';
 COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.dep_arr_time IS 'Departure or arrival time';
@@ -427,8 +449,8 @@ COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.pt_changes IS 'number 
 COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.uid IS 'unique id of this node';
 COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.predecessor IS 'id of its predecessor, back to the origin where id = predecessor';
 COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.wait_time IS 'waiting time (possibly for PT stop), in minutes';
-COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.pt_node_id IS 'Public transport node ID, corresponding to the (x,y) coordinates';
-COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.road_node_id IS 'Road transport node ID, corresponding to the (x,y) coordinates';
+COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.pt_section_id IS 'Public transport section ID from predecessor to uid';
+COMMENT ON COLUMN tempus_access.tempus_paths_tree_results.road_section_id IS 'Road section ID from predecessor to uid';
 
 -- Returns the next departure time to test inside a time period and on the same day (when the next departure time to test is outside the time period, returns NULL)
 CREATE OR REPLACE FUNCTION tempus_access.next_pt_timestamp(
