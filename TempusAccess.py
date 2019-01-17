@@ -73,10 +73,6 @@ class TempusAccess:
     
     def initGui(self):
         # Start database server
-        cmd = [ "python", "-m", "pglite", "init" ]
-        r = subprocess.call( cmd )
-        cmd = [ "python", "-m", "pglite", "start" ]
-        r = subprocess.call( cmd )
         
         # Keep reference to paths to the plugin storage directory and to the default directory for data recording and loading
         self.plugin_dir = os.path.dirname(__file__)
@@ -109,6 +105,9 @@ class TempusAccess:
         self.set_db_connection_dialog = set_db_connection_dialog(self, self.iface)
         self.set_db_connection_dialog.setModal(True)
         self.manage_db_dialog=manage_db_dialog(self, self.iface)
+        self.manage_db_dialog.setModal(True) 
+        
+        
         
         # PT networks    
         self.modelPTNetwork = QtSql.QSqlQueryModel()
@@ -425,7 +424,12 @@ class TempusAccess:
         self.dlg.ui.radioButtonTimeInterval.toggled.connect(self._slotRadioButtonTimeIntervalToggled)
             
     
-    def set_db_connection(self):
+    def set_db_connection(self):        
+        cmd = [ "python", "-m", "pglite", "init" ]
+        r = subprocess.call( cmd )
+        cmd = [ "python", "-m", "pglite", "start" ]
+        r = subprocess.call( cmd )
+        
         self.set_db_connection_dialog.show()
     
     
