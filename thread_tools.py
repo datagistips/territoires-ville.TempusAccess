@@ -204,7 +204,7 @@ class pathIndicThread(QThread):
         self.file.close()
         print "closed"
         
-        cmd = [ PSQL, "-h", self.db.hostName(), "-p", str(self.db.port()), "-d", self.db.databaseName(), "-U", self.db.userName(), "-f", self.plugin_dir+"\scripts\temp.sql" ]
+        cmd = [ PSQL, "-h", self.db.hostName(), "-p", str(self.db.port()), "-d", self.db.databaseName(), "-U", self.db.userName(), "-f", self.plugin_dir+"\\scripts\\temp.sql" ]
         print cmd
         done = execute_external_cmd(cmd)
         print "exe"

@@ -122,21 +122,22 @@ class import_pt_dialog(QDialog):
         
         
     def _slotPushButtonChoose1Clicked(self):
-        self.cheminComplet1 = QFileDialog.getOpenFileName(caption = "Choisir un fichier .zip", directory=self.temp_data_dir, filter = "(*.zip)")
+        self.cheminComplet1 = QFileDialog.getOpenFileName(caption = "Choisir un fichier .zip", directory=self.caller.last_dir, filter = "(*.zip)")
+        self.caller.last_dir = os.path.dirname(cheminComplet1)
         self.ui.labelFile1.setText(os.path.basename(self.cheminComplet1))
-        self.temp_data_dir = os.path.dirname(self.cheminComplet1)
         self.updatePushButtonImport()
 
         
     def _slotPushButtonChoose2Clicked(self):
-        self.cheminComplet2 = QFileDialog.getOpenFileName(caption = "Choisir un fichier .zip", directory=self.temp_data_dir, filter = "(*.zip)")
+        self.cheminComplet2 = QFileDialog.getOpenFileName(caption = "Choisir un fichier .zip", directory=self.caller.last_dir, filter = "(*.zip)")
+        self.caller.last_dir = os.path.dirname(cheminComplet2)
         self.ui.labelFile2.setText(os.path.basename(self.cheminComplet2))
-        self.temp_data_dir = os.path.dirname(self.cheminComplet2)
         self.updatePushButtonImport()
         
         
     def _slotPushButtonChoose3Clicked(self):
-        self.cheminComplet3 = QFileDialog.getExistingDirectory(caption = "Choisir le répertoire Route500", options=QFileDialog.ShowDirsOnly, directory=self.temp_data_dir)
+        self.cheminComplet3 = QFileDialog.getExistingDirectory(caption = "Choisir le répertoire Route500", options=QFileDialog.ShowDirsOnly, directory=self.caller.last_dir) 
+        self.caller.last_dir = os.path.dirname(cheminComplet3)
         self.ui.labelFile3.setText(os.path.basename(self.cheminComplet3))
         self.temp_data_dir = self.cheminComplet3
         self.updatePushButtonImport()

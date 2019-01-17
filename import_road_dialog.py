@@ -115,11 +115,12 @@ class import_road_dialog(QDialog):
         else:
             cheminComplet = ''
             if (self.path_type=="directory"):
-                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.last_dir)
             else:
-                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.last_dir, filter = "(*"+self.path_type+")")
                 
             if cheminComplet != '':
+                self.caller.last_dir = os.path.dirname(cheminComplet)
                 dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
                 self.srid = self.ui.spinBoxSRID.value()
                 self.prefix = unicode(self.ui.lineEditPrefix.text())

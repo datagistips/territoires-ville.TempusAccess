@@ -116,10 +116,11 @@ class import_poi_dialog(QDialog):
         else:
             cheminComplet = ''
             if (self.path_type=="directory"):
-                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.data_dir)
+                cheminComplet = QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly, directory=self.caller.last_dir)
             else:
-                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.data_dir, filter = "(*"+self.path_type+")")
+                cheminComplet = QFileDialog.getOpenFileName(caption = "Choisir un fichier "+self.path_type, directory=self.caller.last_dir, filter = "(*"+self.path_type+")")
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.caller.last_dir = os.path.dirname(cheminComplet)
             self.srid = self.ui.spinBoxSRID.value()
             self.prefix = unicode(self.ui.lineEditPrefix.text())
             self.encoding = self.caller.modelEncoding.record(self.ui.comboBoxEncoding.currentIndex()).value("mod_lib")
