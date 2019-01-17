@@ -85,7 +85,7 @@ BEGIN
     -- Use a loop here in order to make sure stops are compared to road sections
     -- while new road sections are created.
     FOR point IN
-        SELECT * FROM tempus.poi WHERE feed_id = '%(source_name)'
+        SELECT * FROM tempus.poi WHERE name = '%(source_name)' 
     LOOP
         l_road_section_id := null;
         -- get the closest road section (if any)
@@ -100,17 +100,18 @@ BEGIN
             , st_distance(rs.geom, point.geom) dist
             FROM tempus.road_section rs
             WHERE st_dwithin(geography(point.geom), geography(rs.geom), 50)
-            -- attach to roads waklable by pedestrians
+            -- attach to roads walkable by pedestrians
             AND ((rs.traffic_rules_ft & 1) > 0 OR (rs.traffic_rules_tf & 1) > 0)
             ORDER BY dist
             LIMIT 1
         ) t ;
-
+        
+        
+        
         IF l_road_section_id IS NULL THEN
             -- no section, CREATE a fake one, FROM the point geometry
             l_road_section_id := nextval('tempus.seq_road_section_id');
             l_abscissa_road_section := 0.5;
-            l_artificial := true;
             l_node1_id := nextval('tempus.seq_road_node_id')::bigint;
             l_node2_id := nextval('tempus.seq_road_node_id')::bigint;
 
