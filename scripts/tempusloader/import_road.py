@@ -106,7 +106,7 @@ def import_road_visum(args, shape_options):
     if len(splitted_modes) != 4:
         sys.stderr.write(("Need 4 comma-separated strings "
                           "(command --visum-modes) for representing "
-                          "pedestrians, bikes, private vehicles and taxis!\n"))
+                          "pedestrians, bikes, private vehicles and taxis\n"))
         sys.exit(1)
     visumi = provider.ImportRoadVisum(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs, splitted_modes)
     return visumi.load()
