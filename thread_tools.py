@@ -68,31 +68,32 @@ def execute_external_cmd( cmd ):
 
 # Thread for general indicators building (no path calculation)
 class genIndicThread(QThread):
-    resultAvailable = pyqtSignal(bool, str)
+    resultAvailable = pyqtSignal(bool)
 
-    def __init__(self, query_str, db, file, parent = None):
+    def __init__(self, query_str, db, parent = None):
         super(genIndicThread, self).__init__(parent)
         self.query_str = query_str
         self.db = db
-        self.file = file
-        if (file!=None):
-            f=open(file, "w").write(query_str)
-            f.close()
+        self.plugin_dir = os.path.dirname(__file__)
+        
+        self.file = open(self.plugin_dir+"/scripts/temp.sql", "w")
+        self.file.write(query_str)
+        self.file.close()
     
     def __del__(self):
         self.wait()
         
     def run(self): 
-        if (file==None):
-            r=QtSql.QSqlQuery(self.db)
-            done=r.exec_(self.query_str)
-        else:
-            done=True
-        self.resultAvailable.emit(done, self.query_str)
+        cmd = [ PSQL, "-h", self.db.hostName(), "-p", str(self.db.port()), "-d", self.db.databaseName(), "-U", self.db.userName(), "-f", self.plugin_dir+"\\scripts\\temp.sql" ]
+        done = execute_external_cmd(cmd)
+        res=False
+        if (done==0):
+            res=True
+        self.resultAvailable.emit(res)
 
         
 class pathIndicThread(QThread):
-    resultAvailable = pyqtSignal(bool, str)
+    resultAvailable = pyqtSignal(bool)
     
     def __init__(self, query_str, db, dbstring, road_node_from, road_node_to, road_nodes, time_start, time_end, time_ag, time_point, time_interval, all_services, days, tran_modes, path_tree, max_cost, walking_speed, cycling_speed, constraint_date_after, parent = None):
         super(pathIndicThread, self).__init__(parent)
@@ -221,7 +222,7 @@ class pathIndicThread(QThread):
         res=False
         if (done==0):
             res=True
-        self.resultAvailable.emit(res, self.query_str)
+        self.resultAvailable.emit(res)
         
         
         

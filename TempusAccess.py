@@ -1213,7 +1213,7 @@ class TempusAccess:
             self.path_indic_thread.start()
 
             
-    def _slotResultAvailable(self, done, query_str): 
+    def _slotResultAvailable(self, done): 
         if (done==True):
             s="UPDATE tempus_access.indic_catalog SET calc_time = "+str(self.time.elapsed()/1000)+" WHERE layer_name = '"+self.obj_def_name+"';"
             print s
@@ -1224,12 +1224,10 @@ class TempusAccess:
                 t="SELECT count(*) FROM indic."+self.obj_def_name+" as count;"
             else:
                 t="SELECT count(*) FROM indic.isosurfaces as count;"
-            print t
             r=QtSql.QSqlQuery(unicode(t), self.db)
             r.next()
             
             if (r.value(0)>0): # has returned at least one row
-                print query_str
                 if (self.isosurfaces==False):
                     self.manage_indicators_dialog.refreshReq()
                     self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(self.manage_indicators_dialog.ui.comboBoxReq.findText(self.obj_def_name)) 
@@ -1240,15 +1238,13 @@ class TempusAccess:
             
             else: # has not returned any row
                 box = QMessageBox()
-                box.setText(u"La requête a abouti mais n'a pas retourné de résultats. " )
+                box.setText(u"La requête a abouti mais n'a pas retourné de résultats." )
                 display_and_clear_python_console()
-                print u"La requête suivante a abouti mais n'a pas retourné de résultats : "+query_str  
                 box.exec_()
         else:
             box = QMessageBox()
-            box.setText(u"La requête a échoué. ")
+            box.setText(u"La requête a échoué.")
             display_and_clear_python_console()
-            print u"La requête suivante a échoué : "+self.query
             box.exec_()
             
             
