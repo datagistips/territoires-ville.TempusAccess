@@ -143,7 +143,6 @@ class import_poi_dialog(QDialog):
                 cmd.append('--filter')
                 cmd.append(self.filter)
             
-            self.ui.lineEditCommand.setText(" ".join(cmd))        
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             box.setModal(True)
@@ -171,8 +170,8 @@ class import_poi_dialog(QDialog):
                 self.caller.node_zoning.setExpanded(True)
                 
                 # Zoom to the loaded zoning data
-                #layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
-                #self.caller.zoomToLayersList(layersList)
+                layersList = [ layer for layer in QgsMapLayerRegistry.instance().mapLayers().values() if ((layer.name()==u"POI et stationnements"))]
+                self.caller.zoomToLayersList(layersList)
             else:
                 box.setText(unicode("Erreur pendant l'import.\n Pour en savoir plus, ouvrir la console Python de QGIS et relancer la commande."))
             box.exec_()            

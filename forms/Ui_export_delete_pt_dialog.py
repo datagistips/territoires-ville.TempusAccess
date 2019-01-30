@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_pt_dialog.ui'
 #
-# Created: Thu Nov 29 14:50:40 2018
+# Created: Wed Jan 23 10:52:09 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -51,18 +51,6 @@ class Ui_Dialog(object):
         self.pushButtonExport = QtGui.QPushButton(self.verticalLayoutWidget)
         self.pushButtonExport.setObjectName(_fromUtf8("pushButtonExport"))
         self.gridLayout.addWidget(self.pushButtonExport, 1, 1, 1, 1)
-        self.layoutWidget = QtGui.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(20, 100, 421, 22))
-        self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label_5 = QtGui.QLabel(self.layoutWidget)
-        self.label_5.setObjectName(_fromUtf8("label_5"))
-        self.horizontalLayout.addWidget(self.label_5)
-        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget)
-        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
-        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -74,7 +62,6 @@ class Ui_Dialog(object):
         self.label.setText(_translate("Dialog", "Nom de la source *", None))
         self.pushButtonDelete.setText(_translate("Dialog", "Supprimer source", None))
         self.pushButtonExport.setText(_translate("Dialog", "Exporter source", None))
-        self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

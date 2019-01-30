@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_poi_dialog.ui'
 #
-# Created: Thu Nov 29 14:50:40 2018
+# Created: Wed Jan 23 10:52:13 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -138,18 +138,6 @@ class Ui_Dialog(object):
         self.labelNameField.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelNameField.setObjectName(_fromUtf8("labelNameField"))
         self.gridLayout.addWidget(self.labelNameField, 10, 0, 1, 1)
-        self.layoutWidget_2 = QtGui.QWidget(Dialog)
-        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 360, 421, 22))
-        self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_2)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label_8 = QtGui.QLabel(self.layoutWidget_2)
-        self.label_8.setObjectName(_fromUtf8("label_8"))
-        self.horizontalLayout.addWidget(self.label_8)
-        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
-        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
-        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -168,11 +156,10 @@ class Ui_Dialog(object):
         self.pushButtonChoose.setText(_translate("Dialog", "Parcourir...", None))
         self.label_3.setText(_translate("Dialog", "Version du modèle de données", None))
         self.label_7.setText(_translate("Dialog", "Type de POI *", None))
-        self.labelSourceComment.setText(_translate("Dialog", "Nom détaillé source de données *", None))
+        self.labelSourceComment.setText(_translate("Dialog", "Nom détaillé source de données", None))
         self.label_4.setText(_translate("Dialog", "Préfixe fichiers", None))
         self.labelIdField.setText(_translate("Dialog", "Champ identifiant (clé primaire) *", None))
         self.labelNameField.setText(_translate("Dialog", "Champ libellé *", None))
-        self.label_8.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

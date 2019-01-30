@@ -162,9 +162,7 @@ class import_zoning_dialog(QDialog):
                 cmd.append(self.id_field)
                 cmd.append("--name-field")
                 cmd.append(self.name_field)
-            
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-                        
+                                    
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             box.setModal(True)

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_zoning_dialog.ui'
 #
-# Created: Thu Nov 29 14:50:39 2018
+# Created: Wed Jan 23 10:51:42 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -122,18 +122,6 @@ class Ui_Dialog(object):
         self.lineEditIdField.setText(_fromUtf8(""))
         self.lineEditIdField.setObjectName(_fromUtf8("lineEditIdField"))
         self.gridLayout.addWidget(self.lineEditIdField, 8, 1, 1, 1)
-        self.layoutWidget_2 = QtGui.QWidget(Dialog)
-        self.layoutWidget_2.setGeometry(QtCore.QRect(10, 320, 421, 22))
-        self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_2)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label_10 = QtGui.QLabel(self.layoutWidget_2)
-        self.label_10.setObjectName(_fromUtf8("label_10"))
-        self.horizontalLayout.addWidget(self.label_10)
-        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_2)
-        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
-        self.horizontalLayout.addWidget(self.lineEditCommand)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(440, 310, 81, 41))
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
@@ -156,7 +144,6 @@ class Ui_Dialog(object):
         self.labelFilter.setText(_translate("Dialog", "Filtre (clause WHERE)", None))
         self.labelZoningName.setText(_translate("Dialog", "Nom court source de données  *", None))
         self.label_2.setText(_translate("Dialog", "Type de données source *", None))
-        self.label_10.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

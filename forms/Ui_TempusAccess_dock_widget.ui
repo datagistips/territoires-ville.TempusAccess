@@ -207,8 +207,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>321</width>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -335,8 +335,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>321</width>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1232,8 +1232,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>271</width>
-          <height>147</height>
+          <width>98</width>
+          <height>28</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1650,6 +1650,20 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_5">
+     <item row="0" column="1">
+      <widget class="QLabel" name="labelElapsedTime">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="pushButtonIndicCalculate">
+       <property name="text">
+        <string>Lancer la requête</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="pushButtonReinitCalc">
        <property name="text">
@@ -1658,16 +1672,9 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QPushButton" name="pushButtonIndicCalculate">
+      <widget class="QPushButton" name="pushButtonIndicReqGenerate">
        <property name="text">
-        <string>Calculer</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="labelElapsedTime">
-       <property name="text">
-        <string/>
+        <string>Générer la requête...</string>
        </property>
       </widget>
      </item>

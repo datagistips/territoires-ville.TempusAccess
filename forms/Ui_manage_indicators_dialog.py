@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_indicators_dialog.ui'
 #
-# Created: Thu Nov 29 14:50:41 2018
+# Created: Wed Jan 23 10:52:22 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -36,7 +36,7 @@ class Ui_Dialog(object):
         self.toolBoxDisplay.setGeometry(QtCore.QRect(10, 10, 631, 241))
         self.toolBoxDisplay.setObjectName(_fromUtf8("toolBoxDisplay"))
         self.page_8 = QtGui.QWidget()
-        self.page_8.setGeometry(QtCore.QRect(0, 0, 100, 30))
+        self.page_8.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.page_8.setObjectName(_fromUtf8("page_8"))
         self.layoutWidget = QtGui.QWidget(self.page_8)
         self.layoutWidget.setGeometry(QtCore.QRect(20, 0, 601, 31))
@@ -355,19 +355,6 @@ class Ui_Dialog(object):
         self.pushButtonReqDisplay.setEnabled(True)
         self.pushButtonReqDisplay.setObjectName(_fromUtf8("pushButtonReqDisplay"))
         self.horizontalLayout_2.addWidget(self.pushButtonReqDisplay)
-        self.layoutWidget_5 = QtGui.QWidget(Dialog)
-        self.layoutWidget_5.setGeometry(QtCore.QRect(20, 540, 521, 22))
-        self.layoutWidget_5.setObjectName(_fromUtf8("layoutWidget_5"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget_5)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label_5 = QtGui.QLabel(self.layoutWidget_5)
-        self.label_5.setObjectName(_fromUtf8("label_5"))
-        self.horizontalLayout.addWidget(self.label_5)
-        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget_5)
-        self.lineEditCommand.setEnabled(False)
-        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
-        self.horizontalLayout.addWidget(self.lineEditCommand)
 
         self.retranslateUi(Dialog)
         self.toolBoxDisplay.setCurrentIndex(1)
@@ -418,7 +405,6 @@ class Ui_Dialog(object):
         self.label_4.setText(_translate("Dialog", "Filtrer les chemins : afficher l\'identifiant", None))
         self.pushButtonReqDisplay.setToolTip(_translate("Dialog", "<html><head/><body><p>Cartographier les indicateurs choisis</p></body></html>", None))
         self.pushButtonReqDisplay.setText(_translate("Dialog", "Ajouter la couche", None))
-        self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
 
 
 if __name__ == "__main__":

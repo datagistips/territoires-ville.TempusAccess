@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.ui'
 #
-# Created: Wed Jan 09 16:59:21 2019
+# Created: Wed Jan 23 10:51:21 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,7 +105,7 @@ class Ui_DockWidget(object):
         self.toolBoxPaths.setGeometry(QtCore.QRect(10, 100, 321, 251))
         self.toolBoxPaths.setObjectName(_fromUtf8("toolBoxPaths"))
         self.page = QtGui.QWidget()
-        self.page.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page.setObjectName(_fromUtf8("page"))
         self.layoutWidget_3 = QtGui.QWidget(self.page)
         self.layoutWidget_3.setGeometry(QtCore.QRect(10, 0, 301, 95))
@@ -169,7 +169,7 @@ class Ui_DockWidget(object):
         self.gridLayout.addWidget(self.pushButtonInvertOD, 1, 2, 1, 1)
         self.toolBoxPaths.addItem(self.page, _fromUtf8(""))
         self.page_2 = QtGui.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.layoutWidget1 = QtGui.QWidget(self.page_2)
         self.layoutWidget1.setGeometry(QtCore.QRect(10, 0, 311, 29))
@@ -558,7 +558,7 @@ class Ui_DockWidget(object):
         self.horizontalLayout_14.addWidget(self.timeEditTimePoint)
         self.toolBoxTime.addItem(self.page_6, _fromUtf8(""))
         self.page_7 = QtGui.QWidget()
-        self.page_7.setGeometry(QtCore.QRect(0, 0, 271, 147))
+        self.page_7.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.page_7.setObjectName(_fromUtf8("page_7"))
         self.layoutWidget5 = QtGui.QWidget(self.page_7)
         self.layoutWidget5.setGeometry(QtCore.QRect(0, 10, 271, 31))
@@ -757,16 +757,19 @@ class Ui_DockWidget(object):
         self.gridLayout_5 = QtGui.QGridLayout(self.layoutWidget10)
         self.gridLayout_5.setMargin(0)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
-        self.pushButtonReinitCalc = QtGui.QPushButton(self.layoutWidget10)
-        self.pushButtonReinitCalc.setObjectName(_fromUtf8("pushButtonReinitCalc"))
-        self.gridLayout_5.addWidget(self.pushButtonReinitCalc, 0, 0, 1, 1)
-        self.pushButtonIndicCalculate = QtGui.QPushButton(self.layoutWidget10)
-        self.pushButtonIndicCalculate.setObjectName(_fromUtf8("pushButtonIndicCalculate"))
-        self.gridLayout_5.addWidget(self.pushButtonIndicCalculate, 0, 2, 1, 1)
         self.labelElapsedTime = QtGui.QLabel(self.layoutWidget10)
         self.labelElapsedTime.setText(_fromUtf8(""))
         self.labelElapsedTime.setObjectName(_fromUtf8("labelElapsedTime"))
         self.gridLayout_5.addWidget(self.labelElapsedTime, 0, 1, 1, 1)
+        self.pushButtonIndicCalculate = QtGui.QPushButton(self.layoutWidget10)
+        self.pushButtonIndicCalculate.setObjectName(_fromUtf8("pushButtonIndicCalculate"))
+        self.gridLayout_5.addWidget(self.pushButtonIndicCalculate, 0, 3, 1, 1)
+        self.pushButtonReinitCalc = QtGui.QPushButton(self.layoutWidget10)
+        self.pushButtonReinitCalc.setObjectName(_fromUtf8("pushButtonReinitCalc"))
+        self.gridLayout_5.addWidget(self.pushButtonReinitCalc, 0, 0, 1, 1)
+        self.pushButtonIndicReqGenerate = QtGui.QPushButton(self.layoutWidget10)
+        self.pushButtonIndicReqGenerate.setObjectName(_fromUtf8("pushButtonIndicReqGenerate"))
+        self.gridLayout_5.addWidget(self.pushButtonIndicReqGenerate, 0, 2, 1, 1)
         DockWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(DockWidget)
@@ -848,8 +851,9 @@ class Ui_DockWidget(object):
         self.groupBoxForcStop.setTitle(_translate("DockWidget", "Obliger le passage par un arrêt", None))
         self.pushButtonChooseForcStopOnMap.setText(_translate("DockWidget", "+", None))
         self.Tabs.setTabText(self.Tabs.indexOf(self.tab), _translate("DockWidget", "Filtres", None))
+        self.pushButtonIndicCalculate.setText(_translate("DockWidget", "Lancer la requête", None))
         self.pushButtonReinitCalc.setText(_translate("DockWidget", "Nouveau calcul", None))
-        self.pushButtonIndicCalculate.setText(_translate("DockWidget", "Calculer", None))
+        self.pushButtonIndicReqGenerate.setText(_translate("DockWidget", "Générer la requête...", None))
 
 
 if __name__ == "__main__":

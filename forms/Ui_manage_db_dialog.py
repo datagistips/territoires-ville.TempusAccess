@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_db_dialog.ui'
 #
-# Created: Mon Jan 07 15:02:02 2019
+# Created: Wed Jan 23 11:14:06 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,9 +26,9 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(462, 431)
+        Dialog.resize(458, 398)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(350, 390, 81, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(350, 360, 81, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
@@ -125,25 +125,19 @@ class Ui_Dialog(object):
         self.pushButtonImport.setObjectName(_fromUtf8("pushButtonImport"))
         self.gridLayout_3.addWidget(self.pushButtonImport, 1, 1, 1, 1)
         self.layoutWidget2 = QtGui.QWidget(Dialog)
-        self.layoutWidget2.setGeometry(QtCore.QRect(30, 330, 401, 51))
+        self.layoutWidget2.setGeometry(QtCore.QRect(30, 330, 401, 21))
         self.layoutWidget2.setObjectName(_fromUtf8("layoutWidget2"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget2)
         self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.label_5 = QtGui.QLabel(self.layoutWidget2)
-        self.label_5.setObjectName(_fromUtf8("label_5"))
-        self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
-        self.lineEditCommand = QtGui.QLineEdit(self.layoutWidget2)
-        self.lineEditCommand.setObjectName(_fromUtf8("lineEditCommand"))
-        self.gridLayout.addWidget(self.lineEditCommand, 0, 1, 1, 1)
         self.label = QtGui.QLabel(self.layoutWidget2)
         self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label.setObjectName(_fromUtf8("label"))
-        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.labelLoadedDB = QtGui.QLabel(self.layoutWidget2)
         self.labelLoadedDB.setAlignment(QtCore.Qt.AlignCenter)
         self.labelLoadedDB.setObjectName(_fromUtf8("labelLoadedDB"))
-        self.gridLayout.addWidget(self.labelLoadedDB, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.labelLoadedDB, 0, 1, 1, 1)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -171,7 +165,6 @@ class Ui_Dialog(object):
         self.pushButtonCreate.setText(_translate("Dialog", "Créer une base vierge", None))
         self.pushButtonImport.setToolTip(_translate("Dialog", "<html><head/><body><p>Ecrase toutes les données déjà présentes dans la base et les remplace par les données du fichier de sauvegarde choisi.  </p></body></html>", None))
         self.pushButtonImport.setText(_translate("Dialog", "Créer à partir d\'une sauvegarde...", None))
-        self.label_5.setText(_translate("Dialog", "Dernière commande exécutée", None))
         self.label.setText(_translate("Dialog", "Base actuellement chargée", None))
         self.labelLoadedDB.setText(_translate("Dialog", "...", None))
 

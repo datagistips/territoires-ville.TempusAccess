@@ -153,7 +153,6 @@ class manage_db_dialog(QDialog):
                 
                 dbstring = "host="+self.caller.db.hostName()+" dbname=tempusaccess_"+self.ui.lineEditNewDB.text()+" port="+str(self.caller.db.port())
                 cmd = ["python", TEMPUSLOADER, "--action", "reset", "--tempusaccess", "--path", self.plugin_dir + "/data/system.zip", "--sep", ";", "--encoding", "UTF8", "-d", dbstring]
-                self.ui.lineEditCommand.setText(" ".join(cmd))
                 
                 rc = execute_external_cmd( cmd )
                 box = QMessageBox()

@@ -79,9 +79,7 @@ class delete_zoning_dialog(QDialog):
             self.caller.node_zoning.setExpanded(True)        
             
             cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "zoning", "--source-name", self.source_name, '--dbstring', dbstring]
-            
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-                        
+                                    
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):

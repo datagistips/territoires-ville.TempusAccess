@@ -69,8 +69,6 @@ class delete_poi_dialog(QDialog):
         
             cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "poi", "--source-name", self.source_name, '--dbstring', dbstring]
             
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-            
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):

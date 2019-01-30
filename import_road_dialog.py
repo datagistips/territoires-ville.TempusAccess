@@ -141,8 +141,6 @@ class import_road_dialog(QDialog):
                     cmd.append('--visum-modes')
                     cmd.append(self.visum_modes)
                 
-                self.ui.lineEditCommand.setText(" ".join(cmd))
-                
                 rc = execute_external_cmd( cmd )
                 box = QMessageBox()
                 box.setModal(True)

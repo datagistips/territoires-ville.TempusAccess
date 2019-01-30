@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>440</x>
-     <y>250</y>
+     <y>260</y>
      <width>81</width>
      <height>41</height>
     </rect>
@@ -198,28 +198,6 @@
     </item>
     <item row="4" column="1">
      <widget class="QLineEdit" name="lineEditSourceComment"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="layoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>260</y>
-     <width>421</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QLabel" name="label_8">
-      <property name="text">
-       <string>Dernière commande exécutée</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="lineEditCommand"/>
     </item>
    </layout>
   </widget>

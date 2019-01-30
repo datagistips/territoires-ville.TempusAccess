@@ -78,9 +78,7 @@ class export_delete_pt_dialog(QDialog):
             self.caller.node_pt_offer.setExpanded(True)
 
             cmd=["python", TEMPUSLOADER, "--action", "delete", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring]
-
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-
+            
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
@@ -102,12 +100,11 @@ class export_delete_pt_dialog(QDialog):
 
         if (NomFichierComplet!=''):
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
-            self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("name")
+            self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")
 
             cmd=["python", TEMPUSLOADER, "--action", "export", "--data-type", "pt", "--source-name", self.source_name, '--dbstring', dbstring, '--path', NomFichierComplet]
-
-            self.ui.lineEditCommand.setText(" ".join(cmd))
-
+            print cmd
+            
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):

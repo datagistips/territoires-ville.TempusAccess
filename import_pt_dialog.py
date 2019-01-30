@@ -167,9 +167,7 @@ class import_pt_dialog(QDialog):
             if (self.model_version != 'NULL'):
                 cmd.append('--model-version')
                 cmd.append(self.model_version)
-            
-            self.ui.lineEditCommand.setText(" ".join(cmd))        
-            
+                        
             rc = execute_external_cmd( cmd )
             box = QMessageBox()
             if (rc==0):
