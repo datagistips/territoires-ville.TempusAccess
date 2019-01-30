@@ -27,6 +27,6 @@ import sys
 from exporter import DataExporter
 
 class ExportPTGTFS(DataExporter):
-    CSVFILES=['agency', 'calendar', 'calendar_dates', 'routes', 'trips', 'stops', 'stop_times', 'transfers', 'shapes']
+    TXTFILES=['agency', 'calendar', 'calendar_dates', 'routes', 'trips', 'stops', 'stop_times', 'transfers', 'shapes']
     PREEXPORT_SQL=['export_pt_gtfs.sql']
     

@@ -13,7 +13,9 @@ CREATE VIEW _tempus_export.agency AS
     
 CREATE VIEW _tempus_export.calendar AS
 (
-    SELECT null as service_id, null as monday, null as tuesday, null as wednesday, null as thursday, null as friday, null as saturday, null as sunday, null as start_date, null as end_date
+    SELECT id as service_id, id as monday, id as tuesday, id as wednesday, id as thursday, id as friday, id as saturday, id as sunday, id as start_date, id as end_date
+    FROM tempus_gtfs.calendar
+    WHERE 1=0
 );
     
 CREATE VIEW _tempus_export.calendar_dates AS

@@ -28,7 +28,7 @@ from exporter import DataExporter
 
 class ExportRoadTempus(DataExporter):
     SHAPEFILES=['node', 'section']
-    CSVFILES=['days_period', 'speed_daily_profile', 'section_speed', 'restriction', 'time_penalty', 'toll']
+    TXTFILES=['days_period', 'speed_daily_profile', 'section_speed', 'restriction', 'time_penalty', 'toll']
     PREEXPORT_SQL=['export_road_tempus.sql']
     ZIPFILE='export_road_tempus.zip'
     

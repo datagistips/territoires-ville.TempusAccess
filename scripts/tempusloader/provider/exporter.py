@@ -38,7 +38,7 @@ class DataExporter(object):
     database. """
     
     SHAPEFILES=[]
-    CSVFILES=[]
+    TXTFILES=[]
     PREEXPORT_SQL=[]
     POSTEXPORT_SQL=[]
     ZIPFILE=""
@@ -57,7 +57,7 @@ class DataExporter(object):
         if not ret:
             sys.stderr.write("Error during pre_export_sql().\n")
             sys.exit(1)
-        ret = self.export_csvfiles(self.CSVFILES)
+        ret = self.export_txtfiles(self.TXTFILES)
         if not ret:
             sys.stderr.write("Error during csv_import().\n")
             sys.exit(1)
@@ -70,8 +70,8 @@ class DataExporter(object):
             sys.stderr.write("Error during post_export_sql().\n")
             sys.exit(1)
         files = []
-        for f in self.CSVFILES:
-            files.append(f+".csv")
+        for f in self.TXTFILES:
+            files.append(f+".txt")
         for f in self.SHAPEFILES:
             files.append(f+".shp")
             files.append(f+".dbf")
@@ -79,7 +79,7 @@ class DataExporter(object):
             files.append(f+".cpg")
             files.append(f+".shx")
         
-        ret = self.zip_files(files, self.ZIPFILE)
+        ret = self.zip_files(files, os.path.basename(self.path))
         if not ret:
             sys.stderr.write("Error during zip_files().\n")
             sys.exit(1)
@@ -132,11 +132,11 @@ class DataExporter(object):
         
         return ret
 
-    def export_csvfiles(self, tables):
+    def export_txtfiles(self, tables):
         ret = True
         
         for f in tables:
-            filename = self.path+"/"+f+'.csv'
+            filename = os.path.dirname(self.path)+"/"+f+'.txt'
             
             command = [PSQL, "-t", "-d", self.dbstring, "-c", "\copy (SELECT * FROM _tempus_export."+f+") TO '"+filename+"' CSV HEADER DELIMITER ',' ENCODING 'UTF-8'" ]
             
@@ -161,10 +161,8 @@ class DataExporter(object):
     
     def zip_files(self, files, zipfile_name):
         ret = True
-        
-        zipfile_path = self.path+"/"+zipfile_name
-        
-        zip=zipfile.ZipFile(zipfile_path,'w',zipfile.ZIP_DEFLATED)
+                
+        zip=zipfile.ZipFile(self.path,'w',zipfile.ZIP_DEFLATED)
         
         for file in files:
             if self.logfile:
@@ -173,8 +171,8 @@ class DataExporter(object):
                 outerr = sys.stderr
             outerr.write("\n======= Zip exported file %s\n" % file)
             
-            zip.write(self.path+"/"+file, file)
-            os.remove(self.path+"/"+file)
+            zip.write(os.path.dirname(self.path)+"/"+file, file)
+            os.remove(os.path.dirname(self.path)+"/"+file)
         
         zip.close()
         

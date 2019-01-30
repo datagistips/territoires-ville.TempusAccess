@@ -92,7 +92,7 @@ CREATE TABLE _tempus_import.shapes_idmap
 );
 SELECT setval('_tempus_import.shapes_idmap_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.shapes));
 INSERT INTO _tempus_import.shapes_idmap (shape_id)
-       SELECT shape_id FROM _tempus_import.shapes;
+       SELECT DISTINCT shape_id FROM _tempus_import.shapes;
 CREATE INDEX shapes_idmap_shape_idx ON _tempus_import.shapes_idmap(shape_id);
 
 -- zones_id_map
@@ -347,7 +347,7 @@ CREATE INDEX ON _tempus_import.shape_points USING gist(geom);
 CREATE INDEX ON _tempus_import.shape_points(shape_id);
 
 INSERT INTO tempus_gtfs.shapes(feed_id, shape_id, id, geom)
-    SELECT '%(source_name)', shape_id, (SELECT id FROM _tempus_import.shapes_idmap WHERE shapes_idmap.shape_id = shape_points.shape_id), st_makeline(shape_points.geom ORDER BY shape_pt_sequence) AS geom
+    SELECT '%(source_name)', shape_id, (SELECT id FROM _tempus_import.shapes_idmap WHERE shapes_idmap.shape_id = shape_points.shape_id), st_force3DZ(st_makeline(shape_points.geom ORDER BY shape_pt_sequence)) AS geom
     FROM _tempus_import.shape_points
     GROUP BY shape_points.shape_id; 
 
