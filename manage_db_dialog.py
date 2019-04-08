@@ -165,9 +165,7 @@ class manage_db_dialog(QDialog):
                 else:
                     box.setText(u"Erreur pendant la création de la base.\nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande.")
                 box.exec_()
-            
-                
-                
+             
                 
     def _slotComboBoxDBIndexChanged(self):
         self.temp_db.setHostName(self.caller.db.hostName())

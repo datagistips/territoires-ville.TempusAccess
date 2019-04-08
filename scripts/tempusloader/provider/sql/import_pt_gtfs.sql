@@ -340,16 +340,21 @@ end$$;
 
 DROP TABLE IF EXISTS _tempus_import.shape_points;
 CREATE TABLE _tempus_import.shape_points AS
-    SELECT shape_id, shape_pt_sequence, ('srid=4326;point(' || shape_pt_lon || ' ' || shape_pt_lat || ')')::geometry AS geom
+    SELECT shape_id, 
+           shape_pt_sequence, 
+           ('srid=4326;point(' || shape_pt_lon || ' ' || shape_pt_lat || ')')::geometry AS geom
     FROM _tempus_import.shapes;
     
 CREATE INDEX ON _tempus_import.shape_points USING gist(geom);
 CREATE INDEX ON _tempus_import.shape_points(shape_id);
 
 INSERT INTO tempus_gtfs.shapes(feed_id, shape_id, id, geom)
-    SELECT '%(source_name)', shape_id, (SELECT id FROM _tempus_import.shapes_idmap WHERE shapes_idmap.shape_id = shape_points.shape_id), st_force3DZ(st_makeline(shape_points.geom ORDER BY shape_pt_sequence)) AS geom
+    SELECT '%(source_name)', 
+           shape_id, 
+           (SELECT id FROM _tempus_import.shapes_idmap WHERE shapes_idmap.shape_id = shape_points.shape_id), 
+           st_force3DZ(st_makeline(shape_points.geom ORDER BY shape_pt_sequence)) AS geom
     FROM _tempus_import.shape_points
-    GROUP BY shape_points.shape_id; 
+    GROUP BY shape_points.shape_id;
 
 INSERT INTO tempus_gtfs.sections (stop_from, stop_to, feed_id, shape_id_int, geom)
     WITH pt_seq AS (

@@ -108,8 +108,8 @@ class import_poi_dialog(QDialog):
     
     
     def _slotPushButtonChooseClicked(self):
-        if ((self.format == 'insee_bpe') and ((self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '')))\
-        or ((self.format == 'tempus') and ((self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
+        if ((self.format == 'insee_bpe') and (self.ui.lineEditSourceName.text() == ''))\
+        or ((self.format == 'tempus') and ((self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
             box = QMessageBox()
             box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")
             box.exec_()

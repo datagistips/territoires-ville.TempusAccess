@@ -122,7 +122,7 @@ class import_zoning_dialog(QDialog):
             
             
     def _slotPushButtonChooseClicked(self):
-        if (self.ui.lineEditSourceName.text() == '') or (self.format == 'tempus' and ((self.ui.lineEditSourceComment.text() == '') or (self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
+        if (self.ui.lineEditSourceName.text() == '') or (self.format == 'tempus' and ((self.ui.lineEditIdField.text() == '') or (self.ui.lineEditNameField.text() == ''))):
             box = QMessageBox()
             box.setText(unicode("Certains paramètres obligatoires ne sont pas renseignés."))
             box.exec_()

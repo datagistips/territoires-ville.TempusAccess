@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_zoning_dialog.ui'
 #
-# Created: Wed Jan 23 10:51:42 2019
+# Created: Fri Feb 08 09:18:42 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -132,7 +132,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "Importer des données de zonage", None))
-        self.labelSourceComment.setText(_translate("Dialog", "Nom détaillé source de données *", None))
+        self.labelSourceComment.setText(_translate("Dialog", "Commentaire source de données", None))
         self.label_9.setText(_translate("Dialog", "Encodage de caractères *", None))
         self.labelNameField.setText(_translate("Dialog", "Champ libellé *", None))
         self.labelIdField.setText(_translate("Dialog", "Champ identifiant (clé primaire) *", None))

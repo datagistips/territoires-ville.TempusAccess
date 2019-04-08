@@ -189,7 +189,7 @@
     <item row="4" column="0">
      <widget class="QLabel" name="labelSourceComment">
       <property name="text">
-       <string>Nom détaillé source de données *</string>
+       <string>Commentaire source de données</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

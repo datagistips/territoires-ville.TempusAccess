@@ -447,6 +447,7 @@ class TempusAccess:
     
     def import_road(self):
         self.import_road_dialog.show()
+        self.import_road_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_road_dialog.ui.comboBoxFormat.currentIndex())
 
 
     def export_delete_road(self):
@@ -461,6 +462,7 @@ class TempusAccess:
         self.import_pt_dialog.cheminFichierComplet1=""
         self.import_pt_dialog.cheminFichierComplet2=""
         self.import_pt_dialog.cheminFichierComplet2=""
+        self.import_pt_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_pt_dialog.ui.comboBoxFormat.currentIndex())
     
     
     def export_delete_pt(self):
@@ -469,7 +471,8 @@ class TempusAccess:
     
     def import_poi(self):
         self.import_poi_dialog.show()
-    
+        self.import_poi_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_poi_dialog.ui.comboBoxFormat.currentIndex())
+
     
     def delete_poi(self):
         self.delete_poi_dialog.show()

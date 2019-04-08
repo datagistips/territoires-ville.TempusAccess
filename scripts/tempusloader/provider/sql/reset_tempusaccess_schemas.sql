@@ -22,7 +22,7 @@ COMMENT ON SCHEMA zoning IS 'Zoning data';
 
 do $$
 begin
-raise notice '==== TempusAccess schema creation ====';
+raise notice '==== tempus_access schema ====';
 end$$;
 
 CREATE TABLE tempus_access.formats

@@ -173,7 +173,8 @@ CREATE TABLE _tempus_import.stop_times (
     stop_headsign character varying,
     pickup_type integer,
     drop_off_type integer,
-    shape_dist_traveled integer
+    shape_dist_traveled integer, 
+    timepoint integer
 );
 
 DROP TABLE IF EXISTS _tempus_import.stops;

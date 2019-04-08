@@ -107,7 +107,7 @@ class import_road_dialog(QDialog):
 
 
     def _slotPushButtonChooseClicked(self):
-        if (self.ui.lineEditSourceName.text() == '') or (self.ui.lineEditSourceComment.text() == ''):
+        if (self.ui.lineEditSourceName.text() == ''):
             box = QMessageBox()
             box.setModal(True)
             box.setText(u"Certains paramètres obligatoires ne sont pas renseignés.")

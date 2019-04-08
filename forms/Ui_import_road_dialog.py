@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_road_dialog.ui'
 #
-# Created: Wed Jan 23 10:51:52 2019
+# Created: Fri Feb 08 09:18:47 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -138,7 +138,7 @@ class Ui_Dialog(object):
         self.pushButtonChoose.setText(_translate("Dialog", "Parcourir...", None))
         self.labelVisumModes1.setText(_translate("Dialog", "Codification des modes (marche,vélo,voiture,taxi)", None))
         self.labelVisumModes2.setText(_translate("Dialog", "séparateur \",\", sans espace", None))
-        self.labelSourceComment.setText(_translate("Dialog", "Nom détaillé source de données *", None))
+        self.labelSourceComment.setText(_translate("Dialog", "Commentaire source de données", None))
 
 
 if __name__ == "__main__":

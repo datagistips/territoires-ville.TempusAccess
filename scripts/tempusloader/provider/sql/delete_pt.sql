@@ -8,6 +8,10 @@
 DELETE FROM tempus_gtfs.feed_info
 WHERE feed_id = '%(source_name)';
 
+DELETE FROM tempus.road_network
+WHERE name = 'transfers_%(source_name)';
+
+
 -- Postdelete
 
 

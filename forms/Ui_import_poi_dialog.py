@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_poi_dialog.ui'
 #
-# Created: Wed Jan 23 10:52:13 2019
+# Created: Fri Feb 08 09:19:01 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -156,7 +156,7 @@ class Ui_Dialog(object):
         self.pushButtonChoose.setText(_translate("Dialog", "Parcourir...", None))
         self.label_3.setText(_translate("Dialog", "Version du modèle de données", None))
         self.label_7.setText(_translate("Dialog", "Type de POI *", None))
-        self.labelSourceComment.setText(_translate("Dialog", "Nom détaillé source de données", None))
+        self.labelSourceComment.setText(_translate("Dialog", "Commentaire source de données", None))
         self.label_4.setText(_translate("Dialog", "Préfixe fichiers", None))
         self.labelIdField.setText(_translate("Dialog", "Champ identifiant (clé primaire) *", None))
         self.labelNameField.setText(_translate("Dialog", "Champ libellé *", None))
