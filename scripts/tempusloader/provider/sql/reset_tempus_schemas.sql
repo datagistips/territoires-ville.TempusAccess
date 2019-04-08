@@ -11,33 +11,46 @@ CREATE EXTENSION IF NOT EXISTS pgrouting;
 DROP LANGUAGE IF EXISTS plpython3u CASCADE;
 CREATE LANGUAGE plpython3u;
 CREATE EXTENSION IF NOT EXISTS pgtempus;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS intarray;
 
-DROP SCHEMA IF EXISTS tempus_general CASCADE;
+DROP SCHEMA IF EXISTS tempus_tmode CASCADE;
+DROP SCHEMA IF EXISTS tempus_calendar CASCADE;
+DROP SCHEMA IF EXISTS tempus_cost CASCADE;
 DROP SCHEMA IF EXISTS tempus_road CASCADE;
-DROP SCHEMA IF EXISTS tempus_intermod CASCADE;
 DROP SCHEMA IF EXISTS tempus_pt CASCADE;
+DROP SCHEMA IF EXISTS tempus_intermod CASCADE;
 DROP SCHEMA IF EXISTS tempus_access CASCADE;
 DROP SCHEMA IF EXISTS tempus_zoning CASCADE;
 DROP SCHEMA IF EXISTS tempus_stored_results CASCADE;
 
 DELETE FROM public.geometry_columns 
-WHERE f_table_schema='tempus_general' or f_table_schema='tempus_road' or f_table_schema='tempus_pt' or f_table_schema='tempus_intermod' or
-f_table_schema='tempus_access' or f_table_schema='tempus_zoning' or f_table_schema='tempus_stored_results';
+WHERE f_table_schema='tempus_tmode' 
+   OR f_table_schema='tempus_calendar'
+   OR f_table_schema='tempus_cost'
+   OR f_table_schema='tempus_road' 
+   OR f_table_schema='tempus_pt' 
+   OR f_table_schema='tempus_intermod' 
+   OR f_table_schema='tempus_access' 
+   OR f_table_schema='tempus_zoning' 
+   OR f_table_schema='tempus_stored_results';
 
 
-CREATE SCHEMA tempus_general;
-COMMENT ON SCHEMA tempus_general IS 'Calendar and transport modes data and functions';
+CREATE SCHEMA tempus_tmode;
+COMMENT ON SCHEMA tempus_tmode IS 'Transport modes data and functions';
+
+CREATE SCHEMA tempus_calendar;
+COMMENT ON SCHEMA tempus_calendar IS 'Calendar (validity periods) data and functions';
+
+CREATE SCHEMA tempus_cost;
+COMMENT ON SCHEMA tempus_cost IS 'Cost data and functions';
 
 CREATE SCHEMA tempus_road;
 COMMENT ON SCHEMA tempus_road IS 'Road network data and functions';
 
-CREATE SCHEMA tempus_intermod;
-COMMENT ON SCHEMA tempus_intermod IS 'Intermodality graph data';
-
 CREATE SCHEMA tempus_pt;
 COMMENT ON SCHEMA tempus_pt IS 'Public transport network data and functions';
+
+CREATE SCHEMA tempus_intermod;
+COMMENT ON SCHEMA tempus_intermod IS 'Intermodality graph data';
 
 CREATE SCHEMA tempus_access;
 COMMENT ON SCHEMA tempus_access IS 'Tables and functions used by the TempusAccess QGIS plugin';
@@ -48,147 +61,167 @@ COMMENT ON SCHEMA tempus_zoning IS 'Zoning data';
 CREATE SCHEMA tempus_stored_results;
 COMMENT ON SCHEMA tempus_stored_results IS 'Paths and accessibility indicators stored Tempus results';
 
+
+do $$
+begin
+raise notice '==== Utilitary functions ===';
+end$$;
+
+DROP FUNCTION IF EXISTS array_search(anyelement, anyarray);
+CREATE OR REPLACE FUNCTION array_search(needle anyelement, haystack anyarray)
+  RETURNS integer AS
+$BODY$
+    SELECT i
+      FROM generate_subscripts($2, 1) AS i
+     WHERE $2[i] = $1
+  ORDER BY i
+$BODY$
+LANGUAGE sql STABLE
+COST 100;
+
+
 do $$
 begin
 raise notice '==== Transport modes definition ===';
 end$$;
 
 -- Vehicle engine type
-CREATE TABLE tempus_general.engine_type
+CREATE TABLE tempus_tmode.engine_type
 (
     id integer PRIMARY KEY, 
     name character varying
 ); 
-COMMENT ON TABLE tempus_general.engine_type IS 'Engine types that can be used to calculate environnemental costs. ';
+COMMENT ON TABLE tempus_tmode.engine_type IS 'Engine types that can be used to calculate environnemental costs. ';
 
 -- Traffic rules: bitfield
-CREATE TABLE tempus_general.road_traffic_rule
+CREATE TABLE tempus_tmode.road_traffic_rule
 (
     id integer PRIMARY KEY, 
     name character varying
 );
 
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (1, 'Walking');
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (2, 'Cycling');
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (4, 'Driving a private car');
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (8, 'Driving a taxi');
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (16, 'Driving a truck');
-INSERT INTO tempus_general.road_traffic_rule(id, name)
+INSERT INTO tempus_tmode.road_traffic_rule(id, name)
 VALUES (32, 'Driving a coach');
 
 -- Speed rules: bitfield
-CREATE TABLE tempus_general.road_speed_rule
+CREATE TABLE tempus_tmode.road_speed_rule
 (
     id integer PRIMARY KEY, 
     name character varying
 );
 
-INSERT INTO tempus_general.road_speed_rule(id, name)
+INSERT INTO tempus_tmode.road_speed_rule(id, name)
 VALUES (1, 'Walking');
-INSERT INTO tempus_general.road_speed_rule(id, name)
+INSERT INTO tempus_tmode.road_speed_rule(id, name)
 VALUES (2, 'Cycling');
-INSERT INTO tempus_general.road_speed_rule(id, name)
+INSERT INTO tempus_tmode.road_speed_rule(id, name)
 VALUES (4, 'Driving a light vehicle');
-INSERT INTO tempus_general.road_speed_rule(id, name)
+INSERT INTO tempus_tmode.road_speed_rule(id, name)
 VALUES (8, 'Driving a truck or a coach');
 
 -- Toll rules: bitfield
-CREATE TABLE tempus_general.road_toll_rule
+CREATE TABLE tempus_tmode.road_toll_rule
 (
     id integer PRIMARY KEY, 
     name character varying    
 );
-INSERT INTO tempus_general.road_toll_rule(id, name)
+INSERT INTO tempus_tmode.road_toll_rule(id, name)
 VALUES (1, 'Class 1');
-INSERT INTO tempus_general.road_toll_rule(id, name)
+INSERT INTO tempus_tmode.road_toll_rule(id, name)
 VALUES (2, 'Class 2');
-INSERT INTO tempus_general.road_toll_rule(id, name)
+INSERT INTO tempus_tmode.road_toll_rule(id, name)
 VALUES (3, 'Class 3');
-INSERT INTO tempus_general.road_toll_rule(id, name)
+INSERT INTO tempus_tmode.road_toll_rule(id, name)
 VALUES (4, 'Class 4');
-INSERT INTO tempus_general.road_toll_rule(id, name)
+INSERT INTO tempus_tmode.road_toll_rule(id, name)
 VALUES (5, 'Class 5');
 
-CREATE TABLE tempus_general.pt_mode_type
+CREATE TABLE tempus_tmode.pt_type
 (
     id integer PRIMARY KEY, 
     name character varying,
     description character varying
 );
-COMMENT ON TABLE tempus_general.pt_mode_type IS 'Public transport vehicle type';
+COMMENT ON TABLE tempus_tmode.pt_type IS 'Public transport vehicle type';
 
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (0, 'Tram, street car');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (1, 'Subway, metro');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (2, 'Train');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (3, 'Short or long-distance bus');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (4, 'Ferry');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (5, 'Cable car');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (6, 'Cable gondola');
-INSERT INTO tempus_general.pt_mode_type(id, name)
+INSERT INTO tempus_tmode.pt_type(id, name)
 VALUES (7, 'Funicular');
 
 -- Transport modes
-CREATE TABLE tempus_general.transport_mode
+CREATE TABLE tempus_tmode.transport_mode
 (
     id serial PRIMARY KEY,
     name varchar,
-    pt_mode_type_id integer REFERENCES tempus_general.pt_mode_type ON UPDATE CASCADE,
-    road_traffic_rule_id integer REFERENCES tempus_general.road_traffic_rule ON UPDATE CASCADE,
-    road_speed_rule_id integer REFERENCES tempus_general.road_speed_rule ON UPDATE CASCADE,
-    road_toll_rule_id integer REFERENCES tempus_general.road_toll_rule ON UPDATE CASCADE,
-    engine_type_id integer REFERENCES tempus_general.engine_type ON UPDATE CASCADE,
+    pt_type_id integer REFERENCES tempus_tmode.pt_type ON UPDATE CASCADE,
+    road_traffic_rule_id integer REFERENCES tempus_tmode.road_traffic_rule ON UPDATE CASCADE,
+    road_speed_rule_id integer REFERENCES tempus_tmode.road_speed_rule ON UPDATE CASCADE,
+    road_toll_rule_id integer REFERENCES tempus_tmode.road_toll_rule ON UPDATE CASCADE,
+    engine_type_id integer REFERENCES tempus_tmode.engine_type ON UPDATE CASCADE,
     need_parking boolean,
     shared_vehicle boolean,
     return_shared_vehicle boolean, 
     vehicles_ip_ids bigint[], 
     parks_ip_ids bigint[]
 );
-COMMENT ON TABLE tempus_general.transport_mode IS 'Available transport modes';
-COMMENT ON COLUMN tempus_general.transport_mode.name IS 'Description of the mode';
-COMMENT ON COLUMN tempus_general.transport_mode.pt_mode_type_id IS 'Reference to the Public Transport vehicle type';
-COMMENT ON COLUMN tempus_general.transport_mode.road_traffic_rule_id IS 'Bitfield value: defines road traffic rules followed by the mode, NULL for PT modes. Default classes are defined. Gives TransportModeTrafficRule variable in C++. ';
-COMMENT ON COLUMN tempus_general.transport_mode.road_speed_rule_id IS 'Defines the road speed rule followed by the mode, NULL for PT modes. Defaut classes are defined. Gives TransportModeSpeedRule variable in C++.';
-COMMENT ON COLUMN tempus_general.transport_mode.road_toll_rule_id IS 'Bitfield value: gives the toll rules followed by the mode, NULL for PT modes. Classes must be defined by users. Gives TransportModeTollRule variable in C++.';
-COMMENT ON COLUMN tempus_general.transport_mode.engine_type_id IS 'Vehicle engine type. Classes must be defined by users. Gives TransportModeEngine variable in C++.';
-COMMENT ON COLUMN tempus_general.transport_mode.need_parking IS 'If vehicle needs to be parked, NULL for PT modes.';
-COMMENT ON COLUMN tempus_general.transport_mode.shared_vehicle IS 'If vehicule is shared and needs to be return at a/some stations at the end of the trip, NULL for PT modes.';
-COMMENT ON COLUMN tempus_general.transport_mode.return_shared_vehicle IS 'If vehicule is shared and needs to be returned to its initial station at the end of a loop, NULL for PT modes.';
-COMMENT ON COLUMN tempus_general.transport_mode.vehicles_ip_ids IS 'List of intermodality point IDs where a vehicle is available for this mode (not NULL only if need_parking = TRUE).';
-COMMENT ON COLUMN tempus_general.transport_mode.parks_ip_ids IS 'List of intermodality point IDs where a park is available for this mode (not NULL only if need_parking = TRUE).';
+COMMENT ON TABLE tempus_tmode.transport_mode IS 'Available transport modes';
+COMMENT ON COLUMN tempus_tmode.transport_mode.name IS 'Description of the mode';
+COMMENT ON COLUMN tempus_tmode.transport_mode.pt_type_id IS 'Reference to the Public Transport vehicle type';
+COMMENT ON COLUMN tempus_tmode.transport_mode.road_traffic_rule_id IS 'Bitfield value: defines road traffic rules followed by the mode, NULL for PT modes. Default classes are defined. Gives TransportModeTrafficRule variable in C++. ';
+COMMENT ON COLUMN tempus_tmode.transport_mode.road_speed_rule_id IS 'Defines the road speed rule followed by the mode, NULL for PT modes. Defaut classes are defined. Gives TransportModeSpeedRule variable in C++.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.road_toll_rule_id IS 'Bitfield value: gives the toll rules followed by the mode, NULL for PT modes. Classes must be defined by users. Gives TransportModeTollRule variable in C++.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.engine_type_id IS 'Vehicle engine type. Classes must be defined by users. Gives TransportModeEngine variable in C++.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.need_parking IS 'If vehicle needs to be parked, NULL for PT modes.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.shared_vehicle IS 'If vehicule is shared and needs to be return at a/some stations at the end of the trip, NULL for PT modes.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.return_shared_vehicle IS 'If vehicule is shared and needs to be returned to its initial station at the end of a loop, NULL for PT modes.';
+COMMENT ON COLUMN tempus_tmode.transport_mode.vehicles_ip_ids IS 'List of intermodality point IDs where a vehicle is available for this mode (not NULL only if need_parking = TRUE).';
+COMMENT ON COLUMN tempus_tmode.transport_mode.parks_ip_ids IS 'List of intermodality point IDs where a park is available for this mode (not NULL only if need_parking = TRUE).';
 
 
-INSERT INTO tempus_general.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
+INSERT INTO tempus_tmode.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
 	VALUES ('Walking', 1,  1, NULL, NULL, 'f', 'f', 'f');
-INSERT INTO tempus_general.transport_mode(name, pt_mode_type_id, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
+INSERT INTO tempus_tmode.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
 	VALUES ('Private bicycle',2,  2, NULL, NULL, 't', 'f', 'f');
-INSERT INTO tempus_general.transport_mode(name, pt_mode_type_id, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
+INSERT INTO tempus_tmode.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
 	VALUES ('Private car', 4,  4, 1,    NULL,    't', 'f', 'f');
-INSERT INTO tempus_general.transport_mode(name, pt_mode_type_id, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
+INSERT INTO tempus_tmode.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
 	VALUES ('Private car with no parking constraint', 4,  4, 1, NULL, 'f', 'f', 'f');
-INSERT INTO tempus_general.transport_mode(name, pt_mode_type_id, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
+INSERT INTO tempus_tmode.transport_mode(name, road_traffic_rule_id, road_speed_rule_id, road_toll_rule_id, engine_type_id, need_parking, shared_vehicle, return_shared_vehicle)
     VALUES ('Taxi', 8, 4, 1, NULL,'f', 'f', 'f');
-INSERT INTO tempus_general.transport_mode(name, pt_mode_type_id)
+INSERT INTO tempus_tmode.transport_mode(name, pt_type_id)
 SELECT name, id
-FROM tempus_general.pt_mode_type; 
+FROM tempus_tmode.pt_type; 
 
-    do $$
+
+do $$
 begin
 raise notice '==== Calendars definition ===';
 end$$;
 
-CREATE TABLE tempus_general.validity_period
+CREATE TABLE tempus_calendar.validity_period
 (
     id integer PRIMARY KEY,
     name varchar,
@@ -206,20 +239,20 @@ CREATE TABLE tempus_general.validity_period
     start_date date,
     end_date date
 );
-COMMENT ON TABLE tempus_general.validity_period IS 'Periods during which restrictions and speed profiles apply';
-INSERT INTO tempus_general.validity_period VALUES (0, 'Always', true, true, true, true, true, true, true, true, true, true, true, NULL, NULL);
+COMMENT ON TABLE tempus_calendar.validity_period IS 'Periods during which restrictions and speed profiles apply';
+INSERT INTO tempus_calendar.validity_period VALUES (0, 'Always', true, true, true, true, true, true, true, true, true, true, true, NULL, NULL);
 
 
-CREATE TABLE tempus_general.bank_holiday
+CREATE TABLE tempus_calendar.bank_holiday
 (
     calendar_date date PRIMARY KEY,
     name varchar
 );
-COMMENT ON TABLE tempus_general.bank_holiday IS 'Bank holiday list';
+COMMENT ON TABLE tempus_calendar.bank_holiday IS 'Bank holiday list';
 
 -- Function that is TRUE when the parameter date is a french bank holiday, FALSE otherwise
 -- Algorithm based on the Easter day of each year
-CREATE OR REPLACE FUNCTION tempus_general.french_bank_holiday(pdate date)
+CREATE OR REPLACE FUNCTION tempus_cost.french_bank_holiday(pdate date)
   RETURNS boolean AS
 $BODY$
 DECLARE
@@ -282,27 +315,193 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE;
 
-CREATE TABLE tempus_general.holidays
+CREATE TABLE tempus_calendar.holiday_period
 (
     id serial,
     name varchar,
     start_date date,
     end_date date
 );
-COMMENT ON TABLE tempus_general.holidays IS 'Holidays definition : can be modified to add new holidays periods. Never used directly by C++. ';
+COMMENT ON TABLE tempus_calendar.holiday_period IS 'Holidays definition : can be modified to add new holidays periods. Never used directly by C++. ';
 
--- Utilitary functions
-DROP FUNCTION IF EXISTS tempus_general.array_search(anyelement, anyarray);
-CREATE OR REPLACE FUNCTION tempus_general.array_search(needle anyelement, haystack anyarray)
-  RETURNS integer AS
-$BODY$
-    SELECT i
-      FROM generate_subscripts($2, 1) AS i
-     WHERE $2[i] = $1
-  ORDER BY i
-$BODY$
-LANGUAGE sql STABLE
-COST 100;
+
+CREATE TABLE tempus_calendar.pt_service (
+        id serial PRIMARY KEY, 
+        original_id character varying,
+        calendar_dates date[]
+);
+CREATE INDEX ON tempus_calendar.pt_service(id);
+COMMENT ON TABLE tempus_calendar.pt_service IS 'Public transport services. Each service is associated to the calendar dates when it is operated.';
+
+do $$
+begin
+raise notice '==== Cost functions definition ===';
+end$$;
+
+
+CREATE TABLE tempus_cost.parameter
+(
+    id serial, 
+    name character varying, 
+    value double precision
+);
+COMMENT ON TABLE tempus_cost.parameter IS 'User defined parameters called by generalized cost functions. Never used directly by C++.';
+
+INSERT INTO tempus_cost.parameter(name, value)
+VALUES ('Mean fuel price/L', 1.55);
+INSERT INTO tempus_cost.parameter(name, value)
+VALUES ('Mean fuel consomption/km', 0.065);
+
+
+CREATE TABLE tempus_cost.speed_function
+(
+    id integer PRIMARY KEY,
+    name character varying
+);
+COMMENT ON TABLE tempus_cost.speed_function IS 'Speed functions that can be attributed to road sections. Never read by C++.';
+
+CREATE TABLE tempus_cost.time_function
+(
+    id integer PRIMARY KEY, 
+    name character varying
+);
+COMMENT ON TABLE tempus_cost.time_function IS 'Time functions that can be attributed to road restrictions. Never read by C++.';
+
+INSERT INTO tempus_cost.time_function(id, name)
+VALUES(1, 'Forbidden movements');
+
+CREATE TABLE tempus_cost.env_cost_function
+(
+    id integer PRIMARY KEY, 
+    name character varying
+);
+COMMENT ON TABLE tempus_cost.env_cost_function IS 'Environnemental cost functions that can be attributed to road or public transport sections. Never read by C++.';
+
+CREATE TABLE tempus_cost.toll_function
+(
+    id integer PRIMARY KEY,
+    name character varying
+);
+COMMENT ON TABLE tempus_cost.toll_function IS 'Toll functions that can be attributed to road restrictions. Never read by C++.';
+
+
+CREATE TABLE tempus_cost.speed_function_value
+(
+    speed_function_id integer NOT NULL,
+    begin_time time NOT NULL,
+    end_time time NOT NULL,
+    speed_value double precision NOT NULL, 
+    PRIMARY KEY (speed_function_id, begin_time)
+);
+COMMENT ON TABLE tempus_cost.speed_function_value IS 'Speed function definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
+COMMENT ON COLUMN tempus_cost.speed_function_value.begin_time IS 'When the period begins';
+COMMENT ON COLUMN tempus_cost.speed_function_value.end_time IS 'When the period ends';
+COMMENT ON COLUMN tempus_cost.speed_function_value.speed_value IS 'Speed value in km/h';
+
+CREATE TABLE tempus_cost.time_function_value
+(
+    time_function_id integer NOT NULL,
+    begin_time time NOT NULL,
+    end_time time NOT NULL,
+    time_value double precision NOT NULL, 
+    PRIMARY KEY (time_function_id, begin_time)
+);
+COMMENT ON TABLE tempus_cost.time_function_value IS 'Time penalties functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
+COMMENT ON COLUMN tempus_cost.time_function_value.begin_time IS 'When the period begins';
+COMMENT ON COLUMN tempus_cost.time_function_value.end_time IS 'When the period ends';
+COMMENT ON COLUMN tempus_cost.time_function_value.time_value IS 'Time value in minutes';
+
+INSERT INTO tempus_cost.time_function_value(time_function_id, begin_time, end_time, time_value)
+VALUES (1, '00:00:00', '23:59:00', 'Infinity');
+
+
+CREATE TABLE tempus_cost.env_cost_function_value
+(
+    env_cost_function_id integer NOT NULL,
+    begin_time time NOT NULL,
+    end_time time NOT NULL,
+    cost_value double precision NOT NULL, 
+    PRIMARY KEY (env_cost_function_id, begin_time)
+);
+COMMENT ON TABLE tempus_cost.env_cost_function_value IS 'Environnemental costs (consommations or emissions) functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
+COMMENT ON COLUMN tempus_cost.env_cost_function_value.begin_time IS 'When the period begins';
+COMMENT ON COLUMN tempus_cost.env_cost_function_value.end_time IS 'When the period ends';
+COMMENT ON COLUMN tempus_cost.env_cost_function_value.cost_value IS 'Environnemental cost value';
+
+
+CREATE TABLE tempus_cost.toll_function_value
+(
+    toll_function_id integer NOT NULL,
+    begin_time time NOT NULL,
+    end_time time NOT NULL,
+    toll_value double precision NOT NULL, -- In km/h
+    PRIMARY KEY (toll_function_id, begin_time)
+);
+COMMENT ON TABLE tempus_cost.toll_function_value IS 'Toll functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
+COMMENT ON COLUMN tempus_cost.toll_function_value.begin_time IS 'When the period begins';
+COMMENT ON COLUMN tempus_cost.toll_function_value.end_time IS 'When the period ends';
+COMMENT ON COLUMN tempus_cost.toll_function_value.toll_value IS 'Toll value';
+
+CREATE TABLE tempus_cost.road_speed_flow_function
+(
+    id serial PRIMARY KEY, 
+    name character varying, 
+    description character varying
+);
+COMMENT ON TABLE tempus_cost.road_speed_flow_function IS 'Classes of speed-flow functions used by affectation algorithms. Never read by C++.';
+COMMENT ON COLUMN tempus_cost.road_speed_flow_function.name IS 'Name of the function in PostgreSQL';
+
+CREATE TABLE tempus_cost.road_fare_user_class (
+                                            id serial PRIMARY KEY, 
+                                            name character varying
+);
+CREATE INDEX ON tempus_cost.road_fare_user_class(id);
+COMMENT ON TABLE tempus_cost.road_fare_user_class IS 'Users classes that can be called to define a cost function for shared vehicles. Never called by C++.';
+
+
+CREATE TABLE tempus_cost.road_vehicle_fare (
+                                                id serial PRIMARY KEY,
+                                                tmode_id integer REFERENCES tempus_tmode.transport_mode ON UPDATE CASCADE,
+                                                road_fare_user_class_id integer REFERENCES tempus_cost.road_fare_user_class ON UPDATE CASCADE ON DELETE CASCADE,
+                                                price_per_use double precision,
+                                                price_per_min double precision,
+                                                price_per_km double precision,
+                                                max_time_min integer, 
+                                                max_dist_km integer
+);
+CREATE INDEX ON tempus_cost.road_vehicle_fare(id);
+COMMENT ON TABLE tempus_cost.road_vehicle_fare IS 'Shared vehicles fare classes (can depend on user type, number of trips, distance or time). Can be used to define shared vehicles cost function. Never called by C++.';
+
+CREATE TABLE tempus_cost.pt_fare_zone (
+        id serial PRIMARY KEY, 
+        original_id character varying,
+        name character varying
+);
+CREATE INDEX ON tempus_cost.pt_fare_zone(id);
+COMMENT ON TABLE tempus_cost.pt_fare_zone IS 'Public transport geographical fare zones.'; 
+
+CREATE TABLE tempus_cost.pt_fare_user_class (
+        id serial PRIMARY KEY, 
+        name character varying
+);
+CREATE INDEX ON tempus_cost.pt_fare_user_class(id);
+COMMENT ON TABLE tempus_cost.pt_fare_user_class IS 'Users classes that can be called to define a cost function for public transport. Never called by C++.';
+
+CREATE TABLE tempus_cost.pt_fare_class (
+        id serial PRIMARY KEY,
+        original_id VARCHAR NOT NULL,
+        pt_fare_user_class_id integer REFERENCES tempus_cost.pt_fare_user_class ON UPDATE CASCADE ON DELETE CASCADE,
+        zone_id_from integer REFERENCES tempus_cost.pt_fare_zone ON UPDATE CASCADE ON DELETE CASCADE,
+        zone_id_to integer REFERENCES tempus_cost.pt_fare_zone ON UPDATE CASCADE ON DELETE CASCADE,
+        allowed_transfers integer,
+        max_transfer_duration integer, 
+        max_trip_duration integer,
+        name character varying,
+        price double precision NOT NULL
+);
+CREATE INDEX ON tempus_cost.pt_fare_class(id);
+COMMENT ON TABLE tempus_cost.pt_fare_class IS 'Public transport fare classes (can depend on user type, number of transfers, origin and destination points, origin and destination zones, transfers or trip duration). Can be used to define public transport cost function. Never called by C++.';
+
 
 
 do $$
@@ -342,15 +541,6 @@ CREATE TABLE tempus_road.section_type
 );
 COMMENT ON TABLE tempus_road.section_type IS 'Road section types, can be used to define a network hierarchy.';
 
-CREATE TABLE tempus_road.speed_flow_function
-(
-    id serial PRIMARY KEY, 
-    name character varying, 
-    description character varying
-);
-COMMENT ON TABLE tempus_road.speed_flow_function IS 'Classes of speed-flow functions used by affectation algorithms. Never read by C++.';
-COMMENT ON COLUMN tempus_road.speed_flow_function.name IS 'Name of the function in PostgreSQL';
-
 CREATE TABLE tempus_road.section
 (
     id bigint PRIMARY KEY,
@@ -370,8 +560,8 @@ CREATE TABLE tempus_road.section
     capacity_tf integer,
     free_flow_speed_ft double precision, 
     free_flow_speed_tf double precision,
-    speed_flow_function_id_ft integer REFERENCES tempus_road.speed_flow_function ON UPDATE CASCADE, 
-    speed_flow_function_id_tf integer REFERENCES tempus_road.speed_flow_function ON UPDATE CASCADE,
+    speed_flow_function_id_ft integer REFERENCES tempus_cost.road_speed_flow_function ON UPDATE CASCADE, 
+    speed_flow_function_id_tf integer REFERENCES tempus_cost.road_speed_flow_function ON UPDATE CASCADE,
     geom Geometry(LinestringZ, 4326)
 );
 COMMENT ON TABLE tempus_road.section IS 'Road sections description. Directly read by C++.';
@@ -391,19 +581,6 @@ CREATE INDEX ON tempus_road.section(id);
 CREATE INDEX ON tempus_road.section(network_id);
 CREATE INDEX ON tempus_road.section(node_id_from);
 CREATE INDEX ON tempus_road.section(node_id_to);
-
-CREATE TABLE tempus_road.cost_parameter
-(
-    id serial, 
-    name character varying, 
-    value double precision
-);
-COMMENT ON TABLE tempus_road.cost_parameter IS 'User defined parameters called by generalized cost functions. Never used directly by C++.';
-
-INSERT INTO tempus_road.cost_parameter(name, value)
-VALUES ('Mean fuel price/L', 1.55);
-INSERT INTO tempus_road.cost_parameter(name, value)
-VALUES ('Mean fuel consomption/km', 0.065);
 
 
 CREATE OR REPLACE FUNCTION tempus_road.delete_isolated_road_nodes_f()
@@ -442,126 +619,40 @@ COMMENT ON TABLE tempus_road.restriction IS 'Road sections submitted to a restri
 COMMENT ON COLUMN tempus_road.restriction.sections IS 'Involved road sections ID, not always forming a path';
 
 
-CREATE TABLE tempus_road.speed_function
-(
-    id integer PRIMARY KEY,
-    name character varying
-);
-COMMENT ON TABLE tempus_road.speed_function IS 'Speed functions that can be attributed to road sections. Never read by C++.';
-
-CREATE TABLE tempus_road.time_function
-(
-    id integer PRIMARY KEY, 
-    name character varying
-);
-COMMENT ON TABLE tempus_road.time_function IS 'Time functions that can be attributed to road restrictions. Never read by C++.';
-
-INSERT INTO tempus_road.time_function(id, name)
-VALUES(1, 'Forbidden movements');
-
-CREATE TABLE tempus_road.env_cost_function
-(
-    id integer PRIMARY KEY, 
-    name character varying
-);
-COMMENT ON TABLE tempus_road.env_cost_function IS 'Environnemental cost functions that can be attributed to road or public transport sections. Never read by C++.';
-
-CREATE TABLE tempus_road.toll_function
-(
-    id integer PRIMARY KEY,
-    name character varying
-);
-COMMENT ON TABLE tempus_road.toll_function IS 'Toll functions that can be attributed to road restrictions. Never read by C++.';
-
-
-CREATE TABLE tempus_road.speed_function_value
-(
-    speed_function_id integer NOT NULL,
-    begin_time time NOT NULL,
-    end_time time NOT NULL,
-    speed_value double precision NOT NULL, 
-    PRIMARY KEY (speed_function_id, begin_time)
-);
-COMMENT ON COLUMN tempus_road.speed_function_value.begin_time IS 'When the period begins';
-COMMENT ON COLUMN tempus_road.speed_function_value.end_time IS 'When the period ends';
-COMMENT ON COLUMN tempus_road.speed_function_value.speed_value IS 'Speed value in km/h';
-
-CREATE TABLE tempus_road.time_function_value
-(
-    time_function_id integer NOT NULL,
-    begin_time time NOT NULL,
-    end_time time NOT NULL,
-    time_value double precision NOT NULL, 
-    PRIMARY KEY (time_function_id, begin_time)
-);
-COMMENT ON TABLE tempus_road.time_function_value IS 'Time penalties functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
-COMMENT ON COLUMN tempus_road.time_function_value.begin_time IS 'When the period begins';
-COMMENT ON COLUMN tempus_road.time_function_value.end_time IS 'When the period ends';
-COMMENT ON COLUMN tempus_road.time_function_value.time_value IS 'Time value in minutes';
-
-INSERT INTO tempus_road.time_function_value(time_function_id, begin_time, end_time, time_value)
-VALUES (1, '00:00:00', '23:59:00', 'Infinity');
-
-
-CREATE TABLE tempus_road.env_cost_function_value
-(
-    env_cost_function_id integer NOT NULL,
-    begin_time time NOT NULL,
-    end_time time NOT NULL,
-    cost_value double precision NOT NULL, 
-    PRIMARY KEY (env_cost_function_id, begin_time)
-);
-COMMENT ON TABLE tempus_road.env_cost_function_value IS 'Environnemental costs (consommations or emissions) functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
-COMMENT ON COLUMN tempus_road.env_cost_function_value.begin_time IS 'When the period begins';
-COMMENT ON COLUMN tempus_road.env_cost_function_value.end_time IS 'When the period ends';
-COMMENT ON COLUMN tempus_road.env_cost_function_value.cost_value IS 'Environnemental cost value';
-
-CREATE TABLE tempus_road.toll_function_value
-(
-    toll_function_id integer NOT NULL,
-    begin_time time NOT NULL,
-    end_time time NOT NULL,
-    toll_value double precision NOT NULL, -- In km/h
-    PRIMARY KEY (toll_function_id, begin_time)
-);
-COMMENT ON TABLE tempus_road.toll_function_value IS 'Toll functions definition. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
-COMMENT ON COLUMN tempus_road.toll_function_value.begin_time IS 'When the period begins';
-COMMENT ON COLUMN tempus_road.toll_function_value.end_time IS 'When the period ends';
-COMMENT ON COLUMN tempus_road.toll_function_value.toll_value IS 'Toll value';
-
 CREATE TABLE tempus_road.restriction_toll
 (
     restriction_id bigint NOT NULL REFERENCES tempus_road.restriction ON DELETE CASCADE ON UPDATE CASCADE,
-    period_id integer NOT NULL REFERENCES tempus_general.validity_period ON DELETE CASCADE ON UPDATE CASCADE, 
+    period_id integer NOT NULL REFERENCES tempus_calendar.validity_period ON DELETE CASCADE ON UPDATE CASCADE, 
     toll_rules integer NOT NULL,
-    toll_function_id integer NOT NULL REFERENCES tempus_road.toll_function ON UPDATE CASCADE,
+    toll_function_id integer NOT NULL REFERENCES tempus_cost.toll_function ON UPDATE CASCADE,
     PRIMARY KEY (restriction_id, period_id, toll_rules)
 );
 COMMENT ON TABLE tempus_road.restriction_toll IS 'Toll applied to road restrictions. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
 COMMENT ON COLUMN tempus_road.restriction_toll.period_id IS '0 if always applies';
-COMMENT ON COLUMN tempus_road.restriction_toll.toll_rules IS 'References tempus_road.transport_mode_traffic_rule => Bitfield value';
+COMMENT ON COLUMN tempus_road.restriction_toll.toll_rules IS 'References tempus_road.tmode_traffic_rule => Bitfield value';
 COMMENT ON COLUMN tempus_road.restriction_toll.toll_function_id IS 'Toll function ID';
 
 CREATE TABLE tempus_road.restriction_time
 (
     restriction_id bigint NOT NULL REFERENCES tempus_road.restriction ON DELETE CASCADE ON UPDATE CASCADE,
-    period_id integer NOT NULL REFERENCES tempus_general.validity_period ON DELETE CASCADE ON UPDATE CASCADE, 
+    period_id integer NOT NULL REFERENCES tempus_calendar.validity_period ON DELETE CASCADE ON UPDATE CASCADE, 
     traffic_rules integer NOT NULL,
-    time_function_id integer NOT NULL REFERENCES tempus_road.time_function ON UPDATE CASCADE,
+    time_function_id integer NOT NULL REFERENCES tempus_cost.time_function ON UPDATE CASCADE,
     PRIMARY KEY (restriction_id, period_id, traffic_rules)
 );
 COMMENT ON TABLE tempus_road.restriction_time IS 'Time penalty (including infinite values for forbidden movements) applied to road restrictions. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
 COMMENT ON COLUMN tempus_road.restriction_time.period_id IS 'Days period ID when the time penalty is applied. 0 if always applied. ';
-COMMENT ON COLUMN tempus_road.restriction_time.traffic_rules IS 'References tempus_road.transport_mode_traffic_rule => Bitfield value';
+COMMENT ON COLUMN tempus_road.restriction_time.traffic_rules IS 'References tempus_road.tmode_traffic_rule => Bitfield value';
 COMMENT ON COLUMN tempus_road.restriction_time.time_function_id IS 'Time penalty function ID';
 
 CREATE TABLE tempus_road.section_speed
 (
     section_id bigint NOT NULL REFERENCES tempus_road.section ON DELETE CASCADE ON UPDATE CASCADE,
-    period_id integer NOT NULL REFERENCES tempus_general.validity_period ON DELETE CASCADE ON UPDATE CASCADE,
+    dir_ft boolean, 
+    period_id integer NOT NULL REFERENCES tempus_calendar.validity_period ON DELETE CASCADE ON UPDATE CASCADE,
     speed_rules integer NOT NULL, 
     speed_function_id integer NOT NULL, 
-    PRIMARY KEY (section_id, period_id, speed_function_id)
+    PRIMARY KEY (section_id, dir_ft, period_id, speed_function_id)
 );
 COMMENT ON TABLE tempus_road.section_speed IS 'Speed, vehicle types and validity period associated to road sections. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
 COMMENT ON COLUMN tempus_road.section_speed.period_id IS 'Days period ID when the speed is applied. 0 if always applied';
@@ -571,44 +662,18 @@ COMMENT ON COLUMN tempus_road.section_speed.speed_function_id IS 'Speed function
 CREATE TABLE tempus_road.section_env_cost
 (
     section_id bigint NOT NULL REFERENCES tempus_road.section ON DELETE CASCADE ON UPDATE CASCADE,
-    period_id integer NOT NULL REFERENCES tempus_general.validity_period ON DELETE CASCADE ON UPDATE CASCADE,
+    dir_ft boolean, 
+    period_id integer NOT NULL REFERENCES tempus_calendar.validity_period ON DELETE CASCADE ON UPDATE CASCADE,
     engine_type integer NOT NULL, 
-    env_cost_function_id integer NOT NULL REFERENCES tempus_road.env_cost_function ON UPDATE CASCADE, 
-    PRIMARY KEY (section_id, period_id, engine_type, env_cost_function_id)
+    env_cost_function_id integer NOT NULL REFERENCES tempus_cost.env_cost_function ON UPDATE CASCADE, 
+    PRIMARY KEY (section_id, dir_ft, period_id, engine_type, env_cost_function_id)
 );
 COMMENT ON TABLE tempus_road.section_env_cost IS 'Speed, vehicle types and validity period associated to road sections. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
 COMMENT ON COLUMN tempus_road.section_env_cost.period_id IS 'Days period ID when the environnemental cost is applied. 0 if always applied';
 COMMENT ON COLUMN tempus_road.section_env_cost.engine_type IS 'Engine types concerned by the cost value';
 COMMENT ON COLUMN tempus_road.section_env_cost.env_cost_function_id IS 'Environnemental cost function ID';
 
-
-CREATE TABLE tempus_road.fare_user_class (
-                                            id serial PRIMARY KEY, 
-                                            name character varying
-);
-CREATE INDEX ON tempus_road.fare_user_class(id);
-COMMENT ON TABLE tempus_road.fare_user_class IS 'Users classes that can be called to define a cost function for shared vehicles. Never called by C++.';
-
-
-
-CREATE TABLE tempus_road.fare_class (
-                            id serial PRIMARY KEY,
-                            network_id integer REFERENCES tempus_road.network ON UPDATE CASCADE ON DELETE CASCADE,
-                            transport_mode_id integer REFERENCES tempus_general.transport_mode ON UPDATE CASCADE,
-                            fare_user_class_id integer REFERENCES tempus_road.fare_user_class ON UPDATE CASCADE ON DELETE CASCADE,
-                            price_per_use double precision,
-                            price_per_min double precision,
-                            price_per_km double precision,
-                            max_time_min integer, 
-                            max_dist_km integer
-);
-CREATE INDEX ON tempus_road.fare_class(id);
-COMMENT ON TABLE tempus_road.fare_class IS 'Shared vehicles fare classes (can depend on user type, number of trips, distance or time). Can be used to define shared vehicles cost function. Never called by C++.';
-
-
-
 -- Views used for map display
-
 CREATE VIEW tempus_road.view_pedestrians_section AS 
 SELECT id, 
        network_id, 
@@ -775,7 +840,7 @@ RETURNS bigint AS
 $$
     WITH rs AS (
         SELECT section.id, node_id_from, node_id_to 
-        FROM tempus_road.section, tempus_general.transport_mode
+        FROM tempus_road.section, tempus_tmode.transport_mode
         WHERE transport_mode.id IN (SELECT unnest($3)) and
           (transport_mode.road_traffic_rule_id & traffic_rules_ft = transport_mode.road_traffic_rule_id
            OR transport_mode.road_traffic_rule_id & traffic_rules_tf = transport_mode.road_traffic_rule_id)
@@ -787,7 +852,6 @@ $$
     where rs.node_id_from = p1.id and rs.node_id_to = p2.id
 $$
 LANGUAGE SQL;
-
 
 
 -- Views operating graph topology checks
@@ -837,73 +901,6 @@ CREATE VIEW tempus_road.view_chk_double_sections AS
 
 do $$
 begin
-raise notice '==== Intermodality points ===';
-end$$;
-
-CREATE TABLE tempus_intermod.network
-(
-    id serial PRIMARY KEY, 
-    name character varying UNIQUE,
-    comment character varying
-); 
-COMMENT ON TABLE tempus_intermod.network IS 'Intermodality points networks';
-
-CREATE TABLE tempus_intermod.point_type
-(
-    id serial PRIMARY KEY, 
-    name character varying
-); 
-COMMENT ON TABLE tempus_intermod.point_type IS 'Intermodality points types';
-
-
-INSERT INTO tempus_intermod.points_type(id, name)
-VALUES(1, 'Car parks');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(2, 'Shared cars rental point');
-INSERT INTO tempus_intermod.points_type(id, name)
-VALUES(3, 'Bicycle park');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(4, 'Shared bicycles rental point');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(5, 'Point of interest');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(6, 'PT station');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(7, 'PT stop');
-INSERT INTO tempus_intermod.point_type(id, name)
-VALUES(8, 'Zone centroïd');
-
-CREATE TABLE tempus_intermod.point
-(
-    id serial PRIMARY KEY, 
-    original_id character varying,
-    network_id integer REFERENCES tempus_intermod.network ON UPDATE CASCADE,
-    type_id integer REFERENCES tempus_intermod.point_type ON UPDATE CASCADE, 
-    name character varying,
-    road_section_id bigint REFERENCES tempus_road.section ON DELETE NO ACTION ON UPDATE CASCADE,
-	road_section_abscissa double precision CHECK (road_section_abscissa IS NULL OR (road_section_abscissa >= 0 AND road_section_abscissa <= 1)), 
-	geom Geometry(PointZ, 4326),
-    UNIQUE (network_id, original_id)
-);
-
-CREATE TABLE tempus_intermod.section
-(
-        id serial PRIMARY KEY,
-        from_point_id integer REFERENCES tempus_intermod.point ON UPDATE CASCADE ON DELETE CASCADE,
-        to_point_id integer REFERENCES tempus_intermod.point ON UPDATE CASCADE ON DELETE CASCADE,
-        road_traffic_rules_ft integer, 
-        road_traffic_rules_tf integer,
-        transfer_time_ft integer, 
-        transfer_time_tf integer
-);
-CREATE INDEX ON tempus_intermod.section(id); 
-CREATE INDEX ON tempus_intermod.section(from_point_id);
-CREATE INDEX ON tempus_intermod.section(to_point_id);
-COMMENT ON TABLE tempus_intermod.section IS 'Between intermodal points transfer road sections, used to define additional road edges of the graph.';
-
-
-do $$
-begin
 raise notice '==== PT tables ===';
 end$$;
 
@@ -926,24 +923,6 @@ CREATE INDEX ON tempus_pt.agency(id);
 COMMENT ON TABLE tempus_pt.agency IS 'Public transport agencies. A network can be composed of several agencies.';
 COMMENT ON COLUMN tempus_pt.agency.name IS 'Short name used in user interfaces to define the network';
 
-CREATE TABLE tempus_pt.service (
-        id serial PRIMARY KEY, 
-        original_id character varying,
-        network_id integer REFERENCES tempus_pt.network ON UPDATE CASCADE ON DELETE CASCADE,
-        UNIQUE(original_id, network_id)
-);
-CREATE INDEX ON tempus_pt.service(id);
-COMMENT ON TABLE tempus_pt.service IS 'Public transport services. Each service is associated to the calendar dates when it is operated.';
-
-CREATE TABLE tempus_pt.service_calendar_date (
-        service_id integer REFERENCES tempus_pt.service ON UPDATE CASCADE ON DELETE CASCADE, 
-        calendar_date date,
-        PRIMARY KEY(service_id, calendar_date)
-);
-CREATE INDEX ON tempus_pt.service_calendar_date(service_id);
-CREATE INDEX ON tempus_pt.service_calendar_date(calendar_date);
-COMMENT ON TABLE tempus_pt.service_calendar_date IS 'Public transport services and calendar dates when the service is operated.';
-
 CREATE TABLE tempus_pt.route (
         id serial PRIMARY KEY,
         original_id character varying, 
@@ -965,16 +944,6 @@ COMMENT ON COLUMN tempus_pt.route.long_name IS 'Long name to define the route, f
 COMMENT ON COLUMN tempus_pt.route.description IS 'Description of the itineraries of the trips belonging to the route, facultative.';
 COMMENT ON COLUMN tempus_pt.route.mode_type IS 'Public transport mode type (conform to GTFS route_type field): 0 = Tram, street car, light rail, 1 = metro, subway, 2 = train, 3 = short and long-distance bus, 4 = short and long-distance ferry, 5 = cable-car, 6 = aerial lift, 7 = funicular';
 
-CREATE TABLE tempus_pt.fare_zone (
-        id serial PRIMARY KEY, 
-        original_id character varying, 
-        network_id integer NOT NULL REFERENCES tempus_pt.network ON UPDATE CASCADE ON DELETE CASCADE,
-        name character varying,
-        UNIQUE(network_id, original_id)
-);
-CREATE INDEX ON tempus_pt.fare_zone(id);
-COMMENT ON TABLE tempus_pt.fare_zone IS 'Public transport geographical fare zones.';
-
 CREATE TABLE tempus_pt.stop (
         id serial PRIMARY KEY,
         original_id VARCHAR,
@@ -982,7 +951,7 @@ CREATE TABLE tempus_pt.stop (
         location_type INTEGER NOT NULL,
         name VARCHAR NOT NULL,
         wheelchair_boarding INTEGER NOT NULL,
-        fare_zone_id integer REFERENCES tempus_pt.fare_zone ON UPDATE CASCADE ON DELETE CASCADE,
+        fare_zone_id integer REFERENCES tempus_cost.pt_fare_zone ON UPDATE CASCADE ON DELETE CASCADE,
         road_section_id bigint REFERENCES tempus_road.section ON DELETE NO ACTION ON UPDATE CASCADE,
         road_section_abscissa double precision CHECK (road_section_abscissa IS NULL OR (road_section_abscissa >= 0 AND road_section_abscissa <= 1)), 
         geom Geometry(PointZ, 4326), 
@@ -1004,7 +973,7 @@ BEGIN
         FROM tempus_road.section
         LEFT JOIN tempus_pt.stop
         ON section.id = stop.road_section_id
-        LEFT JOIN tempus_general.intermodality_points ip
+        LEFT JOIN tempus_cost.intermodality_points ip
         ON section.id = ip.road_section_id
         WHERE stops.road_section_id IS NULL AND ip.road_section_id IS NULL
     );
@@ -1016,46 +985,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER delete_artificial_stop_road_section 
 AFTER DELETE ON tempus_pt.stop
 FOR EACH ROW EXECUTE PROCEDURE tempus_road.delete_artificial_stop_road_section_f();
-
-CREATE TABLE tempus_pt.fare_user_class (
-        id serial PRIMARY KEY, 
-        name character varying
-);
-CREATE INDEX ON tempus_pt.fare_user_class(id);
-COMMENT ON TABLE tempus_pt.fare_user_class IS 'Users classes that can be called to define a cost function for public transport. Never called by C++.';
-
-CREATE TABLE tempus_pt.fare_od (
-        id serial PRIMARY KEY, 
-        stop_id_from integer REFERENCES tempus_pt.stop ON UPDATE CASCADE ON DELETE CASCADE,
-        stop_id_to integer REFERENCES tempus_pt.stop ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX ON tempus_pt.fare_od(id);
-COMMENT ON TABLE tempus_pt.fare_od IS 'Origin and destination pairs that can be called to define a cost function for public tranport. Never called by C++.';
-
-CREATE TABLE tempus_pt.fare_zones_pair (
-        id serial PRIMARY KEY, 
-        zone_id_from integer REFERENCES tempus_pt.fare_zone ON UPDATE CASCADE ON DELETE CASCADE,
-        zone_id_to integer REFERENCES tempus_pt.fare_zone ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX ON tempus_pt.fare_zones_pair(id);
-COMMENT ON TABLE tempus_pt.fare_zones_pair IS 'Origin and destination zones that can be called to define a cost function for public tranport. Never called by C++.';
-
-CREATE TABLE tempus_pt.fare_class (
-        id serial PRIMARY KEY,
-        original_id VARCHAR NOT NULL,
-        network_id integer REFERENCES tempus_pt.network ON UPDATE CASCADE ON DELETE CASCADE,
-        fare_user_class_id integer REFERENCES tempus_pt.fare_user_class ON UPDATE CASCADE ON DELETE CASCADE,
-        fare_od_id integer REFERENCES tempus_pt.fare_od ON UPDATE CASCADE ON DELETE CASCADE,
-        fare_zones_pair_id integer REFERENCES tempus_pt.fare_zones_pair ON UPDATE CASCADE ON DELETE CASCADE,
-        allowed_transfers integer,
-        max_transfer_duration integer, 
-        max_trip_duration integer,
-        name character varying,
-        price double precision NOT NULL,
-        UNIQUE(network_id, original_id)
-);
-CREATE INDEX ON tempus_pt.fare_class(id);
-COMMENT ON TABLE tempus_pt.fare_class IS 'Public transport fare classes (can depend on user type, number of transfers, origin and destination points, origin and destination zones, transfers or trip duration). Can be used to define public transport cost function. Never called by C++.';
 
 CREATE TABLE tempus_pt.trip_shape (
         id serial PRIMARY KEY, 
@@ -1072,7 +1001,7 @@ CREATE TABLE tempus_pt.trip (
         original_id character varying,
         network_id integer REFERENCES tempus_pt.network ON UPDATE CASCADE ON DELETE CASCADE,
         route_id integer REFERENCES tempus_pt.route ON UPDATE CASCADE ON DELETE CASCADE,
-        service_id integer REFERENCES tempus_pt.service ON UPDATE CASCADE ON DELETE CASCADE,
+        service_id integer REFERENCES tempus_calendar.pt_service ON UPDATE CASCADE ON DELETE CASCADE,
         trip_shape_id integer REFERENCES tempus_pt.trip_shape ON UPDATE CASCADE ON DELETE CASCADE,
         wheelchair_accessible boolean,
         bikes_allowed boolean,
@@ -1110,18 +1039,12 @@ SELECT section_stop_times.stop_id_from,
        section_stop_times.stop_id_to, 
        st2.name as stop_name_to, 
        section_stop_times.time_to, 
-       array_agg(service_calendar_date.calendar_date) as calendar_dates
+       pt_service.calendar_dates
 FROM tempus_pt.section_stop_times
 JOIN tempus_pt.trip ON trip.id = section_stop_times.trip_id
-JOIN tempus_pt.service_calendar_date ON service_calendar_date.service_id=trip.service_id
+JOIN tempus_calendar.pt_service ON pt_service.id=trip.service_id
 JOIN tempus_pt.stop st1 ON st1.id = section_stop_times.stop_id_from
-JOIN tempus_pt.stop st2 ON st2.id = section_stop_times.stop_id_to
-GROUP BY section_stop_times.stop_id_from, 
-         st1.name, 
-         section_stop_times.time_from, 
-         section_stop_times.stop_id_to, 
-         st2.name, 
-         section_stop_times.time_to;
+JOIN tempus_pt.stop st2 ON st2.id = section_stop_times.stop_id_to;
 COMMENT ON VIEW tempus_pt.section_timetable IS 'Public transport sections timetable: stop times and days of validity. Used by C++ to load timetables in the graph.';
 
 CREATE MATERIALIZED VIEW tempus_pt.view_trips AS
@@ -1132,7 +1055,7 @@ SELECT trip.id,
        route.short_name as route_short_name, 
        route.mode_type, 
        array_agg(distinct stop.name) as served_stops_names, 
-       array_agg(service_calendar_date.calendar_date) as calendar_dates, 
+       pt_service.calendar_dates, 
        trip.wheelchair_accessible,
        trip.bikes_allowed,
        trip.short_name,
@@ -1141,7 +1064,7 @@ SELECT trip.id,
        st_collect(DISTINCT stop.geom) as geom_points
 FROM tempus_pt.trip JOIN tempus_pt.trip_shape ON (trip.trip_shape_id = trip_shape.id)
                     JOIN tempus_pt.route ON (route.id = trip.route_id)
-                    JOIN tempus_pt.service_calendar_date ON (trip.service_id = service_calendar_date.service_id)
+                    JOIN tempus_calendar.pt_service ON (trip.service_id = pt_service.id)
                     JOIN tempus_pt.section_stop_times ON (trip.id = section_stop_times.trip_id)
                     JOIN tempus_pt.stop ON (section_stop_times.stop_id_from = stop.id OR section_stop_times.stop_id_to = stop.id) 
 GROUP BY trip.id, 
@@ -1150,6 +1073,7 @@ GROUP BY trip.id,
        trip.route_id, 
        route.short_name, 
        route.mode_type, 
+       pt_service.calendar_dates, 
        trip.wheelchair_accessible,
        trip.bikes_allowed,
        trip.short_name,
@@ -1166,6 +1090,85 @@ CREATE VIEW tempus_pt.view_chk_isolated_stops AS
     WHERE section_stop_times.stop_id_from is null
       AND section_stop_times.stop_id_to is null
 );
+
+
+do $$
+begin
+raise notice '==== Intermodal points ===';
+end$$;
+
+CREATE TABLE tempus_intermod.network
+(
+    id serial PRIMARY KEY, 
+    name character varying UNIQUE,
+    comment character varying
+); 
+COMMENT ON TABLE tempus_intermod.network IS 'Intermodality points networks';
+
+CREATE TABLE tempus_intermod.point_type
+(
+    id serial PRIMARY KEY, 
+    name character varying
+); 
+COMMENT ON TABLE tempus_intermod.point_type IS 'Intermodality points types';
+
+
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(1, 'Car parks');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(2, 'Shared cars rental point');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(3, 'Bicycle park');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(4, 'Shared bicycles rental point');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(5, 'Point of interest');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(6, 'PT station');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(7, 'PT stop');
+INSERT INTO tempus_intermod.point_type(id, name)
+VALUES(8, 'Zone centroïd');
+
+CREATE TABLE tempus_intermod.point
+(
+    id serial PRIMARY KEY, 
+    original_id character varying,
+    network_id integer REFERENCES tempus_intermod.network ON UPDATE CASCADE,
+    type_id integer REFERENCES tempus_intermod.point_type ON UPDATE CASCADE, 
+    name character varying,
+    road_section_id bigint REFERENCES tempus_road.section ON DELETE NO ACTION ON UPDATE CASCADE,
+	road_section_abscissa double precision CHECK (road_section_abscissa IS NULL OR (road_section_abscissa >= 0 AND road_section_abscissa <= 1)), 
+	geom Geometry(PointZ, 4326),
+    UNIQUE (network_id, original_id)
+);
+
+CREATE TABLE tempus_intermod.section
+(
+        id serial PRIMARY KEY,
+        from_point_id integer REFERENCES tempus_intermod.point ON UPDATE CASCADE ON DELETE CASCADE,
+        to_point_id integer REFERENCES tempus_intermod.point ON UPDATE CASCADE ON DELETE CASCADE,
+        road_traffic_rules_ft integer, 
+        road_traffic_rules_tf integer
+);
+CREATE INDEX ON tempus_intermod.section(id); 
+CREATE INDEX ON tempus_intermod.section(from_point_id);
+CREATE INDEX ON tempus_intermod.section(to_point_id);
+COMMENT ON TABLE tempus_intermod.section IS 'Between intermodal points transfer road sections, used to define additional road edges of the graph.';
+
+CREATE TABLE tempus_intermod.section_time
+(
+    section_id bigint NOT NULL REFERENCES tempus_intermod.section ON DELETE CASCADE ON UPDATE CASCADE,
+    dir_ft boolean, 
+    period_id integer NOT NULL REFERENCES tempus_calendar.validity_period ON DELETE CASCADE ON UPDATE CASCADE,
+    speed_rules integer NOT NULL, 
+    time_function_id integer NOT NULL REFERENCES tempus_cost.time_function, 
+    PRIMARY KEY (section_id, dir_ft, period_id, time_function_id)
+);
+COMMENT ON TABLE tempus_intermod.section_time IS 'Speed, vehicle types and validity period associated to road sections. Never directly read by C++. Can be read by Pl/PgSQL cost functions.';
+COMMENT ON COLUMN tempus_intermod.section_time.period_id IS 'Days period ID when the speed is applied. 0 if always applied';
+COMMENT ON COLUMN tempus_intermod.section_time.speed_rules IS 'Speed rules concerned by the speed value';
+COMMENT ON COLUMN tempus_intermod.section_time.time_function_id IS 'Speed function ID';
 
 
 do $$
@@ -1440,7 +1443,7 @@ CREATE TABLE tempus_stored_results.paths_calculation
     req_time time NOT NULL, 
     section_id integer NOT NULL, 
     pred_section_id integer, 
-    transport_mode_id integer REFERENCES tempus_general.transport_mode, 
+    tmode_id integer REFERENCES tempus_tmode.transport_mode, 
     road_section_id integer REFERENCES tempus_road.section, 
     road_abscissa_from double precision, 
     road_abscissa_to double precision, 
@@ -1466,7 +1469,7 @@ COMMENT ON COLUMN tempus_stored_results.paths_calculation.pred_section_id IS 'Pr
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.road_section_id IS 'Road section ID in the graph';
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.road_abscissa_from IS 'Abscissa of the origin on the road section (0 if the road section is traveled as a whole)';
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.road_abscissa_to IS 'Abscissa of the destination on the road section (1 if the road section is traveled as a whole)';
-COMMENT ON COLUMN tempus_stored_results.paths_calculation.transport_mode_id IS 'Transport mode used on the section';
+COMMENT ON COLUMN tempus_stored_results.paths_calculation.tmode_id IS 'Transport mode used on the section';
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.pt_trip_id IS 'Section PT trip ID';
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.pt_stop_id_from IS 'Section origin PT stop ID';
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.pt_stop_id_to IS 'Section destination PT stop ID';
@@ -1478,58 +1481,4 @@ COMMENT ON COLUMN tempus_stored_results.paths_calculation.dep_cost IS 'Cost of t
 COMMENT ON COLUMN tempus_stored_results.paths_calculation.arr_cost IS 'Cost of the path at the destination of the section';
 
 
--- Returns the next departure time to test inside a time period and on the same day (when the next departure time to test is outside the time period, returns NULL)
-CREATE OR REPLACE FUNCTION tempus_access.next_pt_time (
-                                                            time_bound time, -- End time if constraint_date_after = true, begin time if constraint_date_after = false
-                                                            day date, 
-                                                            constraint_date_after boolean
-                                                      )
-RETURNS interval AS
-$BODY$
 
-BEGIN
-    
-    IF (constraint_date_after = True)
-    THEN RETURN SELECT CASE WHEN (req_time + '1 minute'::interval)::interval < time_bound
-                            THEN (req_time + '1 minute'::interval)::interval
-                            ELSE time_bound
-                       END AS next_time 
-                FROM tempus_stored_results.paths_calculation 
-                WHERE req_id = (SELECT max(req_id) FROM tempus_stored_results.paths_calculation);
-    ELSIF (constraint_date_after = False)
-    THEN RETURN SELECT CASE WHEN (req_time - '1 minute'::interval)::interval > time_bound
-                            THEN (req_time - '1 minute'::interval)::interval
-                            ELSE time_bound
-                       END AS next_time 
-                FROM tempus_stored_results.paths_calculation 
-                WHERE req_id = (SELECT max(req_id) FROM tempus_stored_results.paths_calculation);
-    END IF; 
-END;
-$BODY$
-LANGUAGE plpgsql; 
-
-
-CREATE OR REPLACE FUNCTION tempus_access.next_timestamp(
-                                                            cur_timestamp timestamp, 
-                                                            inter integer, 
-                                                            bound_timestamp timestamp, 
-                                                            constraint_date_after boolean
-                                                       )
-RETURNS timestamp AS 
-$BODY$
-
-DECLARE
-t timestamp;
-r record;
-s character varying;
-
-BEGIN
-    
-    IF (constraint_date_after = True)
-    THEN RETURN (SELECT CASE WHEN cur_timestamp + (inter::character varying || ' minute')::interval <= bound_timestamp THEN cur_timestamp + (inter::character varying || ' minute')::interval ELSE bound_timestamp END); 
-    ELSIF (constraint_date_after = False)
-    THEN RETURN (SELECT CASE WHEN cur_timestamp - (inter::character varying || ' minute')::interval >= bound_timestamp THEN cur_timestamp - (inter::character varying || ' minute')::interval ELSE bound_timestamp END); 
-    END IF;
-END;
-$BODY$
-LANGUAGE plpgsql;
