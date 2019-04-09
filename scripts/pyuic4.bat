@@ -1,3 +1,5 @@
+call qt4_env.bat
+call py2_env.bat
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_set_db_connection_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_set_db_connection_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_db_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_db_dialog.ui"
