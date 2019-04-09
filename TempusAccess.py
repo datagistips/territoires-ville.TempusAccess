@@ -48,6 +48,7 @@ from delete_poi_dialog import delete_poi_dialog
 from import_zoning_dialog import import_zoning_dialog
 from delete_zoning_dialog import delete_zoning_dialog
 from manage_indicators_dialog import manage_indicators_dialog
+from indic_calc_tools import *
 
 import subprocess
 import qgis
@@ -56,9 +57,6 @@ import os
 import sys
 import string
 import csv
-
-
-from thread_tools import *
 
 class TempusAccess:
 
@@ -1159,7 +1157,6 @@ class TempusAccess:
         self.isosurfaces=False
         self.buildQuery()
         
-        
         self.done=False
         self.time.start()
         self.timer.start()
@@ -1172,10 +1169,9 @@ class TempusAccess:
             (self.obj_def_name == "routes") or \
             (self.obj_def_name == "agencies")\
            ):
-            self.gen_indic_thread = genIndicThread(self.query, self.db)
-            self.gen_indic_thread.finished.connect(self._slotDone)
-            self.gen_indic_thread.resultAvailable.connect(self._slotResultAvailable)
-            self.gen_indic_thread.start()
+            self.gen_indic = genIndic(self.query, self.db)
+            done = self.gen_indic.run()
+            self.resultAvailable(done)
         
         elif ((self.obj_def_name == "paths") or \
               (self.obj_def_name == "paths_details") or \
@@ -1186,40 +1182,37 @@ class TempusAccess:
             if (self.obj_def_name == "paths_tree") or (self.obj_def_name == "comb_paths_trees"):
                 path_tree=True
             
-            
             dbstring="host="+self.db.hostName()+" dbname="+self.db.databaseName()+" port="+str(self.db.port())
             
-            self.path_indic_thread = pathIndicThread(
-                                                        self.query, \
-                                                        self.db, \
-                                                        dbstring, \
-                                                        self.road_node_from, \
-                                                        self.road_node_to, \
-                                                        self.road_nodes, \
-                                                        self.time_start, \
-                                                        self.time_end, \
-                                                        self.time_ag, \
-                                                        self.time_point, \
-                                                        self.time_interval, \
-                                                        self.all_services, \
-                                                        self.days, \
-                                                        self.tran_modes, \
-                                                        path_tree, \
-                                                        self.max_cost, \
-                                                        self.walking_speed, \
-                                                        self.cycling_speed, \
-                                                        self.constraint_date_after\
-                                                    )
-                                                    
-            self.path_indic_thread.finished.connect(self._slotDone)
-            self.path_indic_thread.resultAvailable.connect(self._slotResultAvailable)
-            self.path_indic_thread.start()
-
+            self.path_indic = pathIndic(
+                                            self.query, \
+                                            self.db, \
+                                            dbstring, \
+                                            self.road_node_from, \
+                                            self.road_node_to, \
+                                            self.road_nodes, \
+                                            self.time_start, \
+                                            self.time_end, \
+                                            self.time_ag, \
+                                            self.time_point, \
+                                            self.time_interval, \
+                                            self.all_services, \
+                                            self.days, \
+                                            self.tran_modes, \
+                                            path_tree, \
+                                            self.max_cost, \
+                                            self.walking_speed, \
+                                            self.cycling_speed, \
+                                            self.constraint_date_after\
+                                        )
+            done = self.path_indic.run()
+            self.timer.stop()
+            self.resultAvailable(done)
             
-    def _slotResultAvailable(self, done): 
+            
+    def resultAvailable(self, done): 
         if (done==True):
             s="UPDATE tempus_access.indic_catalog SET calc_time = "+str(self.time.elapsed()/1000)+" WHERE layer_name = '"+self.obj_def_name+"';"
-            print s
             q=QtSql.QSqlQuery(self.db)
             q.exec_(unicode(s))
             
@@ -1249,12 +1242,7 @@ class TempusAccess:
             box.setText(u"La requête a échoué.")
             display_and_clear_python_console()
             box.exec_()
-            
-            
-    def _slotDone(self):
-        self.timer.stop()
-           
-    
+               
     def _slotPushButtonReinitCalcClicked(self):
         self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(0)
         self._slotComboBoxObjTypeIndexChanged(self.dlg.ui.comboBoxObjType.currentIndex())
