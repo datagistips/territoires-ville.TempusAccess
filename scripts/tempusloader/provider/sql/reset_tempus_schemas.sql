@@ -502,7 +502,69 @@ CREATE TABLE tempus_cost.pt_fare_class (
 CREATE INDEX ON tempus_cost.pt_fare_class(id);
 COMMENT ON TABLE tempus_cost.pt_fare_class IS 'Public transport fare classes (can depend on user type, number of transfers, origin and destination points, origin and destination zones, transfers or trip duration). Can be used to define public transport cost function. Never called by C++.';
 
+CREATE TYPE tempus_cost.cost_value
+(
+    time_start integer,
+    time_end integer,
+    value double precision
+);
 
+CREATE FUNCTION tempus_cost.road_section_cost_function(section_id bigint, dir_ft boolean, transport_mode_id integer, calendar_date date, duration double precision)
+RETURNS SET OF cost_values AS
+$BODY$
+DECLARE
+    cost double precision;
+BEGIN
+    SELECT (section_speed.value * 1000 / section.length) -- travel time
+         + COALESCE(section_toll.value, 0) -- toll value (if defined)
+         + COALESCE(section_env_cost.value, 0) -- environnemental cost (if defined)
+    
+    FROM tempus_road.section JOIN tempus_road.section_speed ON (section_speed.section_id = section.id)
+                             JOIN tempus_tmode.transport_mode ON (transport_mode.speed_rule & section_speed.speed_rules > 0)
+    WHERE section.id = $1 AND section_speed.dir_ft = $2 AND transport_mode.id = $3 
+    
+    RETURN cost;
+END;
+$BODY$
+  LANGUAGE plpgsql; 
+
+
+CREATE FUNCTION tempus_cost.road_restriction_cost_function(restriction_id bigint, transport_mode_id integer, calendar_date date, duration double precision)
+RETURNS double precision AS
+$BODY$
+DECLARE
+    cost double precision;
+BEGIN
+    SELECT INTO cost
+        
+    
+    FROM 
+    
+    
+    RETURN cost;
+END;
+$BODY$
+  LANGUAGE plpgsql; 
+
+
+CREATE FUNCTION tempus_cost.pt_section_cost_function(section_id bigint, calendar_date date, duration double precision)
+RETURNS double precision AS
+$BODY$
+DECLARE
+    cost double precision;
+BEGIN
+    SELECT INTO cost
+        
+    
+    FROM 
+    
+    
+    RETURN cost;
+END;
+$BODY$
+  LANGUAGE plpgsql; 
+
+  
 
 do $$
 begin
