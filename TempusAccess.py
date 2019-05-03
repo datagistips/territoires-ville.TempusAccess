@@ -350,7 +350,10 @@ class TempusAccess:
         self.set_db_connection_dialog.show()
         
     
-    def unload(self):
+    def unload(self):        
+        cmd = [ "python", "-m", "pglite", "stop" ]
+        r = subprocess.call( cmd )
+        
         root = QgsProject.instance().layerTreeRoot()
         node_group=root.findGroup("Analyse de l'offre de transport collectif")
         root.removeChildNode(node_group)
