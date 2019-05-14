@@ -147,15 +147,16 @@ SET geom = st_force3DZ(st_setsrid(st_point(stop_lon, stop_lat), 4326))::Geometry
 CREATE INDEX ON _tempus_import.stops USING gist(geom);
 CREATE INDEX ON _tempus_import.stops(stop_id);
 
-INSERT INTO tempus_gtfs.stops(
-            feed_id, stop_id, parent_station_id, location_type, stop_name, 
-            stop_lat, stop_lon, wheelchair_boarding, stop_code, stop_desc, 
-            zone_id, stop_url, stop_timezone, geom, id)    
-    SELECT '%(source_name)' AS feed_id, stop_id, parent_station, location_type, stop_name, 
-        stop_lat, stop_lon, coalesce(wheelchair_boarding,0), stop_code, stop_desc, 
-        zone_id, stop_url, stop_timezone, geom, 
-        (SELECT id FROM _tempus_import.stops_idmap WHERE stops_idmap.stop_id=stops.stop_id) AS id
-    FROM _tempus_import.stops;
+INSERT INTO tempus_gtfs.stops (
+                                feed_id, stop_id, parent_station_id, location_type, stop_name, 
+                                stop_lat, stop_lon, wheelchair_boarding, stop_code, stop_desc, 
+                                zone_id, stop_url, stop_timezone, geom, id
+                              )
+SELECT '%(source_name)' AS feed_id, stop_id, parent_station, location_type, stop_name, 
+    stop_lat, stop_lon, coalesce(wheelchair_boarding,0), stop_code, stop_desc, 
+    zone_id, stop_url, stop_timezone, geom, 
+    (SELECT id FROM _tempus_import.stops_idmap WHERE stops_idmap.stop_id=stops.stop_id) AS id
+FROM _tempus_import.stops;
     
 UPDATE tempus_gtfs.stops
 SET parent_station_id_int = stops2.id 
@@ -214,7 +215,7 @@ BEGIN
         IF l_road_section_id IS NULL THEN
             -- no section, CREATE a fake one, FROM the stop geometry
             l_road_section_id := nextval('tempus.seq_road_section_id');
-            l_abscissa_road_section := 0.5;
+            l_abscissa_road_section := 1;
             l_node1_id := nextval('tempus.seq_road_node_id')::bigint;
             l_node2_id := nextval('tempus.seq_road_node_id')::bigint;
 
@@ -373,7 +374,7 @@ INSERT INTO tempus_gtfs.sections (stop_from, stop_to, feed_id, shape_id_int, geo
             , foo2.stop_to
             , (SELECT id FROM tempus_gtfs.feed_info WHERE feed_id = '%(source_name)') AS feed_id
             , (SELECT id FROM tempus_gtfs.shapes WHERE shape_id = foo2.shape_id) AS shape_id_int
-            , coalesce(foo2.geom, st_force_3DZ(st_setsrid(st_makeline(g1.geom, g2.geom), 4326))) AS geom
+            , coalesce(st_linesubstring(foo2.geom, least(st_linelocatepoint(foo2.geom, g1.geom), st_linelocatepoint(foo2.geom, g2.geom)), greatest(st_linelocatepoint(foo2.geom, g1.geom), st_linelocatepoint(foo2.geom, g2.geom))), st_force_3DZ(st_setsrid(st_makeline(g1.geom, g2.geom), 4326))) AS geom
     FROM 
         (
             SELECT stop_from, stop_to, foo.shape_id, st_force3DZ(st_makeline(shape_points.geom ORDER BY shape_pt_sequence)) AS geom
@@ -591,31 +592,59 @@ begin
 raise notice '==== PT transfer ====';
 end$$;
 
-ALTER TABLE _tempus_import.transfers
-ADD COLUMN id serial; 
+INSERT INTO tempus_gtfs.transfers(feed_id, from_stop_id, to_stop_id, transfer_type, min_transfer_time, from_stop_id_int, to_stop_id_int)
+SELECT '%(source_name)', from_stop_id, to_stop_id, 2, min_transfer_time::integer, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = '%(source_name)' AND stops.stop_id = from_stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = '%(source_name)' AND stops.stop_id = to_stop_id)
+FROM _tempus_import.transfers;
+
+-- New transfers are created between stops belonging to the same parent_station_id, but which are not linked by a transfer edge
+INSERT INTO tempus_gtfs.transfers(feed_id, from_stop_id, to_stop_id, transfer_type, min_transfer_time, from_stop_id_int, to_stop_id_int)
+(
+    -- From stop to stop : 10 minutes
+    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
+    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.parent_station_id AND stops1.stop_id != stops2.stop_id
+)
+UNION
+(
+    -- From stop area to stop : 0 minutes
+    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 0, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
+    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.stop_id
+)
+UNION
+(
+    -- From stop to stop area : 10 minutes
+    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
+    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.stop_id = stops2.parent_station_id
+)
+ORDER BY 2,3; 
 
 DROP TABLE IF EXISTS _tempus_import.transfers_without_doubles;
 CREATE TABLE _tempus_import.transfers_without_doubles AS
 (
     WITH foo AS
     (
-        SELECT t1.from_stop_id, t1.to_stop_id, t1.min_transfer_time as min_transfer_time_direct, t2.min_transfer_time as min_transfer_time_reverse
-          FROM _tempus_import.transfers t1
-          LEFT JOIN _tempus_import.transfers t2 ON (t1.from_stop_id = t2.to_stop_id AND t2.from_stop_id = t1.to_stop_id)
-        WHERE t1.id < t2.id
+        SELECT t1.feed_id, t1.from_stop_id, t1.to_stop_id, t1.min_transfer_time as min_transfer_time_direct, t2.min_transfer_time as min_transfer_time_reverse
+          FROM tempus_gtfs.transfers t1
+          LEFT JOIN tempus_gtfs.transfers t2 ON ( t1.from_stop_id = t2.to_stop_id AND t2.from_stop_id = t1.to_stop_id AND t1.feed_id = t2.feed_id )
+        WHERE t1.id < t2.id AND t1.feed_id = '%(source_name)'
     )
-    SELECT from_stop_id, to_stop_id, min_transfer_time_direct as min_transfer_time, true as both_dir
+    SELECT feed_id, from_stop_id, to_stop_id, min_transfer_time_direct as min_transfer_time, true as both_dir
     FROM foo
     WHERE min_transfer_time_direct = min_transfer_time_reverse
     UNION
-    SELECT from_stop_id, to_stop_id, min_transfer_time_direct, false
+    SELECT feed_id, from_stop_id, to_stop_id, min_transfer_time_direct, false
     FROM foo
     WHERE min_transfer_time_direct is not null AND (min_transfer_time_direct != min_transfer_time_reverse OR min_transfer_time_reverse is null)
     UNION
-    SELECT to_stop_id, from_stop_id, min_transfer_time_reverse, false
+    SELECT feed_id, to_stop_id, from_stop_id, min_transfer_time_reverse, false
     FROM foo
     WHERE min_transfer_time_reverse is not null AND (min_transfer_time_direct != min_transfer_time_reverse OR min_transfer_time_direct is null)
-); 
+);  
+
+INSERT INTO tempus.road_network(name, comment)
+VALUES ('transfers_%(source_name)','Transfers between PT stops in the %(source_name) network');
 
 DROP SEQUENCE IF EXISTS seq_transfer_node_id;
 CREATE SEQUENCE seq_transfer_node_id start WITH 1;
@@ -625,114 +654,155 @@ DROP SEQUENCE IF EXISTS seq_transfer_section_id;
 CREATE SEQUENCE seq_transfer_section_id start WITH 1;
 SELECT setval('seq_transfer_section_id', (SELECT max(id)+1 FROM tempus.road_section));
 
-INSERT INTO tempus.road_network(name, comment)
-VALUES ('transfers_%(source_name)','Transfers between PT stops in %(source_name) network');
-
--- mark each (distinct) pt_stop involved in a transfer
--- mark each (distinct) pt_stop involved in a transfer
-DROP TABLE IF EXISTS _tempus_import.transfers_new_nodes;
-CREATE TABLE _tempus_import.transfers_new_nodes AS
+-- mark each (distinct) stop involved in a transfer
+DROP TABLE IF EXISTS _tempus_import.road_transfers;
+CREATE TABLE _tempus_import.road_transfers AS
 (
     WITH transfer_stops AS
 	(
 		SELECT DISTINCT stops.id AS stop_id
-		FROM tempus_gtfs.stops, _tempus_import.transfers
-		  JOIN _tempus_import.stops_idmap idmap1 ON idmap1.stop_id = transfers.from_stop_id
-		  JOIN _tempus_import.stops_idmap idmap2 ON idmap2.stop_id = transfers.to_stop_id
-		WHERE transfer_type::integer = 2
-		  AND (stops.id = idmap1.id OR stops.id = idmap2.id)
+		FROM tempus_gtfs.stops JOIN tempus_gtfs.transfers ON (stops.feed_id = transfers.feed_id AND (stops.stop_id = transfers.from_stop_id OR stops.stop_id = transfers.to_stop_id))
+		WHERE transfer_type::integer = 2 AND transfers.feed_id = '%(source_name)'
 	)
     SELECT stops.id, 
            stops.road_section_id, 
-           nextval('seq_transfer_section_id')::bigint AS new_section_id1, 
-           nextval('seq_transfer_section_id')::bigint AS new_section_id2,
-           node_from, 
-           nextval('seq_transfer_node_id')::bigint AS new_node_id, 
-           node_to, 
-           stops.abscissa_road_section, 
-           rs.length * stops.abscissa_road_section as length_first_split, 
-           rs.length * (1 - stops.abscissa_road_section) as length_second_split, 
-           n1.geom as geom_first_node, 
-           stops.geom as geom_new_node, 
-           n2.geom as geom_last_node,
-           st_makeline(n1.geom, stops.geom) AS geom_first_split, 
-           st_makeline(stops.geom, n2.geom) AS geom_second_split
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN nextval('seq_transfer_section_id')::bigint
+           END AS first_split_id, 
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN rs.length * stops.abscissa_road_section
+           END AS first_split_length, 
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN st_makeline(n1.geom, st_lineinterpolatepoint(rs.geom, stops.abscissa_road_section))
+           END AS first_split_geom, 
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN nextval('seq_transfer_section_id')::bigint
+           END AS second_split_id,
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN rs.length * stops.abscissa_road_section
+           END AS second_split_length, 
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN st_makeline(st_lineinterpolatepoint(rs.geom, stops.abscissa_road_section), n2.geom)
+           END AS second_split_geom,
+           nextval('seq_transfer_section_id')::bigint AS link_section_id,
+           600 AS link_section_length, 
+           CASE WHEN stops.abscissa_road_section = 0 THEN st_makeline(n1.geom, stops.geom)
+                WHEN stops.abscissa_road_section = 1 THEN st_makeline(n2.geom, stops.geom)
+                ELSE st_makeline(st_lineinterpolatepoint(rs.geom, stops.abscissa_road_section), stops.geom)
+           END AS link_section_geom,
+           rs.node_from as node_from_id, 
+           n1.geom as node_from_geom,
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN nextval('seq_transfer_node_id')::bigint
+           END AS intermed_node_id, 
+           CASE WHEN stops.abscissa_road_section NOT IN (0, 1) THEN st_lineinterpolatepoint(rs.geom, stops.abscissa_road_section)
+           END AS intermed_node_geom, 
+           rs.node_to as node_to_id, 
+           n2.geom as node_to_geom, 
+           nextval('seq_transfer_node_id')::bigint AS stop_node_id, 
+           stops.geom as stop_node_geom,   
+           stops.abscissa_road_section
 	FROM transfer_stops JOIN tempus_gtfs.stops ON (stops.id = transfer_stops.stop_id)
                         JOIN tempus.road_section rs ON (rs.id = stops.road_section_id)
                         JOIN tempus.road_node n1 ON n1.id = rs.node_from
                         JOIN tempus.road_node n2 ON n2.id = rs.node_to
 ); 
 
--- insert a new node in the middle of the attached road_section
+-- Insert new road nodes
 INSERT INTO tempus.road_node(id, network_id, bifurcation, geom)
-SELECT new_node_id
-     , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
-     , false AS bifurcation
-     , geom_new_node
-FROM _tempus_import.transfers_new_nodes; 
+(
+    SELECT DISTINCT intermed_node_id as id
+         , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
+         , false AS bifurcation
+         , intermed_node_geom
+    FROM _tempus_import.road_transfers
+    WHERE intermed_node_id IS NOT NULL
+    UNION
+    SELECT DISTINCT stop_node_id as id
+         , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
+         , false AS bifurcation
+         , stop_node_geom
+    FROM _tempus_import.road_transfers
+    ORDER BY id
+); 
 
--- insert the first part of the splitted road_section
+-- Insert new road sections
 INSERT INTO tempus.road_section(id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, road_name, geom)
+(
 SELECT
-   new_section_id1, 
-   (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)'),
-   5 as road_type,
-   node_from,
-   new_node_id,
+   first_split_id AS id, 
+   (SELECT network_id FROM tempus.road_section WHERE id = road_section_id),
+   (SELECT road_type FROM tempus.road_section WHERE id = road_section_id),
+   node_from_id,
+   intermed_node_id,
    1 as traffic_rules_ft,
    1 as traffic_rules_tf,
-   length_first_split, 
-   'Transfer', 
-   geom_first_split
-FROM _tempus_import.transfers_new_nodes
-WHERE abscissa_road_section<1;
-
--- insert the second part of the split section
-INSERT INTO tempus.road_section(id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, road_name, geom)
+   first_split_length, 
+   (SELECT road_name FROM tempus.road_section WHERE id = road_section_id), 
+   first_split_geom
+FROM _tempus_import.road_transfers
+WHERE first_split_id IS NOT NULL
+UNION
 SELECT
-   new_section_id2, 
-   (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)'),
-   5 as road_type,
-   new_node_id,
-   node_to,
+   second_split_id AS id, 
+   (SELECT network_id FROM tempus.road_section WHERE id = road_section_id),
+   (SELECT road_type FROM tempus.road_section WHERE id = road_section_id),
+   intermed_node_id,
+   node_to_id, 
    1 as traffic_rules_ft,
    1 as traffic_rules_tf,
-   length_second_split, 
+   first_split_length, 
+   (SELECT road_name FROM tempus.road_section WHERE id = road_section_id), 
+   second_split_geom
+FROM _tempus_import.road_transfers
+WHERE first_split_id IS NOT NULL
+UNION
+SELECT
+   link_section_id AS id, 
+   (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)'),
+   5 as road_type,
+   CASE WHEN abscissa_road_section = 0 THEN node_from_id
+        WHEN abscissa_road_section = 1 THEN node_to_id
+        ELSE intermed_node_id
+   END,
+   stop_node_id,
+   1 as traffic_rules_ft,
+   1 as traffic_rules_tf,
+   link_section_length, 
    'Transfer', 
-   geom_second_split
-FROM _tempus_import.transfers_new_nodes
-WHERE abscissa_road_section>0;
+   link_section_geom
+FROM _tempus_import.road_transfers
+WHERE link_section_id IS NOT NULL
+ORDER BY id
+);
 
--- insert the transfer section  
+UPDATE tempus_gtfs.stops
+SET road_section_id = link_section_id, abscissa_road_section = 1
+FROM _tempus_import.road_transfers
+WHERE stops.id = road_transfers.id; 
+
+-- Insert the transfer sections
 INSERT INTO tempus.road_section(id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, road_name, geom)
 SELECT
   nextval('seq_transfer_section_id')::bigint
   , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
   , 5 AS road_type -- road_type dedicated to transfer between PT stops
-  , nn1.new_node_id
-  , nn2.new_node_id
+  , nn1.stop_node_id
+  , nn2.stop_node_id
   , 1 as traffic_rules_ft
   , CASE WHEN tr.both_dir = TRUE THEN 1 ELSE 0 END as traffic_rules_tf
   , min_transfer_time::float * 5000 / 3600.0 AS length -- convert FROM time to distance (multiply by walking speed)
   , 'Transfer'
-  , st_makeline(nn1.geom_new_node, nn2.geom_new_node)
+  , st_makeline(s1.geom, s2.geom)
 FROM
   _tempus_import.transfers_without_doubles tr
-  JOIN _tempus_import.stops_idmap idmap1 ON idmap1.stop_id = tr.from_stop_id
-  JOIN _tempus_import.stops_idmap idmap2 ON idmap2.stop_id = tr.to_stop_id
-  JOIN _tempus_import.transfers_new_nodes nn1 ON nn1.id = idmap1.id
-  JOIN _tempus_import.transfers_new_nodes nn2 ON nn2.id = idmap2.id;  
+  JOIN tempus_gtfs.stops s1 ON (s1.feed_id = tr.feed_id AND s1.stop_id = tr.from_stop_id)
+  JOIN tempus_gtfs.stops s2 ON (s2.feed_id = tr.feed_id AND s2.stop_id = tr.to_stop_id)
+  JOIN _tempus_import.road_transfers nn1 ON nn1.id = s1.id
+  JOIN _tempus_import.road_transfers nn2 ON nn2.id = s2.id;  
 
 
 -- Speed is defined for pedestrians on road sections
 INSERT INTO tempus.road_daily_profile(
             profile_id, begin_time, speed_rule, end_time, average_speed)
-VALUES((SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile),0,1,1440,3.6); 
+VALUES((SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile),0,1,1440,3.6);
   
 INSERT INTO tempus.road_section_speed(
             road_section_id, period_id, profile_id)
 SELECT id, 0, (SELECT max(profile_id) FROM tempus.road_daily_profile)
 FROM tempus.road_section
 WHERE (road_section.traffic_rules_ft::integer & 1) > 0 OR (road_section.traffic_rules_tf::integer & 1) > 0; 
-
 
