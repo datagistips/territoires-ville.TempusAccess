@@ -84,7 +84,8 @@ $$;
 
 -- Agency
 DELETE FROM tempus_gtfs.agency 
-WHERE feed_id = '%(source_name)'; 
+WHERE feed_id = '%(source_name)';
+
 SELECT setval('tempus_gtfs.agency_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.agency), false);
 INSERT INTO tempus_gtfs.agency(feed_id, agency_id, agency_name, agency_url, agency_timezone, agency_lang)
 (
@@ -125,7 +126,6 @@ INSERT INTO tempus_gtfs.routes (feed_id, route_id, agency_id, route_short_name, 
     FROM _tempus_import.stop_times JOIN tempus_gtfs.routes ON (stop_times.feed_id = routes.feed_id AND stop_times.route_id = routes.route_id AND stop_times.agency_id = routes.agency_id)
     ORDER BY stop_times.route_id, stop_times.feed_id
 );
-
 
 
 do $$
@@ -574,7 +574,7 @@ SET geom = st_transform(q.geom, 4326)
 FROM q
 WHERE q.section_id = sections.id; 
 
--- Création d''une table géographique correspondant à la table "shapes"
+-- Add a geographical table corresponding to table "shapes"
 
 UPDATE tempus_gtfs.trips
 SET shape_id = null
@@ -649,12 +649,14 @@ INSERT INTO tempus_gtfs.transfers(feed_id, from_stop_id, to_stop_id, transfer_ty
 )
 UNION
 (
+    -- From stop area to stop : 0 minutes
     SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 0, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
     FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
     WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.stop_id
 )
 UNION
 (
+    -- From stop to stop area : 10 minutes
     SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
     FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
     WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.stop_id = stops2.parent_station_id
@@ -708,7 +710,7 @@ CREATE TABLE _tempus_import.transfers_without_doubles AS
 );  
 
 INSERT INTO tempus.road_network(name, comment)
-VALUES ('transfers_feed_id','Transfers between PT stops in the feed_id network');
+VALUES ('transfers_%(source_name)','Transfers between PT stops in the %(source_name) network');
 
 DROP SEQUENCE IF EXISTS seq_transfer_node_id;
 CREATE SEQUENCE seq_transfer_node_id start WITH 1;
@@ -768,19 +770,19 @@ CREATE TABLE _tempus_import.road_transfers AS
 -- Insert new road nodes
 INSERT INTO tempus.road_node(id, network_id, bifurcation, geom)
 (
-SELECT DISTINCT intermed_node_id as id
-     , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_feed_id')
-     , false AS bifurcation
-     , intermed_node_geom
-FROM _tempus_import.road_transfers
-WHERE intermed_node_id IS NOT NULL
-UNION
-SELECT DISTINCT stop_node_id as id
-     , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_feed_id')
-     , false AS bifurcation
-     , stop_node_geom
-FROM _tempus_import.road_transfers
-ORDER BY id
+    SELECT DISTINCT intermed_node_id as id
+         , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
+         , false AS bifurcation
+         , intermed_node_geom
+    FROM _tempus_import.road_transfers
+    WHERE intermed_node_id IS NOT NULL
+    UNION
+    SELECT DISTINCT stop_node_id as id
+         , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
+         , false AS bifurcation
+         , stop_node_geom
+    FROM _tempus_import.road_transfers
+    ORDER BY id
 ); 
 
 -- Insert new road sections
@@ -816,7 +818,7 @@ WHERE first_split_id IS NOT NULL
 UNION
 SELECT
    link_section_id AS id, 
-   (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_feed_id'),
+   (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)'),
    5 as road_type,
    CASE WHEN abscissa_road_section = 0 THEN node_from_id
         WHEN abscissa_road_section = 1 THEN node_to_id
@@ -842,7 +844,7 @@ WHERE stops.id = road_transfers.id;
 INSERT INTO tempus.road_section(id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, road_name, geom)
 SELECT
   nextval('seq_transfer_section_id')::bigint
-  , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_feed_id')
+  , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
   , 5 AS road_type -- road_type dedicated to transfer between PT stops
   , nn1.stop_node_id
   , nn2.stop_node_id
