@@ -32,7 +32,7 @@ class ResetTempus(DataImporter):
     
 class ResetTempusAccess(DataImporter):
     """This class allows to reset the indic and tempus_access schemas of a database"""
-    PRELOADSQL = [ 'reset_tempus_schemas.sql',\
+    PRELOADSQL = [ 'reset_tempus_schemas.sql', 'reset_tempusaccess_schemas.sql', \
                    'reset_tempusaccess_function_pt_stop.sql', 'reset_tempusaccess_function_pt_stop_area.sql', \
                    'reset_tempusaccess_function_pt_section.sql', \
                    'reset_tempusaccess_function_pt_trip.sql', 'reset_tempusaccess_function_pt_stops_route.sql', \
