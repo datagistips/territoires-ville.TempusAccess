@@ -14,12 +14,4 @@ Parmi les indicateurs proposés, certains font appel à des **calculs de plus co
 Il est possible de **filtrer** la période horaire, les jours, de même que les arrêts, certaines lignes, sur lesquels le calcul d'indicateurs portera.
 
 # Documentation
-La documentation complète se situe dans le wiki
-
-La documentation disponible est la suivante \:
-1. [Installation et configuration](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/(Fr)-1.-Installation-et-configuration) ;
-2. [Gestion des données](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/(Fr)-2.-Gestion-des-donn%C3%A9es) ;
-3. [Calcul des indicateurs](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/(Fr)-3.-Calcul-des-indicateurs) ;
-4. [Affichage des indicateurs](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/(Fr)-4.-Affichage-des-indicateurs).
-
-Vous pouvez consulter [ici](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/(Fr)-Sites-et-projets-li%C3%A9s) une liste de projets ou sites web en lien avec TempusAccess, notamment des plateformes fournissant des données GTFS sur l'offre de transport collectif.
+La documentation complète se situe dans le [wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki) !
