@@ -14,4 +14,4 @@ Parmi les indicateurs proposés, certains font appel à des **calculs de plus co
 Il est possible de **filtrer** la période horaire, les jours, de même que les arrêts, certaines lignes, sur lesquels le calcul d'indicateurs portera.
 
 # Documentation
-La documentation complète se situe dans le [wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki) !
+Pour savoir comment l'installer et l'utiliser, rendez-vous dans le [wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki) !
