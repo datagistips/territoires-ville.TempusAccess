@@ -44,13 +44,13 @@ CREATE TABLE _tempus_import.speed_profiles
 	id serial, 
 	car_speed_limit integer
 );
-
 SELECT setval('_tempus_import.speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
 
 INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
 (
         SELECT DISTINCT car_speed_limit
         FROM tempus.road_section
+		WHERE car_speed_limit IS NOT NULL
         ORDER BY 1
 );
 
@@ -59,8 +59,8 @@ INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_ti
 SELECT id,0,5,1440,car_speed_limit
 FROM _tempus_import.speed_profiles;
 
+-- When no speed limit is defined, a default value of 30 km/h is attributed
 INSERT INTO tempus.road_section_speed(road_section_id, period_id, profile_id)
-SELECT id, 0, (SELECT profile_id FROM tempus.road_daily_profile WHERE speed_rule=5 AND road_section.car_speed_limit = road_daily_profile.average_speed)
-FROM tempus.road_section
-WHERE (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0; 
-
+SELECT id, 0, coalesce(road_daily_profile.profile_id, (SELECT profile_id FROM tempus.road_daily_profile WHERE average_speed=30 AND begin_time = 0 AND end_time = 1440 AND speed_rule = 5))
+FROM tempus.road_section LEFT JOIN tempus.road_daily_profile ON road_section.car_speed_limit = road_daily_profile.average_speed
+WHERE speed_rule=5 AND (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0; 
