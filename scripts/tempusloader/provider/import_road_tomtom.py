@@ -39,19 +39,19 @@ class ImportRoadMultinet(ShpImporter):
 
     SPEEDPROFILES = []
 
-    def __init__(self, source = "", source_speed = "", prefix = "", dbstring = "", logfile = None,
+    def __init__(self, source = "", prefix = "", dbstring = "", logfile = None,
                  options = {'g':'geom', 'D':True, 'I':True, 'S':True}, doclean = True, subs = {}):
-        super(MultinetImporter, self).__init__(source, prefix, dbstring, logfile, options, doclean, subs)
+        ShpImporter.__init__(self, source, prefix, dbstring, logfile, options, doclean, subs)
 
-        if isinstance(source_speed, list):
-            for source in source_speed:
-                print "Importing source {}".format(source)
-                self.prefix = self.get_fileprefix(source, prefix)
-                self.get_speed_profiles(source)
-        elif source_speed is not None:
-            self.prefix = self.get_fileprefix(source_speed, prefix)
-            self.get_speed_profiles(source_speed)
-            pass
+        # if isinstance(source_speed, list):
+            # for source in source_speed:
+                # print "Importing source {}".format(source)
+                # self.prefix = self.get_fileprefix(source, prefix)
+                # self.get_speed_profiles(source)
+        # elif source_speed is not None:
+            # self.prefix = self.get_fileprefix(source_speed, prefix)
+            # self.get_speed_profiles(source_speed)
+            # pass
         
     def get_fileprefix(self, source, prefix = ""):
         """Get prefix for shapefiles. If given prefix is empty, try to find it browsing the directory."""

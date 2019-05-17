@@ -143,7 +143,7 @@ def import_road_tomtom(args, shape_options):
         None: provider.ImportRoadMultinet
     }[args.model_version]
     shape_options['I'] = False
-    mni = Importer(args.path, args.speed_profile, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean)
+    mni = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean)
     return mni.load()
     
 
