@@ -332,7 +332,7 @@ class TempusAccess:
         
         # Set on-the-fly projection
         self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True) # Enable on the fly reprojections
-        self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(2154, QgsCoordinateReferenceSystem.PostgisCrsId))
+        #self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(2154, QgsCoordinateReferenceSystem.PostgisCrsId))
         
         qgis.utils.iface.actionShowPythonDialog().trigger()
         pythonConsole = qgis.utils.iface.mainWindow().findChild( QDockWidget, 'PythonConsole' )
@@ -1254,7 +1254,8 @@ class TempusAccess:
             
         
     def _slotUpdateTimer(self):
-        self.dlg.ui.labelElapsedTime.setText(u"Temps d'exécution : "+str(self.time.elapsed()/1000)+" secondes")
+        pass
+        #self.dlg.ui.labelElapsedTime.setText(u"Temps d'exécution : "+str(self.time.elapsed()/1000)+" secondes")
         
     
     # Slots of the 1st tab
@@ -1475,17 +1476,18 @@ class TempusAccess:
 
     
     def _slotClickPoint(self, point, button): # 3rd argument gives the mouse button used for the clic 
+        
         s=""
         i=0
         if (self.node_type==0): # Stop areas
-            s="SELECT id as id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
+            s="SELECT id, st_distance(geom, st_transform(st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), "+str(self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())+"), 4326)) as dist \
                FROM tempus_gtfs.stops \
                WHERE location_type = 1 AND parent_station_id IS NULL AND feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY"+str(self.PTNetworks)+") \
                ORDER BY 2 \
                LIMIT 1"
             i=4
         elif (self.node_type==1): # Road nodes
-            s="SELECT id, st_distance(st_transform(geom, 2154), st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), 2154)) as dist \
+            s="SELECT id, st_distance(geom, st_transform(st_setSRID(st_makepoint("+str(point.x())+", "+str(point.y())+"), "+str(self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid())+"), 4326)) as dist \
                FROM tempus.road_node \
                ORDER BY 2 \
                LIMIT 1"
