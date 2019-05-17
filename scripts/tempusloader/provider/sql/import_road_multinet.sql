@@ -5,37 +5,67 @@
         To update: network_id to insert in data
 */
 
--- TABLE road_node
-INSERT INTO tempus.road_node
+do $$
+begin
+raise notice '==== road_node table ===';
+end$$;
+
+DROP TABLE IF EXISTS _tempus_import.road_node_idmap;
+CREATE TABLE _tempus_import.road_node_idmap
+(
+        id bigserial primary key,
+        vendor_id varchar
+);
+SELECT setval('_tempus_import.road_node_idmap_id_seq', (SELECT CASE WHEN max(id) IS NULL THEN 1 ELSE max(id)+1 END FROM tempus.road_node), False);
+
+INSERT INTO _tempus_import.road_node_idmap (vendor_id)
+       SELECT id::bigint::character varying FROM _tempus_import.jc
+       ORDER BY id::bigint; 
+CREATE INDEX road_node_idmap_vendor_id_idx ON _tempus_import.road_node_idmap(vendor_id);
+
+INSERT INTO tempus.road_node(id, bifurcation, geom, network_id, vendor_id)
 SELECT DISTINCT
-	jc.id,
-	jc.jncttyp = 2 AS bifurcation,
-	ST_Force3DZ(st_transform(geom, 4326)) AS geom
+	(select id from _tempus_import.road_node_idmap WHERE vendor_id = jc.id::bigint::character varying),
+    jc.jncttyp = 2 AS bifurcation,
+	ST_Force3DZ(st_transform(geom, 4326)) AS geom, 
+	(select max(id) from tempus.road_network where name = '%(source_name)'),
+    jc.id
 FROM _tempus_import.jc AS jc
 WHERE jc.feattyp = 4120; -- 4120 means road node, 4220 means rail node
 
+do $$
+begin
+raise notice '==== road_section table ===';
+end$$;
 
--- TABLE road_section
 
--- Begin to remove all related constraints and index (performances concern)
-ALTER TABLE tempus.road_section DROP CONSTRAINT road_section_node_from_fkey;
-ALTER TABLE tempus.road_section DROP CONSTRAINT road_section_node_to_fkey;
-ALTER TABLE tempus.poi DROP CONSTRAINT poi_road_section_id_fkey;
-ALTER TABLE tempus.road_section_speed DROP CONSTRAINT road_section_speed_road_section_id_fkey;
-ALTER TABLE tempus_gtfs.stops DROP CONSTRAINT stops_road_section_id_fkey;
-ALTER TABLE tempus.road_section DROP CONSTRAINT road_section_pkey;
+drop table if exists _tempus_import.road_section_idmap;
+create table _tempus_import.road_section_idmap
+(
+        id bigserial primary key,
+        vendor_id character varying
+);
+SELECT setval('_tempus_import.road_section_idmap_id_seq', (SELECT CASE WHEN max(id) is null THEN 1 ELSE max(id)+1 END FROM tempus.road_section), False);
 
 -- create index to speed up next query
 ANALYSE _tempus_import.sr;
-ANALYSE _tempus_import.nw;
+ANALYSE _tempus_import.nw; 
 CREATE INDEX idx_tempus_import_sr_id ON _tempus_import.sr (id);
 CREATE INDEX idx_tempus_import_nw_id ON _tempus_import.nw (id);
 
--- Proceed to INSERT
-INSERT INTO tempus.road_section
-SELECT
-	nw.id,
+INSERT INTO _tempus_import.road_section_idmap(vendor_id)
+    SELECT id::bigint::character varying FROM _tempus_import.nw
+    ORDER BY id::bigint;
+CREATE INDEX road_section_idmap_vendor_id_idx on _tempus_import.road_section_idmap(vendor_id); 
 
+INSERT INTO tempus.road_section(id, vendor_id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, car_speed_limit, road_name, lane, tollway, geom)
+SELECT *
+FROM
+	(
+	SELECT
+	    (select id from _tempus_import.road_section_idmap where vendor_id=nw.id::bigint::character varying) as id, 
+        nw.id::bigint::character varying as vendor_id, 
+        (select max(id) from tempus.road_network where name = '%(source_name)') as network_id, 
         CASE frc
 		WHEN 0 THEN 1
 		WHEN 1 THEN 2
@@ -47,201 +77,160 @@ SELECT
                 WHEN 7 THEN 5
                 WHEN 8 THEN 7
 		ELSE NULL
-	END AS road_type,
-	f_jnctid AS node_from,
-	t_jnctid AS node_to,
-	CASE
-		WHEN oneway IS NULL AND frc <= 2 THEN 4 + 32 + 64
-		WHEN oneway IS NULL THEN 1 + 2 + 4 + 32 + 64 -- [and frc > 2]
-		WHEN oneway = 'N' THEN 1
-		WHEN oneway = 'TF' THEN 1 -- [and test is true]
-		WHEN frc <= 2 then 4 + 32 + 64 -- [and oneway = 'FT' and test is true]
-		ELSE 1 + 2 + 4 + 32 + 64 -- [and oneway = 'FT' and test is true and frc > 2]
-	END AS traffic_rules_ft
-	, CASE
-		WHEN oneway IS NULL AND frc <= 2 then 4 + 32 + 64
-		WHEN oneway IS NULL THEN  1 + 2 + 4 + 32 + 64  -- [and frc > 2]
-		WHEN oneway = 'N' then 1
-		WHEN oneway = 'FT' then 1 -- [and test is false]
-		WHEN frc <= 2 then 4 + 32 + 64 -- [and oneway = 'TF' and test is false]
-		ELSE 1 + 2 + 4 + 32 + 64 -- [and oneway = 'TF' and test is false and frc > 2]
-	END AS traffic_rules_tf
-	, meters AS length
-	, speed.car_speed_limit,
-	"name" as name,
-
-	CASE lanes
-		WHEN 0 THEN NULL
-		ELSE lanes
-	END AS lane,
-
-	CASE fow
-		WHEN 4 THEN true
-		ELSE false
-	END AS roundabout,
-
-	CASE partstruc
-		WHEN 2 THEN true
-		ELSE false
-	END AS bridge,
-
-	CASE partstruc
-		WHEN 1 THEN true
-		ELSE false
-	END AS tunnel,
-
-	CASE ramp
-		WHEN 0 THEN false
-		WHEN 1 THEN true
-		WHEN 2 THEN true
-		ELSE NULL
-	END AS ramp,
-
-	CASE tollrd
-		WHEN 'B' THEN true
-		WHEN 'FT' THEN true
-		WHEN 'TF' THEN true
-		ELSE false
-	END AS tollway,
-
-	ST_Transform(ST_Force3DZ(ST_LineMerge(nw.geom)), 4326) AS geom
-	-- FIXME remove ST_LineMerge call as soon as loader will use Simple geometry option
-
-FROM
-	_tempus_import.nw AS nw
-left join (
-	select
-		sr.id
-		, min(speed) as car_speed_limit
-	FROM
-		_tempus_import.sr
-	group by
-		sr.id
-) as speed
-on
-	nw.id=speed.id
-WHERE
-	nw.feattyp = 4110; -- 4110 : road element, 4130 : ferry transfer element
+		END AS road_type,
+		(select id from _tempus_import.road_node_idmap where vendor_id = f_jnctid::bigint::character varying) AS node_from, 
+        (select id from _tempus_import.road_node_idmap where vendor_id = t_jnctid::bigint::character varying) AS node_to, 
+		CASE
+			WHEN oneway IS NULL AND frc <= 2 THEN 4 + 32 + 64
+			WHEN oneway IS NULL THEN 1 + 2 + 4 + 32 + 64 -- [and frc > 2]
+			WHEN oneway = 'N' THEN 1
+			WHEN oneway = 'TF' THEN 1 -- [and test is true]
+			WHEN frc <= 2 then 4 + 32 + 64 -- [and oneway = 'FT' and test is true]
+			ELSE 1 + 2 + 4 + 32 + 64 -- [and oneway = 'FT' and test is true and frc > 2]
+		END AS traffic_rules_ft, 
+        CASE
+			WHEN oneway IS NULL AND frc <= 2 then 4 + 32 + 64
+			WHEN oneway IS NULL THEN  1 + 2 + 4 + 32 + 64  -- [and frc > 2]
+			WHEN oneway = 'N' then 1
+			WHEN oneway = 'FT' then 1 -- [and test is false]
+			WHEN frc <= 2 then 4 + 32 + 64 -- [and oneway = 'TF' and test is false]
+			ELSE 1 + 2 + 4 + 32 + 64 -- [and oneway = 'TF' and test is false and frc > 2]
+		END AS traffic_rules_tf, 
+		meters AS length, 
+        speed.car_speed_limit,
+		"name" as road_name,
+        CASE lanes
+			WHEN 0 THEN NULL
+			ELSE lanes
+		END AS lane,
+        CASE tollrd
+			WHEN 'B' THEN true
+			WHEN 'FT' THEN true
+			WHEN 'TF' THEN true
+			ELSE false
+		END AS tollway,
+        ST_Transform(ST_Force3DZ(ST_LineMerge(nw.geom)), 4326) AS geom
+	FROM _tempus_import.nw AS nw
+	LEFT JOIN (
+				SELECT sr.id, min(speed) as car_speed_limit
+				FROM
+				_tempus_import.sr
+				group by sr.id
+			  ) as speed on nw.id=speed.id
+	WHERE nw.feattyp = 4110 or nw.feattyp = 4130
+	) q
+WHERE node_from IS NOT null AND node_to IS NOT NULL; 
 
 
 -- Removing vehicles not allowed to go through the positive direction (ft)
 UPDATE tempus.road_section
 SET traffic_rules_ft = traffic_rules_ft -
-	(traffic_rules_ft & ( CASE WHEN ARRAY[0::smallint] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
-	ELSE CASE WHEN ARRAY[11::smallint] <@ array_agg THEN 4 + 16 ELSE 0 END
-		+ CASE WHEN ARRAY[16::smallint] <@ array_agg THEN 8 ELSE 0 END
-		+ CASE WHEN ARRAY[24::smallint] <@ array_agg THEN 2 ELSE 0 END
+	(traffic_rules_ft & ( CASE WHEN ARRAY[0] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
+	ELSE CASE WHEN ARRAY[11] <@ array_agg THEN 4 + 16 ELSE 0 END
+		+ CASE WHEN ARRAY[16] <@ array_agg THEN 8 ELSE 0 END
+		+ CASE WHEN ARRAY[24] <@ array_agg THEN 2 ELSE 0 END
 	END ) )
 FROM
-(
-SELECT id, array_agg(vt ORDER BY vt)
-FROM _tempus_import.rs
-WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 2 OR restrval = 4)
-GROUP BY id ) q
-WHERE q.id = road_section.id ;
+    (
+        SELECT id::bigint::character varying, array_agg(vt::integer ORDER BY vt)
+        FROM _tempus_import.rs
+        WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 2 OR restrval = 4)
+        GROUP BY id 
+    ) q
+WHERE q.id = road_section.vendor_id ;
 
 -- Removing vehicles not allowed to go through the negative direction (tf)
 UPDATE tempus.road_section
 SET traffic_rules_tf = traffic_rules_tf -
-	(traffic_rules_ft & ( CASE WHEN ARRAY[0::smallint] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
-	ELSE CASE WHEN ARRAY[11::smallint] <@ array_agg THEN 4 + 16 ELSE 0 END
-		+ CASE WHEN ARRAY[16::smallint] <@ array_agg THEN 8 ELSE 0 END
-		+ CASE WHEN ARRAY[24::smallint] <@ array_agg THEN 2 ELSE 0 END
+	(traffic_rules_ft & ( CASE WHEN ARRAY[0] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
+	ELSE CASE WHEN ARRAY[11] <@ array_agg THEN 4 + 16 ELSE 0 END
+		+ CASE WHEN ARRAY[16] <@ array_agg THEN 8 ELSE 0 END
+		+ CASE WHEN ARRAY[24] <@ array_agg THEN 2 ELSE 0 END
 	END ) )
 FROM
+    (
+        SELECT id::bigint::character varying, array_agg(vt::integer ORDER BY vt)
+        FROM _tempus_import.rs
+        WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 3 OR restrval = 4)
+        GROUP BY id 
+    ) q
+WHERE q.id = road_section.vendor_id ;
+
+CREATE TABLE _tempus_import.speed_profiles
 (
-SELECT id, array_agg(vt ORDER BY vt)
-FROM _tempus_import.rs
-WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 3 OR restrval = 4)
-GROUP BY id ) q
-WHERE q.id = road_section.id ;
-
--- cleanup border lines
-
--- delete every section with an unknown node_from
-delete from tempus.road_section
-where id in
-(select
-	rs.id
-from
-	tempus.road_section as rs
-left join
-	tempus.road_node as rn
-on
-	rs.node_from = rn.id
-where
-	rn.id is null
+	id serial, 
+	car_speed_limit integer
 );
--- delete every section with an unknown node_to
-delete from tempus.road_section
-where id in
-(select
-	rs.id
-from
-	tempus.road_section as rs
-left join
-	tempus.road_node as rn
-on
-	rs.node_to = rn.id
-where
-	rn.id is null
+SELECT setval('_tempus_import.speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
+
+INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
+(
+        SELECT DISTINCT car_speed_limit
+        FROM tempus.road_section
+		WHERE car_speed_limit IS NOT NULL
+        ORDER BY 1
 );
 
--- Restore constraints and index
-ALTER TABLE tempus.road_section ADD CONSTRAINT road_section_pkey
-	PRIMARY KEY (id);
-ALTER TABLE tempus.road_section_speed ADD CONSTRAINT road_section_speed_road_section_id_fkey
-      FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
-ALTER TABLE tempus.poi ADD CONSTRAINT poi_road_section_id_fkey
-      FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
-ALTER TABLE tempus_gtfs.stops ADD CONSTRAINT stops_road_section_id_fkey
-      FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id);
-ALTER TABLE tempus.road_section ADD CONSTRAINT road_section_node_from_fkey
-	FOREIGN KEY (node_from) REFERENCES tempus.road_node(id);
-ALTER TABLE tempus.road_section ADD CONSTRAINT road_section_node_to_fkey
-	FOREIGN KEY (node_to) REFERENCES tempus.road_node(id);
+-- Speed profile for cars (speed_rule = 5), one for each car speed limit value
+INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
+SELECT id,0,5,1440,car_speed_limit
+FROM _tempus_import.speed_profiles;
 
-CREATE INDEX idx_road_node_geom ON tempus.road_node USING gist (geom);
-CREATE INDEX idx_road_section_geom ON tempus.road_section USING gist (geom);
+-- When no speed limit is defined, a default value of 30 km/h is attributed
+INSERT INTO tempus.road_section_speed(road_section_id, period_id, profile_id)
+SELECT id, 0, coalesce(road_daily_profile.profile_id, (SELECT profile_id FROM tempus.road_daily_profile WHERE average_speed=30 AND begin_time = 0 AND end_time = 1440 AND speed_rule = 5))
+FROM tempus.road_section LEFT JOIN tempus.road_daily_profile ON road_section.car_speed_limit = road_daily_profile.average_speed
+WHERE speed_rule=5 AND (road_section.traffic_rules_ft::integer & 4) > 0 OR (road_section.traffic_rules_tf::integer & 4) > 0; 
 
--- TABLE road_restriction
-insert into tempus.road_restriction
-select
-	mp.id::bigint as id,
-	array_agg(trpelid::bigint order by seqnr) as road_section
-from
-	_tempus_import.mp as mp
-left join
-	_tempus_import.mn as mn
-on
-	mn.id = mp.id
-where
-	mn.feattyp in (2101,2103)
-and
-	mp.trpeltyp = 4110
-and
-	mn.promantyp = 0
-group by mp.id;
 
-INSERT INTO tempus.road_restriction_time_penalty
+do $$
+begin
+raise notice '==== road_restriction and road_restriction_time_penalty tables ===';
+end$$;
+
+drop table if exists _tempus_import.road_restriction_idmap;
+create table _tempus_import.road_restriction_idmap
+(
+        id bigserial primary key,
+        vendor_id character varying
+);
+select setval('_tempus_import.road_restriction_idmap_id_seq', (select case when max(id) is null then 1 else max(id)+1 end from tempus.road_restriction), false);
+
+INSERT INTO _tempus_import.road_restriction_idmap (vendor_id)
+       SELECT DISTINCT ON (id) id::bigint::character varying 
+	   FROM _tempus_import.mp
+       ORDER BY id;
+CREATE INDEX road_restriction_idmap_vendor_id_idx on _tempus_import.road_restriction_idmap(vendor_id);
+
+INSERT INTO tempus.road_restriction(id, network_id, vendor_id, sections)
+SELECT (select id from _tempus_import.road_restriction_idmap where vendor_id=mp.id::bigint::character varying) as id, 
+       (select max(id) from tempus.road_network where name = '%(source_name)'),
+       mp.id::bigint::character varying, 
+       array_agg(trpelid::bigint order by seqnr)
+FROM _tempus_import.mp LEFT JOIN _tempus_import.mn ON mp.id = mn.id
+WHERE mn.feattyp IN (2101,2103) AND mp.trpeltyp = 4110 AND mn.promantyp = 0 
+GROUP BY mp.id;
+    
+--
+-- TABLE tempus.road_restriction_time_penalty
+INSERT INTO tempus.road_restriction_time_penalty(restriction_id, period_id, traffic_rules, time_value)
 SELECT
-	road_restriction.id as restriction_id,
-	0 as period_id,
-	CASE WHEN ARRAY[0::smallint] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
-	ELSE CASE WHEN ARRAY[11::smallint] <@ array_agg THEN 4 + 16 ELSE 0 END
-		+ CASE WHEN ARRAY[16::smallint] <@ array_agg THEN 8 ELSE 0 END
-		+ CASE WHEN ARRAY[24::smallint] <@ array_agg THEN 2 ELSE 0 END
-	END
-	AS traffic_rules,
-	'Infinity'::float as cost
+        road_restriction.id,
+        0 as period_id,
+        CASE WHEN ARRAY[0::smallint] <@ array_agg then 1 + 2 + 4 + 8 + 16 + 32 + 64
+        ELSE CASE WHEN ARRAY[11::smallint] <@ array_agg THEN 4 + 16 ELSE 0 END
+            + CASE WHEN ARRAY[16::smallint] <@ array_agg THEN 8 ELSE 0 END
+            + CASE WHEN ARRAY[24::smallint] <@ array_agg THEN 2 ELSE 0 END
+        END
+        AS traffic_rules,
+        'Infinity'::float as time_value
 FROM
-(
-SELECT id, array_agg(vt order by vt)
-FROM _tempus_import.rs
-WHERE rs.feattyp in (2101, 2103) AND vt in (0, 11, 16, 24)
-GROUP BY id
-) q, tempus.road_restriction
-WHERE q.id = road_restriction.id;
+    (
+        SELECT id::bigint::character varying, array_agg(vt::integer order by vt)
+        FROM _tempus_import.rs
+        WHERE rs.feattyp in (2101, 2103) AND vt in (0, 11, 16, 24)
+        GROUP BY id
+    ) q JOIN tempus.road_restriction ON q.id = road_restriction.vendor_id;
 
 -- TODO : add blocked passage (table rs, restrtyp = 'BP') => defined with an edge and a blocked extreme node (from_node if restrval = 1, to_node if restrval = 2)
 -- Could be represented as a road_restriction composed of the edge and each adjacent edge from the chosen extreme node
