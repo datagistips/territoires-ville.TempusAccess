@@ -93,7 +93,8 @@ BEGIN
                         WHEN tempus_paths_results.step_type = 2 AND (target_road_vertex_id IS NOT NULL AND source_pt_stop_id IS NOT NULL) 
                             THEN (SELECT st_multi(st_force2d(tempus_access.road_section(source_pt_stop_id::integer, target_road_vertex_id::integer))))
                    END AS geom
-            FROM tempus_access.tempus_paths_results LEFT JOIN tempus.transport_mode ON (transport_mode.id = least(tempus_paths_results.final_mode, tempus_paths_results.initial_mode))
+            FROM tempus_access.tempus_paths_results 
+                                LEFT JOIN tempus.transport_mode ON (transport_mode.id = least(tempus_paths_results.final_mode, tempus_paths_results.initial_mode))
                                 LEFT JOIN tempus_gtfs.trips ON (trips.id = tempus_paths_results.pt_trip_id)
                                 LEFT JOIN tempus_gtfs.routes ON (trips.route_id = routes.route_id AND trips.feed_id = routes.feed_id)
                                 LEFT JOIN tempus_gtfs.stops stop_o ON (stop_o.id = tempus_paths_results.source_pt_stop_id)
@@ -111,7 +112,8 @@ BEGIN
         indics_str = indics_str || (SELECT coalesce(replace(day_ag_paths, '%(day_ag)', indics_str::character varying) || ' AS ' || r.col_name || ', ', '') FROM tempus_access.indicators WHERE col_name = r.col_name);         
     END LOOP; 
     
-    s = $$DROP TABLE IF EXISTS indic.paths; 
+    s = $$
+        DROP TABLE IF EXISTS indic.paths; 
         CREATE TABLE indic.paths AS
         (
             SELECT a.path_id as gid, min(first_o_time) as dep, max(last_d_time) as arr, (max(last_d_time) - min(first_o_time))::time as total_time, 
@@ -126,7 +128,7 @@ BEGIN
                        max(d_time) - min(o_time) as total_travel_time, 
                        sum(d_time - o_time) as travel_time, 
                        sum(wait_o_time) as wait_o_time, 
-                       sum(case when tempus_paths_results.geom is null then 0 else st_length(st_transform(tempus_paths_results.geom, 2154)) end) as distance, 
+                       sum(case when tempus_paths_results.geom is null then 0 else st_length(tempus_paths_results.geom::geography) end) as distance, 
                        array_remove(array_agg(CASE WHEN wait_o_time is null THEN null ELSE stops.stop_name END ORDER BY tempus_paths_results.step_id), NULL) as tran_stops, 
                        array_remove(array_agg(routes.route_long_name || '-' || route_desc ORDER BY tempus_paths_results.step_id), NULL) as routes, 
                        st_multi(st_force2d(st_linemerge(st_union(tempus_paths_results.geom)))) as geom
