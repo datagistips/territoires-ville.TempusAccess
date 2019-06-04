@@ -1,12 +1,3 @@
-do $$
-begin
-raise notice '==== Update foreign keys';
-end
-$$;
-
-
-
-
 
 
 do $$
@@ -139,4 +130,4 @@ REFRESH MATERIALIZED VIEW tempus_gtfs.trips_by_mode;
 
 DROP SCHEMA _tempus_import CASCADE;
 
-vacuum full analyse; 
+--vacuum full analyse; 
