@@ -597,28 +597,38 @@ SELECT '%(source_name)', from_stop_id, to_stop_id, 2, min_transfer_time::integer
 FROM _tempus_import.transfers;
 
 -- New transfers are created between stops belonging to the same parent_station_id, but which are not linked by a transfer edge
+
+-- New transfers are created between stops belonging to the same parent_station_id, but which are not linked by a transfer edge
 INSERT INTO tempus_gtfs.transfers(feed_id, from_stop_id, to_stop_id, transfer_type, min_transfer_time, from_stop_id_int, to_stop_id_int)
 (
-    -- From stop to stop : 10 minutes
-    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
-    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
-    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.parent_station_id AND stops1.stop_id != stops2.stop_id
-)
-UNION
-(
-    -- From stop area to stop : 0 minutes
-    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 0, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
-    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
-    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.stop_id
-)
-UNION
-(
-    -- From stop to stop area : 10 minutes
-    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
-    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
-    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.stop_id = stops2.parent_station_id
-)
-ORDER BY 2,3; 
+	SELECT q.feed_id, q.from_stop_id, q.to_stop_id, transfer_type, min_transfer_time, from_stop_id_int, to_stop_id_int
+	FROM
+	(
+		(
+		    -- From stop to stop : 10 minutes
+		    SELECT stops1.feed_id, stops1.stop_id as from_stop_id, stops2.stop_id as to_stop_id, 2 as transfer_type, 10*60 as min_transfer_time, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id) as from_stop_id_int, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id) as to_stop_id_int
+		    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+		    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.parent_station_id AND stops1.stop_id != stops2.stop_id
+		)
+		UNION
+		(
+		    -- From stop area to stop : 0 minutes
+		    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 0, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
+		    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+		    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.parent_station_id = stops2.stop_id
+		)
+		UNION
+		(
+		    -- From stop to stop area : 10 minutes
+		    SELECT stops1.feed_id, stops1.stop_id, stops2.stop_id, 2, 10*60, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops1.feed_id AND stops.stop_id = stops1.stop_id), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = stops2.feed_id AND stops.stop_id = stops2.stop_id)
+		    FROM tempus_gtfs.stops stops1, tempus_gtfs.stops stops2
+		    WHERE stops1.feed_id = stops2.feed_id AND stops1.feed_id = '%(source_name)' AND stops1.stop_id = stops2.parent_station_id
+		)
+	) q
+	LEFT JOIN (SELECT feed_id, from_stop_id, to_stop_id FROM tempus_gtfs.transfers) r ON (q.feed_id = r.feed_id  AND q.from_stop_id = r.from_stop_id AND q.to_stop_id = r.to_stop_id)
+	WHERE r.feed_id IS NULL
+    ORDER BY 2,3
+); 
 
 DROP TABLE IF EXISTS _tempus_import.transfers_without_doubles;
 CREATE TABLE _tempus_import.transfers_without_doubles AS
