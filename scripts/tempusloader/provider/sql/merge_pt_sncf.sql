@@ -3,61 +3,43 @@
         %source_name: name of the PT network created (after data fusion)
 */
 
-VACUUM FULL ANALYSE;
 
-do $$
-begin
-raise notice '==== Data fusion between TER and IC sources ===';
-end
-$$;
+-- Tempus - Public transport networks merging 
+ /*
+        Substitutions options
+        %(source_list): names of the PT networks to merge
+        %(stops): character (t or f) used to describe if similar stops are merged
+        %(agencies): character (t or f) used to describe if similar agencies are merged
+        %(services): character (t or f) used to describe if similar services are merged
+        %(routes): character (t or f) used to describe if similar routes are merged
+        %(trips): character (t or f) used to describe if similar trips are merged
+        %(fares): character (t or f) used to describe if similar fares are merged
+        %(shapes): character (t or f) used to describe if similar shapes are merged
+*/
 
-do $$
-begin
-raise notice '==== Build new feed ===';
-end
-$$;
+DROP SCHEMA IF EXISTS _tempus_import CASCADE;
+CREATE SCHEMA _tempus_import; 
 
-INSERT INTO tempus_gtfs.feed_info(feed_id)
-SELECT '%(source_name)'; 
+DO 
+$$
+BEGIN
 
-do $$
-begin
-raise notice '==== Build temporary stop times data ===';
-end
-$$;
+RAISE NOTICE '==== Merge PT networks ====';
 
 -- Temporary table containing joined stop times, trips, routes and agencies data. 
 -- When stop times exist in both sources (normally only for TER buses), stop times are attributed to TER agency. 
 -- When a route exists in both sources, but with different trip ids and stop times, the route is duplicated. 
-DROP TABLE IF EXISTS _tempus_import.stop_times; 
-CREATE TABLE _tempus_import.stop_times AS
+CREATE TABLE _tempus_import.temp AS
 (
-    SELECT max(stop_times.feed_id) as feed_id, 
-           stop_times.trip_id, 
-           stop_sequence, 
-           stop_id, 
-           substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-' || route_type AS new_stop_id, 
-           substring(stop_id FROM position(':' in stop_id)+1 FOR position('-' in stop_id) - position(':' in stop_id)-1) as trip_type, 
-           arrival_time, 
-           departure_time, 
-           interpolated, 
-           shape_dist_traveled, 
-           timepoint, pickup_type, 
-           drop_off_type, 
-           stop_headsign, 
+    SELECT max(feed_id || '-' || routes.route_id) as route_id, 
            route_type, 
-           max(routes.route_id) as route_id, 
-           max(agency.agency_id) as agency_id, 
-           string_agg((trips.service_id || ' - ' || trips.feed_id)::character varying, ';') as service_id
-    FROM tempus_gtfs.stop_times JOIN tempus_gtfs.trips ON (trips.id = stop_times.trip_id_int)
-		                        JOIN tempus_gtfs.routes ON (routes.id = trips.route_id_int)
-		                        JOIN tempus_gtfs.agency ON (agency.id = routes.agency_id_int )
-    WHERE stop_times.feed_id = any(ARRAY['ter', 'ic'])
-    GROUP BY stop_times.trip_id, 
+           stop_times.trip_id, 
+           substring(stop_id FROM position(':' in stop_id)+1 FOR position('-' in stop_id) - position(':' in stop_id)-1) as trip_type, 
+           max(feed_id || '-' || agency.agency_id) as agency_id, 
+           string_agg((trips.feed_id || '-' || trips.service_id)::character varying, ';') as service_id, 
+           substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-' || route_type AS stop_id, 
+           stop_id as old_stop_id, 
            stop_sequence, 
-           stop_id, 
-           substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-'  || route_type, 
-           substring(stop_id FROM position(':' in stop_id)+1 FOR position('-' in stop_id) - position(':' in stop_id)-1), 
            arrival_time, 
            departure_time, 
            interpolated, 
@@ -65,131 +47,119 @@ CREATE TABLE _tempus_import.stop_times AS
            timepoint, 
            pickup_type, 
            drop_off_type, 
-           stop_headsign, 
-           route_type
+           stop_headsign
+    FROM tempus_gtfs.stop_times JOIN tempus_gtfs.trips ON (trips.id = stop_times.trip_id_int)
+		                        JOIN tempus_gtfs.routes ON (routes.id = trips.route_id_int)
+		                        JOIN tempus_gtfs.agency ON (agency.id = routes.agency_id_int )
+    WHERE stop_times.feed_id = any(ARRAY['ter', 'ic'])
+    GROUP BY route_type, 
+             stop_times.trip_id, 
+             substring(stop_id FROM position(':' in stop_id)+1 FOR position('-' in stop_id) - position(':' in stop_id)-1), 
+             substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-'  || route_type, 
+             stop_id, 
+             stop_sequence, 
+             arrival_time, 
+             departure_time, 
+             interpolated, 
+             shape_dist_traveled, 
+             timepoint, 
+             pickup_type, 
+             drop_off_type, 
+             stop_headsign
 ); 
 
-CREATE INDEX feed_id_idx ON _tempus_import.stop_times (feed_id); 
-CREATE INDEX route_id_idx ON _tempus_import.stop_times (route_id); 
-CREATE INDEX trip_id_idx ON _tempus_import.stop_times (trip_id); 
-CREATE INDEX stop_id_idx ON _tempus_import.stop_times (stop_id); 
 
-
-
-do $$
-begin
-raise notice '==== Build agencies ===';
-end
-$$;
-
--- Agency
-DELETE FROM tempus_gtfs.agency 
-WHERE feed_id = '%(source_name)';
-
-SELECT setval('tempus_gtfs.agency_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.agency), false);
-INSERT INTO tempus_gtfs.agency(feed_id, agency_id, agency_name, agency_url, agency_timezone, agency_lang)
+-- Merge stops
+DROP TABLE IF EXISTS _tempus_import.stops;
+CREATE TABLE _tempus_import.stops AS
 (
-    SELECT DISTINCT ON (stop_times.agency_id || ' - ' || agency.feed_id) 
-			'%(source_name)' as feed_id, 
-			agency.agency_id || ' - ' || agency.feed_id as agency_id, 
-			agency.agency_name || ' (' || agency.feed_id || ')' as agency_name, 
-			agency_url, 
-			agency_timezone, 
-			agency_lang
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.agency ON (stop_times.feed_id = agency.feed_id AND stop_times.agency_id = agency.agency_id)
+    SELECT DISTINCT ON (substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-' || route_type) 
+                        substring(stop_id FROM length(stop_id) - 7 FOR 8) || '-' || route_type as stop_id, 
+                        substring(stops.parent_station_id FROM length(stops.parent_station_id) - 7 FOR 8) as parent_station_id, 
+                        location_type, stop_name, stop_lat, stop_lon, wheelchair_boarding, 
+                        stop_code, stop_desc, zone_id, stop_url, stop_timezone, geom, road_section_id, abscissa_road_section
+    FROM tempus_gtfs.stops 
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY['ter', 'ic'])
 ); 
 
-do $$
-begin
-raise notice '==== Build routes ===';
-end
-$$;
-
--- Routes
-DELETE FROM tempus_gtfs.routes 
-WHERE feed_id = '%(source_name)';
-
-SELECT setval('tempus_gtfs.routes_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.routes), false);
-INSERT INTO tempus_gtfs.routes (feed_id, route_id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_text_color, agency_id_int)
+-- Merge agencies
+DROP TABLE IF EXISTS _tempus_import.agency;
+CREATE TABLE _tempus_import.agency AS
 (
-    SELECT DISTINCT ON (stop_times.feed_id, stop_times.route_id) 
-			'%(source_name)', 
-			routes.route_id || ' - ' || routes.feed_id, 
-			routes.agency_id || ' - ' || routes.feed_id, 
-			route_short_name, 
-			route_long_name, 
-			stop_times.trip_type as route_desc, 
-			routes.route_type, 
-			route_url, 
-			route_text_color, 
-			(SELECT id FROM tempus_gtfs.agency WHERE feed_id = '%(source_name)' AND agency.agency_id = routes.agency_id || ' - ' || routes.feed_id) as agency_id_int
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.routes ON (stop_times.feed_id = routes.feed_id AND stop_times.route_id = routes.route_id AND stop_times.agency_id = routes.agency_id)
-    ORDER BY stop_times.route_id, stop_times.feed_id
+    SELECT feed_id || '-' || agency_id as agency_id, agency_name, agency_url, agency_timezone, agency_lang, agency_phone, agency_fare_url, agency_email
+    FROM tempus_gtfs.agency 
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY['ter', 'ic'])
+);
+
+-- Merge routes
+DROP TABLE IF EXISTS _tempus_import.routes;
+CREATE TABLE _tempus_import.routes AS
+(
+    SELECT feed_id || '-' || route_id as route_id, feed_id || '-' || agency_id as agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color 
+    FROM tempus_gtfs.routes 
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY['ter', 'ic'])
+); 
+
+-- Merge services
+CREATE TABLE _tempus_import.calendar_dates AS
+(
+    SELECT DISTINCT temp.service_id, calendar_dates.date
+    FROM tempus_gtfs.calendar_dates JOIN _tempus_import.temp ON calendar_dates.feed_id || '-' || calendar_dates.service_id = split_part(stop_times.service_id, ';', 1)
+    WHERE calendar_dates.feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY['ter', 'ic'])
+);
+
+-- Merge trips
+CREATE TABLE _tempus_import.trips AS
+(
+    SELECT DISTINCT ON (temp.trip_id) temp.route_id, temp.service_id, temp.trip_id, trip_headsign, wheelchair_accessible, bikes_allowed, exact_times, frequency_generated, trip_short_name, direction_id, block_id, shape_id
+    FROM _tempus_import.temp JOIN tempus_gtfs.trips ON (ARRAY[feed_id] <@ ARRAY['ter', 'ic'] AND trips.trip_id = temp.trip_id)
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY['ter', 'ic'])
+);
+
+-- Merge stop_times
+CREATE TABLE _tempus_import.stop_times AS
+(
+    SELECT DISTINCT ON (trip_id) trip_id, arrival_time, departure_time, feed_id || '-' || stop_id as stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled 
+    FROM tempus_gtfs.stop_times 
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
+); 
+
+-- Merge transfers
+CREATE TABLE _tempus_import.transfers AS
+(
+    SELECT DISTINCT ON (from_stop_id, to_stop_id) from_stop_id,to_stop_id,transfer_type,min_transfer_time 
+    FROM tempus_gtfs.transfers 
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
+);
+
+-- Merge fare_attributes
+CREATE TABLE _tempus_import.fare_attributes AS
+(
+    SELECT feed_id || '-' || fare_id as fare_id, price, currency_type, payment_method, transfers, feed_id || '-' || agency_id as agency_id, transfer_duration
+    FROM tempus_gtfs.fare_attributes
+    WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
+);
+
+-- Merge fare_rules
+CREATE TABLE _tempus_import.fare_rules AS
+(
+    SELECT DISTINCT ON (origin_id, destination_id) feed_id || '-' || fare_id as fare_id, feed_id || '-' || route_id as route_id, origin_id, destination_id, contains_id 
+        FROM tempus_gtfs.fare_rules
+        WHERE feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
+);
+
+-- Merge sections
+CREATE TABLE _tempus_import.sections AS
+(
+    SELECT DISTINCT ON (stop_from.stop_id, stop_to.stop_id) stop_from.stop_id as from_stop_id, stop_to.stop_id as to_stop_id, stop_from.feed_id, sections.geom
+    FROM tempus_gtfs.sections JOIN tempus_gtfs.stops stop_from ON (sections.stop_from = stop_from.id)
+                              JOIN tempus_gtfs.stops stop_to ON (sections.stop_to = stop_to.id)
+    WHERE stop_from.feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
+      AND stop_to.feed_id IN (SELECT feed_id FROM tempus_gtfs.feed_info WHERE ARRAY[id] <@ ARRAY[%(source_list)])
 );
 
 
-/* do $$
-begin
-raise notice '==== Build calendars ===';
-end
-$$;
 
--- Calendar
-DELETE FROM tempus_gtfs.calendar WHERE feed_id = '%(source_name)';
-SELECT setval('tempus_gtfs.calendar_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.calendar), false);
-INSERT INTO tempus_gtfs.calendar(feed_id, service_id)
-(
-    SELECT DISTINCT '%(source_name)', service_id
-    FROM _tempus_import.stop_times
-); */
-
-
-do $$
-begin
-raise notice '==== Build trips ===';
-end
-$$;
-
--- Trips
-DELETE FROM tempus_gtfs.trips WHERE feed_id = '%(source_name)'; 
-
-SELECT setval('tempus_gtfs.trips_id_seq', (SELECT case when max(id) is null then 1 else max(id)+1 end FROM tempus_gtfs.trips), false);
-INSERT INTO tempus_gtfs.trips (feed_id, trip_id, route_id, service_id, shape_id, wheelchair_accessible, bikes_allowed, exact_times, frequency_generated, trip_headsign, trip_short_name, direction_id, block_id)
-( 
-    SELECT DISTINCT ON (stop_times.feed_id, stop_times.trip_id, trips.service_id) 
-			'%(source_name)' as feed_id, 
-			stop_times.trip_id, 
-			trips.route_id || ' - ' || trips.feed_id as route_id, 
-			stop_times.service_id, 
-			shape_id, 
-			wheelchair_accessible, 
-			bikes_allowed, 
-			exact_times, 
-			frequency_generated, 
-			trip_type, 
-			trip_short_name, 
-			direction_id, 
-			block_id            
-        FROM _tempus_import.stop_times JOIN tempus_gtfs.trips ON (stop_times.feed_id = trips.feed_id AND stop_times.trip_id = trips.trip_id) 
-        WHERE stop_times.feed_id = any(ARRAY['ter', 'ic'])
-    ORDER BY stop_times.feed_id, stop_times.trip_id, trips.service_id DESC  
-);
-
-UPDATE tempus_gtfs.trips
-SET route_id_int = routes.id
-FROM tempus_gtfs.routes
-WHERE trips.feed_id = '%(source_name)' AND trips.feed_id = routes.feed_id AND trips.route_id = routes.route_id;
-
-UPDATE tempus_gtfs.trips
-SET service_id_int = calendar.id
-FROM tempus_gtfs.calendar
-WHERE trips.feed_id = '%(source_name)' AND calendar.feed_id = trips.feed_id AND calendar.service_id = trips.service_id;
-
-do $$
-begin
-raise notice '==== Build stops ===';
-end
-$$;
 
 -- Stops
 DELETE FROM tempus_gtfs.stops 

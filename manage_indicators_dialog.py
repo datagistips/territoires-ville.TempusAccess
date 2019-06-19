@@ -82,7 +82,7 @@ class manage_indicators_dialog(QDialog):
 
         
     def _slotComboBoxReqIndexChanged(self, indexChosenLine):
-        self.parent_layer=""
+        self.caller.parent_layer=""
         if (indexChosenLine == 0):
             # General interface
             self.caller.dlg.ui.pushButtonIndicCalculate.setEnabled(True)
@@ -290,7 +290,7 @@ class manage_indicators_dialog(QDialog):
                 self.ui.comboBoxPathID.setEnabled(False)
                 # Update available derived surface representations
                 self.ui.toolBoxDisplay.setItemEnabled(1,True)
-                self.parent_layer = self.ui.comboBoxReq.currentText()
+                self.caller.parent_layer = self.ui.comboBoxReq.currentText()
                 self.refreshDerivedRep()             
                 self._slotComboBoxDerivedRepIndexChanged(0)
             
@@ -323,14 +323,14 @@ class manage_indicators_dialog(QDialog):
         
     
     def _slotPushButtonReqDeleteClicked(self):
-        ret = QMessageBox.question(self.dlg, "TempusAccess", u"La requête courante va être supprimée. \n Êtes vous certain(e) de vouloir faire cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
+        ret = QMessageBox.question(self, "TempusAccess", u"La requête courante va être supprimée. \n Êtes vous certain(e) de vouloir faire cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
         if (ret == QMessageBox.Ok):
             for layer in self.caller.node_indicators.findLayers():
                 if (layer.name()==self.ui.comboBoxReq.currentText()):
                     QgsMapLayerRegistry.instance().removeMapLayer(layer.layer().id())
             
-            for i in range(0, self.modelDerivedRep.rowCount()):
-                s="DROP TABLE indic."+self.modelDerivedRep.record(i).value(0)+";"
+            for i in range(0, self.caller.modelDerivedRep.rowCount()):
+                s="DROP TABLE indic."+self.caller.modelDerivedRep.record(i).value(0)+";"
                 q=QtSql.QSqlQuery(self.db)
                 q.exec_(unicode(s))
             
@@ -448,7 +448,7 @@ class manage_indicators_dialog(QDialog):
 
                 
     def _slotPushButtonDerivedRepDeleteClicked(self):
-        ret = QMessageBox.question(self.dlg, "TempusAccess", u"La représentation surfacique courante va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
+        ret = QMessageBox.question(self, "TempusAccess", u"La représentation surfacique courante va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
 
         if (ret == QMessageBox.Ok):
             for layer in self.caller.node_indicators.findLayers():
@@ -464,7 +464,7 @@ class manage_indicators_dialog(QDialog):
             
         
     def _slotPushButtonDerivedRepRenameClicked(self):
-        old_name = self.modelDerivedRep.record(self.ui.comboBoxDerivedRep.currentIndex()).value("layer_name")
+        old_name = self.caller.modelDerivedRep.record(self.ui.comboBoxDerivedRep.currentIndex()).value("layer_name")
         new_name = self.ui.comboBoxDerivedRep.currentText()
         s="ALTER TABLE indic."+old_name+" RENAME TO "+new_name+";\
         UPDATE tempus_access.indic_catalog SET layer_name = '"+new_name+"' WHERE layer_name = '"+self.caller.modelDerivedRep.record(self.ui.comboBoxDerivedRep.currentIndex()).value("layer_name")+"';\
@@ -493,7 +493,7 @@ class manage_indicators_dialog(QDialog):
             self.ui.spinBoxDerivedRepIndicMaxValue.setRange(1, q.value(1))
             self.ui.spinBoxDerivedRepIndicMaxValue.setValue(q.value(1))
             self.ui.spinBoxDerivedRepIndicMaxValue.setRange(1, q.value(1))
-            self.dlg.ui.spinBoxDerivedRepClasses.setRange(1, q.value(1))
+            self.ui.spinBoxDerivedRepClasses.setRange(1, q.value(1))
             if (self.ui.comboBoxDerivedRep.currentText()==""):
                 self.ui.pushButtonDerivedRepGenerate.setEnabled(True)
             else:
@@ -507,11 +507,11 @@ class manage_indicators_dialog(QDialog):
                 
     
     def _slotPushButtonDerivedRepGenerateClicked(self):
-        self.isosurfaces=True
-        self.buildQuery()
-        r=QtSql.QSqlQuery(self.db)
-        done=r.exec_(self.query)
-        self._slotResultAvailable(done, self.query)
+        self.caller.isosurfaces=True
+        self.caller.buildQuery()
+        r=QtSql.QSqlQuery(self.caller.db)
+        done=r.exec_(self.caller.query)
+        self.caller.resultAvailable(done)
     
     
     def indicDisplay(self, layer_name, layer_alias, layer_style_path, col_id, col_geom, filter):

@@ -22,46 +22,35 @@
 from importer import ZipImporter
 
 # Fast GTFS Importer
-class ImportPTGTFS(ZipImporter):
+class ImportPTNTFS(ZipImporter):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
+    PRELOADSQL = ["import_pt_ntfs_pre_load.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
     DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
+    CSVFILES = [('admin_stations', True),
+                ('comment_links', True),
                 ('calendar', True),
                 ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('feed_info', False), 
-                ('frequencies', False),
-                ('transfers', False),
+                ('comments', True),
+                ('commercial_modes', True),
+                ('companies', True), 
+                ('datasets', True),
+                ('feed_infos', True),
+                ('equipments', True),
+                ('frequencies', True),
+                ('geometries', True),
+                ('lines', True),
+                ('networks', True),
+                ('object_codes', True),
+                ('object_properties', True),
+                ('physical_modes', True),
                 ('routes', True),
-                ('shapes', False),
+                ('transfers', True),
+                ('trip_properties', True),
                 ('stop_times', True),
                 ('stops', True),
                 ('trips', True)]
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = [ "import_pt_gtfs.sql", "import_pt_post_load.sql" ]
-
-
-class ImportPTGTFSTemp(ZipImporter):
-    """Public transportation GTFS temporary data loader class. No cleaning after loading. """
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
-    # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
-                ('calendar', True),
-                ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('feed_info', False), 
-                ('frequencies', False),
-                ('transfers', False),
-                ('routes', True),
-                ('shapes', False),
-                ('stop_times', True),
-                ('stops', True),
-                ('trips', True)]
-    POSTLOADSQL = [ "import_pt_gtfs.sql" ]
+    POSTLOADSQL = [ "import_pt_ntfs.sql", "import_pt_post_load.sql" ]
 

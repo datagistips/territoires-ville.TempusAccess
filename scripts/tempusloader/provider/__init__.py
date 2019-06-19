@@ -46,6 +46,8 @@ from delete_road import DeleteRoad
 from delete_pt import DeletePT
 from delete_zoning import DeleteZoning
 
+from merge_pt import MergePT
+
 from export_poi_tempus import ExportPOITempus
 from export_road_tempus import ExportRoadTempus
 from export_pt_gtfs import ExportPTGTFS

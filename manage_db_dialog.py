@@ -290,14 +290,17 @@ class manage_db_dialog(QDialog):
             self.ui.pushButtonDelete.setEnabled(True)
             self.ui.pushButtonLoad.setEnabled(True)
             self.caller.refreshRoadNetworks()
-            self.caller.modelRoadNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelRoadNetworkImportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road_import' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelRoadNetworkExportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'road_export' ORDER BY data_format_name", self.caller.db)
             self.caller.refreshPTNetworks()
-            self.caller.modelPTNetworkFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelPTNetworkImportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt_import' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelPTNetworkExportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'pt_export' ORDER BY data_format_name", self.caller.db)
             self.caller.refreshPOISources()
-            self.caller.modelPOISourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelPOISourceImportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi_import' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelPOISourceExportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'poi_export' ORDER BY data_format_name", self.caller.db)
             self.caller.modelPOIType.setQuery("SELECT name, id FROM tempus.poi_type ORDER BY id", self.caller.db)
             self.caller.refreshZoningSources()
-            self.caller.modelZoningSourceFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning' ORDER BY data_format_name", self.caller.db)
+            self.caller.modelZoningSourceImportFormat.setQuery("SELECT distinct data_format_name, data_type, data_format FROM tempus_access.formats WHERE data_type = 'zoning_import' ORDER BY data_format_name", self.caller.db)
             if (self.caller.modelPTNetwork.rowCount()>0):
                 self.caller.modelNodeType.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'node_type' ORDER BY mod_code", self.caller.db)
             elif (self.caller.modelRoadNetwork.rowCount()>1):
@@ -313,6 +316,7 @@ class manage_db_dialog(QDialog):
             self.caller.modelCriterion.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'opt_crit' ORDER BY mod_code", self.caller.db)
             self.caller.modelRepMeth.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'rep_meth' ORDER BY mod_code", self.caller.db)
             self.caller.modelEncoding.setQuery("SELECT mod_lib, mod_code FROM tempus_access.modalities WHERE var = 'encoding' ORDER BY mod_code", self.caller.db)
+            
             
             # Individual modes model
             s="SELECT name, id FROM tempus.transport_mode WHERE gtfs_feed_id IS NULL"

@@ -52,7 +52,7 @@ class import_road_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelRoadNetworkFormat)
+        self.ui.comboBoxFormat.setModel(self.caller.modelRoadNetworkImportFormat)
         self.ui.comboBoxFormatVersion.setModel(self.caller.modelRoadNetworkFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         
@@ -81,8 +81,8 @@ class import_road_dialog(QDialog):
         
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelRoadNetworkFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.caller.modelRoadNetworkFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'road' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelRoadNetworkImportFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.caller.modelRoadNetworkFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'road_import' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
     
     
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):
@@ -107,6 +107,7 @@ class import_road_dialog(QDialog):
 
 
     def _slotPushButtonChooseClicked(self):
+        print self.path_type
         if (self.ui.lineEditSourceName.text() == ''):
             box = QMessageBox()
             box.setModal(True)

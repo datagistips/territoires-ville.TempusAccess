@@ -50,7 +50,7 @@ class PsqlLoader:
             Ex : "dbname='databasename' host='addr' port='5432' user='x'"
 
         sqlfile is a text file containing SQL instructions
-
+        
         replacements is a dictionnary containing values for key found in sqlfile to
             be replaced. Every occurence of "%key%" in the file will be replaced
             by the corresponding value in the dictionnary.
@@ -65,6 +65,7 @@ class PsqlLoader:
         "%(key)" with the corresponding value in the given dictionnary."""
         t = template
         for k, v in values.iteritems():
+            print k, v
             t = t.replace( '%(' + k + ')', v )
         return t;
 

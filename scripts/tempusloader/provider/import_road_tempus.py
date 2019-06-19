@@ -4,6 +4,7 @@
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
  *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -19,16 +20,19 @@
  */
 """
 
-import os
-import sys
 
-from importer import ShpImporter
+from importer import DataImporter
 
-class ImportRoadTempus(ShpImporter):
+class ImportRoadTempus(DataImporter):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = [ 'road_nodes', 'road_sections' ]
-    OPT_SHAPEFILES = [ 'time_periods', 'time_penalties', 'tolls' ]
+    DBFSHAPEFILES = [ ('road_nodes', True), 
+                   ('road_sections', True), 
+                   ('time_periods', False), 
+                   ('time_penalties', False), 
+                   ('tolls', False) 
+                 ]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 

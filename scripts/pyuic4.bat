@@ -8,7 +8,7 @@ pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_road_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_road_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_road_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_road_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_pt_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_pt_dialog.ui"
-pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_pt_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_pt_dialog.ui"
+pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_pt_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_pt_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_poi_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_import_poi_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_delete_poi_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_delete_poi_dialog.ui"
 pyuic4 -x -d -o "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_indicators_dialog.py" "C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_manage_indicators_dialog.ui"

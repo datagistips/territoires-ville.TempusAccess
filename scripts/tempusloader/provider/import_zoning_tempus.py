@@ -22,35 +22,18 @@
 #
 # Tempus data loader
 
+from importer import DataImporter
 
-
-import os
-import sys
-
-from importer import ShpImporter
-
-# Module to load IGN areas data (AdminExpress, ...)
-class ImportZoningTempus(ShpImporter):
+# Module to load Tempus specific zoning data
+class ImportZoningTempus(DataImporter):
     """This class enables to load IGN Route500 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['zoning']
+    DBFSHAPEFILES = [('zoning', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_zoning_pre_load.sql']
     # SQL files to execute after loading shapefiles 
     POSTLOADSQL = ['import_zoning_tempus.sql','import_zoning_post_load.sql']
-    
-    def __init__(self, path = "", prefix="", dbstring = "", logfile = None, options = {'g':'geom', 'D':True, 'I':True, 'S':True}, doclean = True, subs = {}):
-        ShpImporter.__init__(self, path, prefix, dbstring, logfile, options, doclean, subs)
-        
-    def check_input(self):
-        """Check if input is ok : given shape file exists."""
-        for fpath in self.path:
-            if not os.path.isfile(fpath):
-                raise StandardError("The given source file '{}' does not exist".format(fpath))
-
-    def get_shapefiles(self, path):
-        self.shapefiles = [('zoning', path)]
-        return
     
     
     

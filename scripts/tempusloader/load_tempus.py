@@ -12,12 +12,14 @@ from import_poi import *
 from import_zoning import *
 from export import *
 from delete import *
+from merge import *
 from reset import *
-
+    
 def main():
     shape_options = {}
+    
     parser = argparse.ArgumentParser(description='Tempus data loader')
-    parser.add_argument('-a', '--action', required=True, help="The action to make (import, export, delete or reset)", default='import')
+    parser.add_argument('-a', '--action', required=True, help="The action to make (import, export, delete, merge or reset)", default='import')
     parser.add_argument('-p', '--path', required=False, nargs='+', help='The source directory/file to import data from or to export data to')
     parser.add_argument('-t', '--data-type', required=False, help='The data type to import / export / delete (road, pt, poi or zoning)', dest='data_type')
     parser.add_argument('-f', '--data-format', required=False, help="The data format (for road data: ign_bdcarto, ign_bdtopo, ign_route120, ign_route500, navteq, osm, tomtom, visum, tempus, "
@@ -28,6 +30,8 @@ def main():
     parser.add_argument('--prefix', required=False, help='Prefix for file names', default="")
     parser.add_argument('-l', '--logfile', required=False, help='Log file for loading and SQL output')
     parser.add_argument('-s', '--source-name', required=False, help="Short name (used as an ID) of the source to import/delete", dest='source_name')
+    parser.add_argument('--source-list', required=False, help="List of sources to merge, under the format '<source1>,<source2>, ...'", dest='source_list')
+    parser.add_argument('--pt-merge-options', required=False, help="Specify if stops, agencies, services, routes, trips, fares and shapes (in this order) are merged when having the same name, under the format 'f,f,f,f,f,f,f', with 't' if entities must be merged and else 'f'.", dest='pt_merge_options', default='f,f,f,f,f,f,f')
     parser.add_argument('--source-comment', required=False, help="Long name or comment about the source to import", dest='source_comment')
     parser.add_argument('-S', '--srid', required=False, help="Set the SRID for geometries. Default to 4326 (lat/lon)")
     parser.add_argument('-W', '--encoding', required=False, help="Specify the character encoding of the file(s)")
@@ -42,6 +46,7 @@ def main():
                               "'<mode_1>:<bitfield_value_1>,...,"
                               "<mode_n>:<bitfield_value_n>'"))
     parser.add_argument('--tempusaccess', required=False, action='store_true', default=False, help="Add this parameter if you want the reset action to also create 'tempus_access' and 'indic' schemas, otherwise only 'tempus' and 'tempus_gtfs' will be created.")
+    parser.add_argument('--max-dist', required=False, default=50, help='Maximum distance (in meters) to a road node at which PT stops or POIs can be linked to the road network', dest='max_dist')
     args = parser.parse_args()
     
     if not args.srid and (args.action == 'import' or args.action == 'export') :
@@ -113,7 +118,17 @@ def main():
     # Database reset
     if args.action == 'reset':
         reset_db(args)
+    
+    # Sources merging
+    if args.action == 'merge':
+        if args.data_type == 'pt':
+            r = merge_pt_networks(args)
+            sys.exit(0)
+        else:
+            sys.stderr.write("Please provide a data type among 'pt'\n")
+        
 
+    # Source import
     if args.action == 'import':
         if args.path is None:
             sys.stderr.write("Please provide a source file / directory.\n")
@@ -142,11 +157,17 @@ def main():
         elif args.data_type == 'pt' and args.data_format == 'gtfs':
             args.path = args.path[0]
             r = import_pt_gtfs(args)
+        elif args.data_type == "pt" and args.data_format == 'ntfs':
+            args.path = args.path[0]
+            r = import_pt_ntfs(args)
         elif args.data_type == 'pt' and args.data_format == 'sncf':
             if (args.path[0] is None or args.path[1] is None or args.path[2] is None):
                 sys.stderr.write("Please provide three path parameters: 2 paths to GTFS zip files (TER and IC) and 1 path to the shapefiles directory.\n")
                 sys.exit(1)
             r = import_pt_sncf(args, shape_options)
+        elif args.data_type == 'pt' and args.data_format == 'tempus':
+            args.path = args.path[0]
+            r = import_pt_tempus(args)
         elif args.data_type == 'poi' and args.data_format == 'tempus':
             r = import_poi_tempus(args, shape_options)
         elif args.data_type == 'poi' and args.data_format == 'insee_bpe':

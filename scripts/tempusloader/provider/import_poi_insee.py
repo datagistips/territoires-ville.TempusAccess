@@ -4,6 +4,7 @@
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
  *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -19,17 +20,13 @@
  */
 """
 
-#
-# Tempus data loader
-
-import os
-from importer import ShpImporter
+from importer import DataImporter
 
 # Module to load a POI shape file
-class ImportPOIINSEEBPE(ShpImporter):
+class ImportPOIINSEEBPE(DataImporter):
     """This class enables to load INSEE BPE POI data into a PostGIS database and link it to an existing network."""
     # Shapefile names to load, without the extension and prefix. 
-    SHAPEFILES = ['bpe_ensemble_xy','varmod_ensemble_xy'] 
+    DBFSHAPEFILES = [('bpe_ensemble_xy', True),('varmod_ensemble_xy', True)]
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ["import_poi_pre_load.sql"]
     # SQL files to execute after loading shapefiles 

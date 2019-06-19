@@ -4,6 +4,7 @@
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
  *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -19,48 +20,44 @@
  */
 """
 
-#
-# Tempus data loader
-
-
-
-import os
-import sys
-
-from importer import ShpImporter
+from importer import DataImporter
 
 # Module to load IGN road data (Route120, Route500, ...)
-class ImportRoadIGNRoute120_1_1(ShpImporter):
+class ImportRoadIGNRoute120_1_1(DataImporter):
     """This class enables to load IGN Route120 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['troncon_route','communication_restreinte']
+    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
     POSTLOADSQL = ['import_road_ign_route120_1_1.sql','import_road_post_load.sql']
 
-class ImportRoadIGNRoute500_2_1(ShpImporter):
+class ImportRoadIGNRoute500_2_1(DataImporter):
     """This class enables to load IGN Route500 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['troncon_route','communication_restreinte']
+    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
     POSTLOADSQL = ['import_road_ign_route500_2_1.sql','import_road_post_load.sql']
 
-class ImportRoadIGNBDTopo_2_2(ShpImporter):
+class ImportRoadIGNBDTopo_2_2(DataImporter):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['route']
+    DBFSHAPEFILES = [('route', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
     POSTLOADSQL = ['import_road_ign_bdtopo_2_2.sql','import_road_post_load.sql']
 
-class ImportRoadIGNBDCarto_3_2(ShpImporter):
+class ImportRoadIGNBDCarto_3_2(DataImporter):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['troncon_route','communication_restreinte']
+    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = [ 'import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 

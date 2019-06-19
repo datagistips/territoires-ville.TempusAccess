@@ -52,13 +52,13 @@ def import_poi_insee_bpe(args, shape_options):
             raise ValueError
     except ValueError:
         print "Wrong poi type. Assuming User type (5). Correct values are in range 1-5."
-        poi_type = 5     
-    subs["poi_type"] = str(poi_type)
-       
+        poi_type = 5      
     subs["poi_type"] = str(poi_type)
     subs["source_name"] = args.source_name
     subs["filter"] = args.filter
     if not 'filter' in subs.keys():
         subs['filter'] = 'true' 
-    bpei = provider.ImportPOIINSEEBPE(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
+    bpei = provider.ImportPOIINSEEBPE(path=args.path, prefix=args.prefix, dbstring=args.dbstring, logfile=args.logfile, options=shape_options, doclean =not args.noclean, subs=subs)
     return bpei.load()
+    
+    

@@ -4,6 +4,7 @@
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
  *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -19,20 +20,14 @@
  */
 """
 
-#
-# Tempus data loader
-
-import os
-
-from tools import ShpLoader
-from dbtools import PsqlLoader
-from importer import ShpImporter
+from importer import DataImporter
 
 # Module to load Navteq road data (Navstreets)
-class ImportRoadNavstreets(ShpImporter):
+class ImportRoadNavstreets(DataImporter):
     """This class enables to load Navteq Navstreets data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['streets', 'altstreets', 'parking', 'cdms', 'rdms']
+    DBFSHAPEFILES = [('streets', True), ('altstreets', True), ('parking', True), ('cdms', True), ('rdms', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ["import_road_pre_load.sql"]
     # SQL files to execute after loading shapefiles 

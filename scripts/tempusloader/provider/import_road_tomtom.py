@@ -22,16 +22,27 @@
 #
 # Tempus data loader
 
-import os
-import sys
-
-from importer import ShpImporter
+from importer import DataImporter
 
 # Module to load TomTom road data (Multinet)
-class ImportRoadMultinet(ShpImporter):
+class ImportRoadMultinet(DataImporter):
     """This class enables to load TomTom Multinet data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['nw', 'jc', 'mn', 'cf', '2r', 'rn', 'mp', 'is', 'ig', 'rs', 'td', 'sr', 'st']
+    DBFSHAPEFILES = [('nw', True), 
+                     ('jc', True), 
+                     ('mn', True), 
+                     ('cf', True), 
+                     ('2r', True), 
+                     ('rn', True), 
+                     ('mp', True), 
+                     ('is', True), 
+                     ('ig', True), 
+                     ('rs', True), 
+                     ('td', True), 
+                     ('sr', True), 
+                     ('st', True)
+                    ]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles
@@ -41,8 +52,7 @@ class ImportRoadMultinet(ShpImporter):
 
     def __init__(self, source = "", prefix = "", dbstring = "", logfile = None,
                  options = {'g':'geom', 'D':True, 'I':True, 'S':True}, doclean = True, subs = {}):
-        ShpImporter.__init__(self, source, prefix, dbstring, logfile, options, doclean, subs)
-
+        pass
         # if isinstance(source_speed, list):
             # for source in source_speed:
                 # print "Importing source {}".format(source)

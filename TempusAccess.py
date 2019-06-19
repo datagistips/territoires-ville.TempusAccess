@@ -40,7 +40,7 @@ from TempusAccess_dock_widget import TempusAccess_dock_widget
 from set_db_connection_dialog import set_db_connection_dialog
 from manage_db_dialog import manage_db_dialog
 from import_pt_dialog import import_pt_dialog
-from export_delete_pt_dialog import export_delete_pt_dialog
+from manage_pt_dialog import manage_pt_dialog
 from import_road_dialog import import_road_dialog
 from export_delete_road_dialog import export_delete_road_dialog
 from import_poi_dialog import import_poi_dialog
@@ -108,19 +108,22 @@ class TempusAccess:
        
         # PT networks    
         self.modelPTNetwork = QtSql.QSqlQueryModel()
-        self.modelPTNetworkFormat = QtSql.QSqlQueryModel()
+        self.modelPTNetworkImportFormat = QtSql.QSqlQueryModel()
+        self.modelPTNetworkExportFormat = QtSql.QSqlQueryModel()
         self.modelPTNetworkFormatVersion = QtSql.QSqlQueryModel()
         self.dlg.ui.listViewPTNetworks.setModel(self.modelPTNetwork)
         self.PTNetworks = []
         
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
         self.import_pt_dialog.setModal(True)         
-        self.export_delete_pt_dialog=export_delete_pt_dialog(self, self.iface)
-        self.export_delete_pt_dialog.setModal(True) 
-
+        self.manage_pt_dialog=manage_pt_dialog(self, self.iface)
+        self.manage_pt_dialog.setModal(True) 
+        self.manage_pt_dialog.ui.listViewPTNetworks.setModel(self.modelPTNetwork)
+        
         # Road networks
         self.modelRoadNetwork = QtSql.QSqlQueryModel()
-        self.modelRoadNetworkFormat = QtSql.QSqlQueryModel()
+        self.modelRoadNetworkImportFormat = QtSql.QSqlQueryModel()
+        self.modelRoadNetworkExportFormat = QtSql.QSqlQueryModel()
         self.modelRoadNetworkFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_road_dialog=import_road_dialog(self, self.iface)
@@ -131,7 +134,8 @@ class TempusAccess:
         # POI
         self.modelPOISource = QtSql.QSqlQueryModel()
         self.modelPOIType = QtSql.QSqlQueryModel()
-        self.modelPOISourceFormat = QtSql.QSqlQueryModel()
+        self.modelPOISourceImportFormat = QtSql.QSqlQueryModel()
+        self.modelPOISourceExportFormat = QtSql.QSqlQueryModel()
         self.modelPOISourceFormatVersion = QtSql.QSqlQueryModel()
         
         self.import_poi_dialog=import_poi_dialog(self, self.iface)
@@ -141,7 +145,7 @@ class TempusAccess:
         
         # Zonings
         self.modelZoningSource=QtSql.QSqlQueryModel()  
-        self.modelZoningSourceFormat = QtSql.QSqlQueryModel()
+        self.modelZoningSourceImportFormat = QtSql.QSqlQueryModel()
         self.modelZoningSourceFormatVersion = QtSql.QSqlQueryModel()
         self.modelZone=QtSql.QSqlQueryModel()
         
@@ -253,7 +257,7 @@ class TempusAccess:
         self.action_import_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
         self.action_export_delete_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Exporter ou supprimer un réseau routier", self.iface.mainWindow())
         self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
-        self.action_export_delete_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Exporter ou supprimer une offre de transport en commun", self.iface.mainWindow())
+        self.action_manage_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Gérer les offres de transport en commun", self.iface.mainWindow())
         self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
 
         self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Supprimer une source de points d'intérêt", self.iface.mainWindow())
@@ -268,7 +272,7 @@ class TempusAccess:
         self.action_import_road.setToolTip(u"Importer un réseau routier")
         self.action_export_delete_road.setToolTip(u"Exporter ou supprimer un réseau routier")
         self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
-        self.action_export_delete_pt.setToolTip(u"Exporter ou supprimer une offre de transport en commun")
+        self.action_manage_pt.setToolTip(u"Gérer les offres de transport en commun")
         self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
 
         self.action_delete_poi.setToolTip(u"Supprimer une source de points d'intérêt")
@@ -283,7 +287,7 @@ class TempusAccess:
         self.action_import_road.triggered.connect(self.import_road)
         self.action_export_delete_road.triggered.connect(self.export_delete_road)
         self.action_import_pt.triggered.connect(self.import_pt)
-        self.action_export_delete_pt.triggered.connect(self.export_delete_pt)
+        self.action_manage_pt.triggered.connect(self.manage_pt)
         self.action_import_poi.triggered.connect(self.import_poi)
         self.action_delete_poi.triggered.connect(self.delete_poi)
         self.action_import_zoning.triggered.connect(self.import_zoning)
@@ -297,7 +301,7 @@ class TempusAccess:
         self.iface.addPluginToMenu(u"&TempusAccess", self.action_import_road)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_road)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_pt)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_pt)
+        self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_pt)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_poi)
         self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_zoning)
@@ -311,7 +315,7 @@ class TempusAccess:
         m.addAction(self.action_import_road)
         m.addAction(self.action_export_delete_road)
         m.addAction(self.action_import_pt)
-        m.addAction(self.action_export_delete_pt)
+        m.addAction(self.action_manage_pt)
         m.addAction(self.action_import_poi)
         m.addAction(self.action_delete_poi)
         m.addAction(self.action_import_zoning)
@@ -360,7 +364,7 @@ class TempusAccess:
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_poi)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_pt)
+        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_pt)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_import_road)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_road)
         self.iface.removePluginMenu(u"&TempusAccess", self.action_set_db_connection)
@@ -373,7 +377,7 @@ class TempusAccess:
         self.iface.removeToolBarIcon(self.action_import_poi)
         self.iface.removeToolBarIcon(self.action_delete_poi)
         self.iface.removeToolBarIcon(self.action_import_pt)
-        self.iface.removeToolBarIcon(self.action_export_delete_pt)
+        self.iface.removeToolBarIcon(self.action_manage_pt)
         self.iface.removeToolBarIcon(self.action_import_road)
         self.iface.removeToolBarIcon(self.action_export_delete_road)
         self.iface.removeToolBarIcon(self.action_set_db_connection)
@@ -389,7 +393,7 @@ class TempusAccess:
         self.import_poi_dialog.hide()
         self.delete_poi_dialog.hide()
         self.import_pt_dialog.hide()
-        self.export_delete_pt_dialog.hide()
+        self.manage_pt_dialog.hide()
         self.import_road_dialog.hide()
         self.export_delete_road_dialog.hide() 
         self.set_db_connection_dialog.hide()
@@ -463,8 +467,8 @@ class TempusAccess:
         self.import_pt_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_pt_dialog.ui.comboBoxFormat.currentIndex())
     
     
-    def export_delete_pt(self):
-        self.export_delete_pt_dialog.show()
+    def manage_pt(self):
+        self.manage_pt_dialog.show()
     
     
     def import_poi(self):
@@ -1242,7 +1246,8 @@ class TempusAccess:
             box.setText(u"La requête a échoué.")
             display_and_clear_python_console()
             box.exec_()
-               
+
+      
     def _slotPushButtonReinitCalcClicked(self):
         self.manage_indicators_dialog.ui.comboBoxReq.setCurrentIndex(0)
         self._slotComboBoxObjTypeIndexChanged(self.dlg.ui.comboBoxObjType.currentIndex())

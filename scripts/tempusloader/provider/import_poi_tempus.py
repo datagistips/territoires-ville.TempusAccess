@@ -4,6 +4,7 @@
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
  *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -19,35 +20,19 @@
  */
 """
 
-#
-# Tempus data loader
-
-import os
-from importer import ShpImporter
+from importer import DataImporter
 
 # Module to load a POI shape file
-class ImportPOITempus(ShpImporter):
+class ImportPOITempus(DataImporter):
     """This class enables to load POI data into a PostGIS database and link it to
     an existing network."""
     # Shapefile names to load, without the extension and prefix. 
     # Source shapefile set by user for this importer
     # this is used for table name
-    SHAPEFILES = ['poi'] 
+    DBFSHAPEFILES = [('poi', True)]
+    CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ["import_poi_pre_load.sql"]
     # SQL files to execute after loading shapefiles 
     POSTLOADSQL = ["import_poi_tempus.sql"]
-
-    def __init__(self, path = "", prefix="", dbstring = "", logfile = None, options = {'g':'geom', 'D':True, 'I':True, 'S':True}, doclean = True, subs = {}):
-        ShpImporter.__init__(self, path, prefix, dbstring, logfile, options, doclean, subs)
-
-    def check_input(self):
-        """Check if input is ok : given shape file exists."""
-        for fpath in self.path:
-            if not os.path.isfile(fpath):
-                raise StandardError("The given source file '{}' does not exist".format(fpath))
-
-    def get_shapefiles(self, path):
-        self.shapefiles = [("poi", path)]
-        return
 

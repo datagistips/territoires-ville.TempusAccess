@@ -20,9 +20,22 @@
 
 from manager import DataManager
 
-class DeletePT(DataManager):
+class MergePT(DataManager):
     """This class enables to delete PT data from Tempus PostGIS database"""
     # SQL files to execute to delete data
-    SQL = ['delete_pt.sql']
+    SQL = ['import_pt_tempus_pre_load.sql', 'merge_pt.sql', 'import_pt_tempus.sql', 'import_pt_post_load.sql']
     
-    
+    def __init__(self, dbstring="", logfile=None, subs = {}, pt_merge_options=""):
+        # Handle merge specific options
+        subs['stops'] = pt_merge_options[0]
+        subs['agencies'] = pt_merge_options[1]
+        subs['services'] = pt_merge_options[2]
+        subs['routes'] = pt_merge_options[3]
+        subs['trips'] = pt_merge_options[4]
+        subs['fares'] = pt_merge_options[5]
+        subs['shapes'] = pt_merge_options[6]
+        
+        super(MergePT, self).__init__(dbstring=dbstring, logfile=logfile, subs = subs)
+        
+        
+        

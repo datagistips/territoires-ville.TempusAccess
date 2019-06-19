@@ -18,30 +18,17 @@
  */
 """
 
-import re
-import sys
-import os
-import zipfile
-import tempfile
-import csv
-import sys
-import logging
-from logging import StreamHandler
-from gtfslib.dao import Dao
-from dbtools import PsqlLoader
-from importer import ShpImporter
-from tools import is_numeric
 from importer import DataImporter
-from config import *
         
-class ImportPTSNCF(ShpImporter):
+class ImportPTSNCF(DataImporter):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
     PRELOADSQL = [ 'import_pt_sncf_pre_load.sql' ]
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    SHAPEFILES = ['ref_stops', 'appariement_ign_arrets_fer', 'urban_pt_transfers', 'noeud_ferre', 'troncon_voie_ferree']
+    DBFSHAPEFILES = [('ref_stops', True), ('appariement_ign_arrets_fer', True), ('urban_pt_transfers', True), ('noeud_ferre', True), ('troncon_voie_ferree', True)]
+    CSVFILES = []
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = ['import_pt_sncf.sql', 'import_pt_post_load.sql']
+    POSTLOADSQL = ['merge_pt_sncf.sql', 'import_pt_tempus.sql', 'import_pt_post_load.sql']
 
 
 

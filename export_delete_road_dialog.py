@@ -51,6 +51,7 @@ class export_delete_road_dialog(QDialog):
         self.iface = caller.iface
                 
         self.ui.comboBoxSourceName.setModel(self.caller.modelRoadNetwork)
+        self.ui.comboBoxFormat.setModel(self.caller.modelRoadNetworkExportFormat)
         
         self._connectSlots()
     

@@ -18,50 +18,24 @@
  *   License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 """
+from importer import DataImporter
 
-from importer import ZipImporter
-
-# Fast GTFS Importer
-class ImportPTGTFS(ZipImporter):
+# GTFS Importer
+class ImportPTTempus(DataImporter):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
+    PRELOADSQL = ["import_pt_tempus_pre_load.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
-                ('calendar', True),
+    CSVFILES = [('agency', True),
                 ('calendar_dates', True),
                 ('fare_attributes', False),
                 ('fare_rules', False),
-                ('feed_info', False), 
                 ('frequencies', False),
                 ('transfers', False),
                 ('routes', True),
-                ('shapes', False),
                 ('stop_times', True),
-                ('stops', True),
                 ('trips', True)]
+    DBFSHAPEFILES = [('stops', True), ('sections', True), ('shapes', False)]
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = [ "import_pt_gtfs.sql", "import_pt_post_load.sql" ]
-
-
-class ImportPTGTFSTemp(ZipImporter):
-    """Public transportation GTFS temporary data loader class. No cleaning after loading. """
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
-    # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
-                ('calendar', True),
-                ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('feed_info', False), 
-                ('frequencies', False),
-                ('transfers', False),
-                ('routes', True),
-                ('shapes', False),
-                ('stop_times', True),
-                ('stops', True),
-                ('trips', True)]
-    POSTLOADSQL = [ "import_pt_gtfs.sql" ]
+    POSTLOADSQL = [ "import_pt_tempus.sql", "import_pt_post_load.sql" ]
 

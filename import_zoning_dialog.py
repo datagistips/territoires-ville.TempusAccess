@@ -52,7 +52,7 @@ class import_zoning_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir        
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelZoningSourceFormat)
+        self.ui.comboBoxFormat.setModel(self.caller.modelZoningSourceImportFormat)
         self.ui.comboBoxFormatVersion.setModel(self.caller.modelZoningSourceFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         
@@ -78,8 +78,8 @@ class import_zoning_dialog(QDialog):
     
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelZoningSourceFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.caller.modelZoningSourceFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'zoning' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelZoningSourceImportFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.caller.modelZoningSourceFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'zoning_import' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
         
         
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):

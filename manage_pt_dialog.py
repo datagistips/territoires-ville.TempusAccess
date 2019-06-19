@@ -39,9 +39,9 @@ from thread_tools import execute_external_cmd
 
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "\\forms")
-from Ui_export_delete_pt_dialog import Ui_Dialog
+from Ui_manage_pt_dialog import Ui_Dialog
 
-class export_delete_pt_dialog(QDialog):
+class manage_pt_dialog(QDialog):
 
     def __init__(self, caller, iface):
         QDialog.__init__(self)
@@ -52,23 +52,60 @@ class export_delete_pt_dialog(QDialog):
         self.iface = caller.iface
 
         self.ui.comboBoxSourceName.setModel(self.caller.modelPTNetwork)
+        self.ui.comboBoxFormat.setModel(self.caller.modelPTNetworkExportFormat)
 
         self._connectSlots()
-
-
+        
+        
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
-        self.ui.pushButtonExport.clicked.connect(self._slotExportClicked)
+        self.ui.pushButtonExport.clicked.connect(self._slotPushButtonExportClicked)
         self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
+        self.ui.pushButtonMerge.clicked.connect(self._slotPushButtonMergeClicked)
+        self.ui.lineEditMergedPTNetwork.textChanged.connect(self._slotLineEditMergedPTNetworkTextChanged)
+        
+    
+    def _slotLineEditMergedPTNetworkTextChanged(self):
+        if (self.ui.lineEditMergedPTNetwork.text() != ''):
+            self.ui.pushButtonMerge.setEnabled(True)
+        else:
+            self.ui.pushButtonMerge.setEnabled(False)
+        
+    
+    def _slotPushButtonMergeClicked(self):
+        self.PTNetworks = []
+        for item in self.ui.listViewPTNetworks.selectionModel().selectedRows():
+            self.PTNetworks.append(self.caller.modelPTNetwork.record(item.row()).value("id"))
 
+        if (self.ui.lineEditMergedPTNetwork.text()!="") and (len(self.PTNetworks)>1):
+            dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
+            self.source_name = self.ui.lineEditMergedPTNetwork.text()
+            cmd=["python", TEMPUSLOADER, "--action", "merge", "--data-type", "pt", "--source-name", self.source_name, "--dbstring", dbstring, "--source-list", str(self.PTNetworks)[1:len(str(self.PTNetworks))-1]]
+            
+            rc = execute_external_cmd( cmd )
+            box = QMessageBox()
+            if (rc==0):
+                box.setText(u"La fusion des sources est terminée.")
+                
+                self.caller.refreshPTNetworks()                
+                self.caller.manage_db_dialog._slotPushButtonLoadClicked()
+            else:
+                box.setText(u"Erreur pendant la fusion.\n Pour en savoir plus, relancer en ligne de commande la commande figurant dans la console Python.")
+            box.exec_()
 
+        else:
+            box = QMessageBox()
+            box.setText(u"Au moins deux réseaux doivent être sélectionnés et un alias doit être défini pour le réseau fusionné. ")
+            box.exec_()
+        
+        
     def _slotPushButtonDeleteClicked(self):
         ret = QMessageBox.question(self, "TempusAccess", u"La source de données sélectionnée va être supprimée. \n Confirmez-vous cette opération ?", QMessageBox.Ok | QMessageBox.Cancel,QMessageBox.Cancel)
-
+        
         if (ret == QMessageBox.Ok):
             dbstring = "host="+self.caller.db.hostName()+" user="+self.caller.db.userName()+" dbname="+self.caller.db.databaseName()+" port="+str(self.caller.db.port())
             self.source_name = self.caller.modelPTNetwork.record(self.ui.comboBoxSourceName.currentIndex()).value("feed_id")
-
+            
             uri=QgsDataSourceURI()
             uri.setConnection(self.caller.db.hostName(), str(self.caller.db.port()), self.caller.db.databaseName(), self.caller.db.userName(), self.caller.db.password())
 
@@ -91,9 +128,9 @@ class export_delete_pt_dialog(QDialog):
             else:
                 box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
-
-
-    def _slotExportClicked(self):
+        
+        
+    def _slotPushButtonExportClicked(self):
         # Open a window to choose path to the GTFS source file
         NomFichierComplet=''
         NomFichierComplet = QFileDialog.getSaveFileName(caption = "Enregistrer sous...", directory=self.caller.data_dir, filter = "Zip files (*.zip)")
@@ -112,7 +149,10 @@ class export_delete_pt_dialog(QDialog):
             else:
                 box.setText(u"Erreur pendant l'export. \nPour en savoir plus, ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
-
-
+        
+        
     def _slotClose(self):
         self.hide()
+        
+        
+        

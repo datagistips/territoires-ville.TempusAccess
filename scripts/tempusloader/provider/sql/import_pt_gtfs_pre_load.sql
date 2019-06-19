@@ -10,7 +10,7 @@ end$$;
 
 -- Remove all related constraints
 ALTER TABLE tempus_gtfs.stops 
-    DROP CONSTRAINT IF EXISTS stops_road_section_id_fkey;
+DROP CONSTRAINT IF EXISTS stops_road_section_id_fkey;
 
 DROP INDEX IF EXISTS tempus_gtfs.stops_id_idx; 
 DROP INDEX IF EXISTS tempus_gtfs.stops_station_id_int_idx;
@@ -19,16 +19,12 @@ DROP INDEX IF EXISTS tempus_gtfs.stops_geom_idx;
 ALTER TABLE tempus_gtfs.stops DROP CONSTRAINT IF EXISTS stops_road_section_id_fkey;
 ALTER TABLE tempus_gtfs.stops DROP CONSTRAINT IF EXISTS stops_station_id_int_fkey;
 ALTER TABLE tempus_gtfs.stops DROP CONSTRAINT IF EXISTS stops_zone_id_int_fkey;
-
 ALTER TABLE tempus_gtfs.stop_times DROP CONSTRAINT IF EXISTS stop_times_stop_id_int_fkey;
 ALTER TABLE tempus_gtfs.stop_times DROP CONSTRAINT IF EXISTS stop_times_trip_id_int_fkey;
-
 ALTER TABLE tempus_gtfs.sections DROP CONSTRAINT IF EXISTS sections_shape_id_int_fkey;
 ALTER TABLE tempus_gtfs.sections DROP CONSTRAINT IF EXISTS sections_stop_from_fkey;
 ALTER TABLE tempus_gtfs.sections DROP CONSTRAINT IF EXISTS sections_stop_to_fkey; 
-
 ALTER TABLE tempus_gtfs.routes DROP CONSTRAINT IF EXISTS routes_agency_id_int_fkey;
-
 ALTER TABLE tempus_gtfs.trips DROP CONSTRAINT IF EXISTS trips_route_id_int_fkey;   
 ALTER TABLE tempus_gtfs.trips DROP CONSTRAINT IF EXISTS trips_service_id_int_fkey;  
 ALTER TABLE tempus_gtfs.trips DROP CONSTRAINT IF EXISTS trips_shape_id_int_fkey; 
@@ -120,6 +116,7 @@ CREATE TABLE _tempus_import.fare_attributes (
     currency_type character varying NOT NULL,
     payment_method integer NOT NULL,
     transfers integer,
+    agency_id character varying, 
     transfer_duration integer
 );
 
@@ -217,4 +214,15 @@ CREATE TABLE _tempus_import.transfers (
     transfer_type character varying NOT NULL,
     min_transfer_time character varying
 );
+
+CREATE OR REPLACE FUNCTION _tempus_import.format_gtfs_time(text)
+RETURNS integer AS 
+$$
+BEGIN
+    return substr($1,1,2)::integer * 3600 + substr($1,4,2)::integer * 60 + substr($1,7,2)::integer;
+END;
+$$ 
+LANGUAGE plpgsql; 
+
+
 

@@ -3,7 +3,8 @@
 """
 /**
  *   Copyright (C) 2012-2013 IFSTTAR (http://www.ifsttar.fr)
- *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com>
+ *   Copyright (C) 2012-2013 Oslandia <infos@oslandia.com> 
+ *   Copyright (C) 2019-2020 Cerema (http://www.cerema.fr) 
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Library General Public
@@ -27,7 +28,6 @@ import os
 import subprocess
 from dbtools import PsqlLoader
 
-#from importer import DataImporter
 
 # Module to load OpenStreetMap road data (OSM as shapefile)
 class ImportRoadOSM:

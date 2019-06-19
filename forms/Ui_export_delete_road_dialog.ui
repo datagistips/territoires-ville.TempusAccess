@@ -39,6 +39,29 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pushButtonExport">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fonctionnalité bientôt disponible !&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Exporter</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="pushButtonDelete">
+      <property name="text">
+       <string>Supprimer</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QComboBox" name="comboBoxSourceName"/>
+    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
@@ -49,28 +72,8 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="comboBoxSourceName"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="pushButtonDelete">
-      <property name="text">
-       <string>Supprimer source</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="1">
-     <widget class="QPushButton" name="pushButtonExport">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fonctionnalité bientôt disponible !&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Exporter source</string>
-      </property>
-     </widget>
+     <widget class="QComboBox" name="comboBoxFormat"/>
     </item>
    </layout>
   </widget>

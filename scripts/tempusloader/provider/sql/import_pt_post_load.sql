@@ -82,24 +82,24 @@ end$$;
 ALTER TABLE tempus_gtfs.stops ADD CONSTRAINT stops_road_section_id_fkey FOREIGN KEY (road_section_id) REFERENCES tempus.road_section(id) ON UPDATE CASCADE ON DELETE NO ACTION;
 ALTER TABLE tempus_gtfs.stops ADD CONSTRAINT stops_zone_id_int_fkey FOREIGN KEY (zone_id_int) REFERENCES tempus_gtfs.zones (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE NO ACTION;
 ALTER TABLE tempus_gtfs.routes ADD CONSTRAINT routes_agency_id_int_fkey FOREIGN KEY (agency_id_int) REFERENCES tempus_gtfs.agency (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE NO ACTION;
-ALTER TABLE tempus_gtfs.sections ADD  CONSTRAINT sections_shape_id_int_fkey FOREIGN KEY (shape_id_int) REFERENCES tempus_gtfs.shapes (id) ON UPDATE CASCADE ON DELETE CASCADE;
+--ALTER TABLE tempus_gtfs.sections ADD  CONSTRAINT sections_shape_id_int_fkey FOREIGN KEY (shape_id_int) REFERENCES tempus_gtfs.shapes (id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE tempus_gtfs.sections ADD CONSTRAINT sections_stop_from_fkey FOREIGN KEY (stop_from) REFERENCES tempus_gtfs.stops (id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE tempus_gtfs.sections ADD CONSTRAINT sections_stop_to_fkey FOREIGN KEY (stop_to) REFERENCES tempus_gtfs.stops (id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE tempus_gtfs.trips ADD CONSTRAINT trips_route_id_int_fkey FOREIGN KEY (route_id_int) REFERENCES tempus_gtfs.routes (id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE tempus_gtfs.trips ADD CONSTRAINT trips_service_id_int_fkey FOREIGN KEY (service_id_int) REFERENCES tempus_gtfs.calendar (id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE tempus_gtfs.trips ADD CONSTRAINT trips_shape_id_int_fkey FOREIGN KEY (shape_id_int) REFERENCES tempus_gtfs.shapes (id) ON UPDATE CASCADE ON DELETE CASCADE;
+--ALTER TABLE tempus_gtfs.trips ADD CONSTRAINT trips_service_id_int_fkey FOREIGN KEY (service_id_int) REFERENCES tempus_gtfs.calendar (id) ON UPDATE CASCADE ON DELETE CASCADE;
+--ALTER TABLE tempus_gtfs.trips ADD CONSTRAINT trips_shape_id_int_fkey FOREIGN KEY (shape_id_int) REFERENCES tempus_gtfs.shapes (id) ON UPDATE CASCADE ON DELETE CASCADE;
    
 CREATE INDEX road_node_geom_idx
   ON tempus.road_node 
   USING gist(geom);
   
-create index 
-  on tempus.road_section 
+CREATE INDEX 
+  ON tempus.road_section 
   using gist(geom);
-create index 
-  on tempus.road_section(node_from);
-create index 
-  on tempus.road_section(node_to);
+CREATE INDEX 
+  ON tempus.road_section(node_from);
+CREATE INDEX 
+  ON tempus.road_section(node_to);
   
 CREATE TRIGGER delete_isolated_road_nodes
   AFTER DELETE
@@ -127,6 +127,7 @@ CREATE INDEX ON tempus_gtfs.stops USING gist(geom);
 REFRESH MATERIALIZED VIEW tempus_gtfs.stops_by_mode;
 REFRESH MATERIALIZED VIEW tempus_gtfs.sections_by_mode;
 REFRESH MATERIALIZED VIEW tempus_gtfs.trips_by_mode;
+REFRESH MATERIALIZED VIEW tempus_gtfs.shapes;
 
 DROP SCHEMA _tempus_import CASCADE;
 

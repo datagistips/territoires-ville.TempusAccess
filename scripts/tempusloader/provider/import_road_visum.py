@@ -18,19 +18,17 @@
  */
 """
 
+from importer import DataImporter
 import os
 
-from importer import ShpImporter
-
 # Module to load Visum data
-class ImportRoadVisum(ShpImporter):
+class ImportRoadVisum(DataImporter):
     """This class enables to load Visum-generated shapefiles data into a PostGIS
 database.
     """
 
     # Shapefile names to load, without the extension and prefix
-    SHAPEFILES = ['node', 'link', 'mov']
-    #OPT_SHAPEFILES = ['mov']
+    DBFSHAPEFILES = [('node', True), ('link', True), ('mov', False)]
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
@@ -56,13 +54,13 @@ database.
         subs['taxi'] = visum_modes[3]
         # Add as many argument to Shp importer as they are columns to import
         for s in path:
-            for shp in self.SHAPEFILES:
+            for shp, mandatory in self.DBFSHAPEFILES:
                 shp_column_names = self.get_long_name(s, prefix, shp)
                 self.check_columns(shp_column_names, shp)
                 for colname in shp_column_names:
                     shp_longname, shp_shortname = colname.split(";")
                     subs[shp + "_" + shp_longname] = shp_shortname.lower()
-        super(ImportRoadVisum, self).__init__(path, prefix, dbstring, logfile, options, doclean, subs)
+        super(ImportRoadVisum, self).__init__(path=path, prefix=prefix, dbstring=dbstring, logfile=logfile, options=options, doclean=doclean, subs=subs)
 
     def get_long_name(self, path, prefix, shp_name):
         """Get the Visum attribute long names, as by default only short names are

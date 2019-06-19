@@ -41,6 +41,39 @@ def is_numeric(s):
         # numeric
         return True
 
+def parse_db_string(param):
+    """
+    Parse the parameter string as a PostgreSQL db connection string or an URI
+    And return a pair of strings with both representations (db_string, db_uri)
+    """
+    if param.startswith("postgresql://"):
+        # from uri to connection string
+        from urlparse import urlparse
+        p = urlparse(param)
+        db_string = [('host', p.hostname),
+                     ('port', str(p.port)),
+                     ('username', p.username),
+                     ('password', p.password),
+                     ('dbname', p.path)]
+        return (" ".join([k + "=" + v for k,v in db_string]), param)
+    else:
+        db_params = dict([(k,v.strip("'")) for k,v in re.findall(r"(\S+) *= *('.*?'|\S+)", param)])
+        db_host = db_params.get("host") or ""
+        db_port = ""
+        if db_params.get("port"):
+            db_port = db_port + ":" + db_params["port"]
+        db_name = db_params.get("dbname") or ""
+        host_port = db_host + db_port
+        s = ''
+        if db_params.get("username"):
+            s = db_params["username"]
+            if db_params.get("password"):
+                s = s + ':' + db_params['password']
+            s = s + "@"
+        db_uri = "postgresql://" + s + host_port + "/" + db_name
+        return (param, db_uri)
+
+
 class ShpLoader:
     """A static class to import shapefiles to PostgreSQL/PostGIS
     

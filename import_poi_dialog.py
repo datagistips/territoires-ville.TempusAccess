@@ -51,7 +51,7 @@ class import_poi_dialog(QDialog):
         
         self.plugin_dir = self.caller.plugin_dir        
         
-        self.ui.comboBoxFormat.setModel(self.caller.modelPOISourceFormat)
+        self.ui.comboBoxFormat.setModel(self.caller.modelPOISourceImportFormat)
         self.ui.comboBoxFormatVersion.setModel(self.caller.modelPOISourceFormatVersion)
         self.ui.comboBoxEncoding.setModel(self.caller.modelEncoding)
         self.ui.comboBoxPOIType.setModel(self.caller.modelPOIType)
@@ -78,8 +78,8 @@ class import_poi_dialog(QDialog):
 
     
     def _slotComboBoxFormatCurrentIndexChanged(self, indexChosenLine):
-        self.format = self.caller.modelPOISourceFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
-        self.caller.modelPOISourceFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'poi' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
+        self.format = self.caller.modelPOISourceImportFormat.record(self.ui.comboBoxFormat.currentIndex()).value("data_format")
+        self.caller.modelPOISourceFormatVersion.setQuery("SELECT model_version, default_srid, default_encoding, path_type FROM tempus_access.formats WHERE data_type = 'poi_import' AND data_format = '"+str(self.format)+"' ORDER BY model_version DESC", self.caller.db)
 
     
     def _slotComboBoxFormatVersionCurrentIndexChanged(self, indexChosenLine):

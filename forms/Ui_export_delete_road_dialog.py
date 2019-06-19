@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_export_delete_road_dialog.ui'
 #
-# Created: Fri May 17 08:32:11 2019
+# Created: Fri Jun 14 15:55:20 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -38,20 +38,23 @@ class Ui_Dialog(object):
         self.gridLayout = QtGui.QGridLayout(self.verticalLayoutWidget)
         self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.pushButtonExport = QtGui.QPushButton(self.verticalLayoutWidget)
+        self.pushButtonExport.setEnabled(False)
+        self.pushButtonExport.setObjectName(_fromUtf8("pushButtonExport"))
+        self.gridLayout.addWidget(self.pushButtonExport, 1, 2, 1, 1)
+        self.pushButtonDelete = QtGui.QPushButton(self.verticalLayoutWidget)
+        self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
+        self.gridLayout.addWidget(self.pushButtonDelete, 0, 2, 1, 1)
+        self.comboBoxSourceName = QtGui.QComboBox(self.verticalLayoutWidget)
+        self.comboBoxSourceName.setObjectName(_fromUtf8("comboBoxSourceName"))
+        self.gridLayout.addWidget(self.comboBoxSourceName, 0, 1, 1, 1)
         self.label = QtGui.QLabel(self.verticalLayoutWidget)
         self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-        self.comboBoxSourceName = QtGui.QComboBox(self.verticalLayoutWidget)
-        self.comboBoxSourceName.setObjectName(_fromUtf8("comboBoxSourceName"))
-        self.gridLayout.addWidget(self.comboBoxSourceName, 0, 1, 1, 1)
-        self.pushButtonDelete = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
-        self.gridLayout.addWidget(self.pushButtonDelete, 1, 0, 1, 1)
-        self.pushButtonExport = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.pushButtonExport.setEnabled(False)
-        self.pushButtonExport.setObjectName(_fromUtf8("pushButtonExport"))
-        self.gridLayout.addWidget(self.pushButtonExport, 1, 1, 1, 1)
+        self.comboBoxFormat = QtGui.QComboBox(self.verticalLayoutWidget)
+        self.comboBoxFormat.setObjectName(_fromUtf8("comboBoxFormat"))
+        self.gridLayout.addWidget(self.comboBoxFormat, 1, 1, 1, 1)
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
@@ -60,10 +63,10 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "Gérer les réseaux routiers", None))
-        self.label.setText(_translate("Dialog", "Nom de la source *", None))
-        self.pushButtonDelete.setText(_translate("Dialog", "Supprimer source", None))
         self.pushButtonExport.setToolTip(_translate("Dialog", "<html><head/><body><p>Fonctionnalité bientôt disponible !</p></body></html>", None))
-        self.pushButtonExport.setText(_translate("Dialog", "Exporter source", None))
+        self.pushButtonExport.setText(_translate("Dialog", "Exporter", None))
+        self.pushButtonDelete.setText(_translate("Dialog", "Supprimer", None))
+        self.label.setText(_translate("Dialog", "Nom de la source *", None))
 
 
 if __name__ == "__main__":

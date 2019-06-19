@@ -30,7 +30,8 @@ def import_zoning_ign_adminexpress(args, shape_options):
     subs = {}
     subs["source_name"] = args.source_name
     shape_options['S'] = False # There are multipolygons with two parts, so, the -S option (which converts multi geometries to simple ones) cannot be used
-    adminexpi = provider.ImportZoningIGNAdminExpress(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
+    adminexpi = provider.ImportZoningIGNAdminExpress(path=args.path, prefix=args.prefix, dbstring=args.dbstring, \
+    logfile=args.logfile, options=shape_options, doclean=not args.noclean, subs=subs)
     return adminexpi.load() 
 
 
