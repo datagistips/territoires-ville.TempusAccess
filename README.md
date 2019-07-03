@@ -10,7 +10,7 @@ Ses principaux atouts sont :
 * l'intégration de nombreux **formats** de données acceptés en entrée du plugin : GTFS, Visum, IGN, OpenStreetMap, permettant l'intégration facilitée de multiples sources dans la base ;
 * une **représentation cartographique** automatique de base des indicateurs (quand ils ont une dimension géographique), personnalisable ensuite selon les souhaits de l'utilisateur grâce aux fonctions classiques de QGIS.
 
-## Routing et filtrage
+## Routing et requêtes
 Parmi les indicateurs proposés, certains font appel à des **calculs de plus court chemin** au sens du temps de parcours, avec prise en compte des **itinéraires multimodaux** (itinéraire le plus court entre deux points, isochrone au départ d'un ou plusieurs points, etc.). 
 
 Il est possible de **filtrer** la période horaire, les jours, de même que les arrêts, certaines lignes, sur lesquels le calcul d'indicateurs portera.
