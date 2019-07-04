@@ -5,10 +5,10 @@
  
 # Atouts
 Ses principaux atouts sont : 
-* le **calcul** d'indicateurs d'offre de transport via une interface utilisateur ergonomique ;
-* le **requêtage** direct, en SQL, de la base PostgreSQL sous-jacente, au moyen de fonctions dédiées, ce qui permet de lancer des requêtes plus complexes et de réaliser des traitements par lots qui seraient fastidieux à réaliser via l'interface utilisateur ;
-* l'intégration de nombreux **formats** de données acceptés en entrée du plugin : GTFS, Visum, IGN, OpenStreetMap, permettant l'intégration facilitée de multiples sources dans la base ;
-* une **représentation cartographique** automatique de base des indicateurs (quand ils ont une dimension géographique), personnalisable ensuite selon les souhaits de l'utilisateur grâce aux fonctions classiques de QGIS.
+* le **calcul** d'indicateurs d'offre de transport via une interface ergonomique
+* le **requêtage** direct, en SQL, de la base PostgreSQL sous-jacente, au moyen de fonctions dédiées, ce qui permet de lancer des requêtes plus complexes et de réaliser des traitements par lots qui seraient fastidieux à réaliser via l'interface utilisateur
+* l'intégration de nombreux **formats** : GTFS, Visum, IGN, OpenStreetMap
+* une **représentation cartographique** automatique des indicateurs (personnalisable selon les souhaits de l'utilisateur grâce aux fonctions classiques de QGIS)
 - l'accès au panel très riche de fonctions de l'[**API Tempus**](https://oslandia.com/tag/tempus-fr/) d'Oslandia
 
 ## Routing et requêtes
