@@ -6,10 +6,9 @@
 # Atouts
 Ses principaux atouts sont : 
 * le **calcul** d'indicateurs d'offre de transport via une interface ergonomique
-* le **requêtage** direct, en SQL, de la base PostgreSQL sous-jacente, au moyen de fonctions dédiées, ce qui permet de lancer des requêtes plus complexes et de réaliser des traitements par lots qui seraient fastidieux à réaliser via l'interface utilisateur
+* le **requêtage** direct, en SQL, de la base PostgreSQL sous-jacente, au moyen de fonctions dédiées, ce qui permet de lancer des requêtes plus complexes et de réaliser des traitements par lots qui seraient fastidieux à réaliser via l'interface utilisateur et l'accès au panel très riche de fonctions de l'[**API Tempus**](https://oslandia.com/tag/tempus-fr/) d'Oslandia
 * l'intégration de nombreux **formats** : GTFS, Visum, IGN, OpenStreetMap
 * une **représentation cartographique** automatique des indicateurs (personnalisable selon les souhaits de l'utilisateur grâce aux fonctions classiques de QGIS)
-- l'accès au panel très riche de fonctions de l'[**API Tempus**](https://oslandia.com/tag/tempus-fr/) d'Oslandia
 
 ## Routing et requêtes
 Parmi les indicateurs proposés, certains font appel à des **calculs de plus court chemin** au sens du temps de parcours, avec prise en compte des **itinéraires multimodaux** (itinéraire le plus court entre deux points, isochrone au départ d'un ou plusieurs points, etc.). 
