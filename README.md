@@ -21,4 +21,4 @@ TempusAccess calcule en un clic tout un lot d'indicateurs d'accessibilité très
 [Accédez la liste complète d'indicateurs](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Indicateurs-d'accessibilit%C3%A9)
 
 ## Documentation
-[Pour savoir comment l'installer et l'utiliser, rendez-vous sur le wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki). Vous y trouverez un guide de démarrage  !
+:books: [Pour savoir comment l'installer et l'utiliser, rendez-vous sur le wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki). Vous y trouverez [le guide de démarrage](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Guide-de-d%C3%A9marrage)  !
