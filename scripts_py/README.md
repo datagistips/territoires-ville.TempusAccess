@@ -21,5 +21,5 @@ Le nom du répertoire GTFS doit être indiqué au sein de la fonction :
 Dans l'image générée, chaque couleur correspond à une période de service (correspondant à la colonne `service_id`). Les carrés entourés de gris correspondent aux Samedis et aux Dimanches. Les carrés blancs sont les jours pour lesquels il n'y a aucun service.
 
 ### Dépendances
-La librairie `matplotlib` devra être installée pour utiliser ce script.
+La librairie `matplotlib` devra être installée pour utiliser ce script ainsi que la librairie `pandas`
 
