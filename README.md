@@ -1,5 +1,5 @@
 # <img src="https://github.com/CEREMA/territoires-ville.TempusAccess/blob/master/plugin/icons/icon_tempus.jpg" alt="Icone Tempus Access" width="40"/> TempusAccess
-**TempusAccess** est un plugin QGIS, distribué sous [licence GPL](https://github.com/CEREMA/territoires-ville.TempusAccess/blob/master/LICENSE), de calcul d'**indicateurs d'accessibilité des territoires permise par l'offre de transport** (disponible aux formats GTFS et géographiques).
+**TempusAccess** est un plugin QGIS, distribué sous [licence GPL](https://github.com/CEREMA/territoires-ville.TempusAccess/blob/master/LICENSE), de calcul d'**indicateurs d'accessibilité des territoires permise par l'offre de transport** (disponible aux formats GTFS et géographiques) développé par le [Cerema](https://www.cerema.fr/fr), [l'IFSTTAR](https://www.ifsttar.fr/accueil/) et la société [Oslandia](https://oslandia.com/).
 
 ![](https://github.com/CEREMA/territoires-ville.TempusAccess/raw/master/doc/img56.png)
  
