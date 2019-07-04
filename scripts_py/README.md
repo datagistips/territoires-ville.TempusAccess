@@ -6,6 +6,11 @@ Certains se verront intégrés au sein de l'extension TempusAccess
 ## Script de génération d'images de calendriers de services
 Le script [`display_calendar.py`](https://github.com/CEREMA/territoires-ville.TempusAccess/blob/master/scripts_py/display_calendar.py) permet de générer un calendrier de services depuis une donnée GTFS.
 
+Il vous permettra ainsi de :
+
+- voir rapidement les jours de service de votre liaison TC
+- de vérifier la qualité de vos données GTFS : cohérence des périodes de service, mitage du calendrier et lacunes dans le listing des jours
+
 Le nom du répertoire GTFS doit être indiqué au sein de la fonction :
 
 	# CAPA
