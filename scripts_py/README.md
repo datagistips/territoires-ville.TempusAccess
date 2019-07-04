@@ -1,13 +1,12 @@
-# Scripts pour le traitement GTFS
+# Scripts pour le traitement de données GTFS
 
-Ce répertoire contient des scripts python utiles au traitement des données GTFS.
-
+Ce répertoire contient des scripts python utiles au traitement des données GTFS.  
 Certains se verront intégrés au sein de l'extension TempusAccess
 
 ## Script de génération d'images de calendriers de services
-Le script `display_calendar.py` permet de générer un calendrier de services depuis une donnée GTFS.
+Le script [`display_calendar.py`](https://github.com/CEREMA/territoires-ville.TempusAccess/blob/master/scripts_py/display_calendar.py) permet de générer un calendrier de services depuis une donnée GTFS.
 
-Le nom du répertoire GTFS doit être indiqué au sein de la fonction.
+Le nom du répertoire GTFS doit être indiqué au sein de la fonction :
 
 	# CAPA
 	plot_capa = display_calendar_for_gtfs("gtfs_data/capa_GTFS_022019/")
