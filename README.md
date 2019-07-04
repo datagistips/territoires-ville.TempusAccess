@@ -18,7 +18,7 @@ Il est possible de **filtrer** la période horaire, les jours, de même que les 
 ## Une liste très complète d'indicateurs d'accessibilité
 TempusAccess calcule en un clic tout un lot d'indicateurs d'accessibilité très utiles, tels que le nombre de passages, l'amplitude horaire, le temps nécessaire pour rejoindre un arrêt depuis un autre..
 
-[Accédez la liste complète d'indicateurs ici](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Indicateurs-d'accessibilit%C3%A9)
+[Accédez la liste complète d'indicateurs](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Indicateurs-d'accessibilit%C3%A9)
 
 ## Documentation
-Pour savoir comment l'installer et l'utiliser, rendez-vous dans le [wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki) !
+[Pour savoir comment l'installer et l'utiliser, rendez-vous sur le wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki). Vous y trouverez un guide de démarrage  !
