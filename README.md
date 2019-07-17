@@ -23,3 +23,8 @@ TempusAccess calcule en un clic tout un lot d'indicateurs d'accessibilité très
 ## Documentation
 :books: [Pour savoir comment l'installer et l'utiliser, rendez-vous sur le wiki](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki).  
 [Le guide de démarrage vous sera sans doute bien utile pour commencer !](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Guide-de-d%C3%A9marrage)  !
+
+## Installation
+![](https://github.com/CEREMA/territoires-ville.TempusAccess/raw/master/doc/img13.png)
+
+[Accédez à la procédure d'installation du plugin](https://github.com/CEREMA/territoires-ville.TempusAccess/wiki/Proc%C3%A9dure-d'installation-Windows-depuis-serveurs#Installation-du-plugin-QGIS-TempusAccess)
