@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS zoning.%(source_name);
 CREATE TABLE zoning.%(source_name)
 AS
 SELECT *
-FROM _tempus_import.zoning
+FROM %(temp_schema).zoning
 ORDER BY gid; 
 
 ALTER TABLE zoning.%(source_name)
@@ -31,5 +31,5 @@ CREATE INDEX %(source_name)_lib_idx ON zoning.%(source_name) USING gist (lib gis
 CREATE INDEX %(source_name)_vendor_id_idx ON zoning.%(source_name) USING btree (vendor_id);
 CREATE INDEX %(source_name)_geom_idx ON zoning.%(source_name) USING gist(geom);
 
-DROP SCHEMA _tempus_import CASCADE;
+DROP SCHEMA %(temp_schema) CASCADE;
 

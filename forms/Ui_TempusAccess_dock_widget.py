@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'C:\Users\aurelie-p.bousquet\.qgis2\python\plugins\TempusAccess\forms\Ui_TempusAccess_dock_widget.ui'
 #
-# Created: Tue Apr 09 18:47:15 2019
+# Created: Tue Jul 16 14:35:08 2019
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,7 +105,7 @@ class Ui_DockWidget(object):
         self.toolBoxPaths.setGeometry(QtCore.QRect(10, 100, 321, 251))
         self.toolBoxPaths.setObjectName(_fromUtf8("toolBoxPaths"))
         self.page = QtGui.QWidget()
-        self.page.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page.setObjectName(_fromUtf8("page"))
         self.layoutWidget_3 = QtGui.QWidget(self.page)
         self.layoutWidget_3.setGeometry(QtCore.QRect(10, 0, 301, 95))
@@ -169,7 +169,7 @@ class Ui_DockWidget(object):
         self.gridLayout.addWidget(self.pushButtonInvertOD, 1, 2, 1, 1)
         self.toolBoxPaths.addItem(self.page, _fromUtf8(""))
         self.page_2 = QtGui.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 321, 170))
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.layoutWidget1 = QtGui.QWidget(self.page_2)
         self.layoutWidget1.setGeometry(QtCore.QRect(10, 0, 311, 29))
@@ -420,7 +420,7 @@ class Ui_DockWidget(object):
         self.toolBoxDays.setGeometry(QtCore.QRect(20, 60, 291, 281))
         self.toolBoxDays.setObjectName(_fromUtf8("toolBoxDays"))
         self.page_4 = QtGui.QWidget()
-        self.page_4.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_4.setGeometry(QtCore.QRect(0, 0, 291, 227))
         self.page_4.setObjectName(_fromUtf8("page_4"))
         self.calendarWidget = QtGui.QCalendarWidget(self.page_4)
         self.calendarWidget.setGeometry(QtCore.QRect(0, 0, 291, 221))
@@ -529,7 +529,7 @@ class Ui_DockWidget(object):
         self.toolBoxTime.setGeometry(QtCore.QRect(10, 110, 271, 201))
         self.toolBoxTime.setObjectName(_fromUtf8("toolBoxTime"))
         self.page_6 = QtGui.QWidget()
-        self.page_6.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_6.setGeometry(QtCore.QRect(0, 0, 271, 147))
         self.page_6.setObjectName(_fromUtf8("page_6"))
         self.layoutWidget4 = QtGui.QWidget(self.page_6)
         self.layoutWidget4.setGeometry(QtCore.QRect(0, 10, 271, 22))
@@ -803,7 +803,7 @@ class Ui_DockWidget(object):
         self.labelTpsStatVelo.setText(_translate("DockWidget", "Vitesse vélo", None))
         self.Tabs.setTabText(self.Tabs.indexOf(self.tab_5), _translate("DockWidget", "Objets", None))
         self.groupBoxPTNetworks.setTitle(_translate("DockWidget", "Réseau de transport collectif", None))
-        self.groupBoxAgencies.setTitle(_translate("DockWidget", "Transporteurs", None))
+        self.groupBoxAgencies.setTitle(_translate("DockWidget", "Exploitants", None))
         self.groupBoxTransportModes.setTitle(_translate("DockWidget", "Modes de transport", None))
         self.label_2.setText(_translate("DockWidget", "Individuels", None))
         self.label_22.setText(_translate("DockWidget", "Transport", None))

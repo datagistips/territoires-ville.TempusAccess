@@ -129,6 +129,6 @@ REFRESH MATERIALIZED VIEW tempus_gtfs.sections_by_mode;
 REFRESH MATERIALIZED VIEW tempus_gtfs.trips_by_mode;
 REFRESH MATERIALIZED VIEW tempus_gtfs.shapes;
 
-DROP SCHEMA _tempus_import CASCADE;
+DROP SCHEMA %(temp_schema) CASCADE;
 
 --vacuum full analyse; 

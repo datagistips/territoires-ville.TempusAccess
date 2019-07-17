@@ -22,32 +22,31 @@
 #
 # Tempus data loader
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load TomTom road data (Multinet)
-class ImportRoadMultinet(DataImporter):
+class ImportRoadMultinet(DataDirManager):
     """This class enables to load TomTom Multinet data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('nw', True), 
-                     ('jc', True), 
-                     ('mn', True), 
-                     ('cf', True), 
-                     ('2r', True), 
-                     ('rn', True), 
-                     ('mp', True), 
-                     ('is', True), 
-                     ('ig', True), 
-                     ('rs', True), 
-                     ('td', True), 
-                     ('sr', True), 
-                     ('st', True)
-                    ]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [
+                          ('nw', True), 
+                          ('jc', True), 
+                          ('mn', True), 
+                          ('cf', True), 
+                          ('2r', True), 
+                          ('rn', True), 
+                          ('mp', True), 
+                          ('is', True), 
+                          ('ig', True), 
+                          ('rs', True), 
+                          ('td', True), 
+                          ('sr', True), 
+                          ('st', True)
+                         ]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles
-    POSTLOADSQL = ['import_road_multinet.sql','import_road_post_load.sql']
-
+    POST_SQL = ['import_road_multinet.sql','import_road_post_load.sql']
     SPEEDPROFILES = []
 
     def __init__(self, source = "", prefix = "", dbstring = "", logfile = None,

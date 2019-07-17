@@ -21,20 +21,22 @@
 """
 
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
-class ImportRoadTempus(DataImporter):
+class ImportRoadTempus(DataDirManager):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [ ('road_nodes', True), 
-                   ('road_sections', True), 
-                   ('time_periods', False), 
-                   ('time_penalties', False), 
-                   ('tolls', False) 
-                 ]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [ 
+                           ('road_nodes', True), 
+                           ('road_sections', True), 
+                           ('time_periods', False), 
+                           ('time_penalties', False), 
+                           ('tolls', False) 
+                         ]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_tempus.sql','import_road_post_load.sql']
-
+    POST_SQL = ['import_road_tempus.sql','import_road_post_load.sql']
+    
+    
+    

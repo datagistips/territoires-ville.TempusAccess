@@ -10,27 +10,27 @@ begin
 raise notice '==== road_node table ===';
 end$$;
 
-DROP TABLE IF EXISTS _tempus_import.road_node_idmap;
-CREATE TABLE _tempus_import.road_node_idmap
+DROP TABLE IF EXISTS %(temp_schema).road_node_idmap;
+CREATE TABLE %(temp_schema).road_node_idmap
 (
         id bigserial primary key,
         vendor_id varchar
 );
-SELECT setval('_tempus_import.road_node_idmap_id_seq', (SELECT CASE WHEN max(id) IS NULL THEN 1 ELSE max(id)+1 END FROM tempus.road_node), False);
+SELECT setval('%(temp_schema).road_node_idmap_id_seq', (SELECT CASE WHEN max(id) IS NULL THEN 1 ELSE max(id)+1 END FROM tempus.road_node), False);
 
-INSERT INTO _tempus_import.road_node_idmap (vendor_id)
-       SELECT id::bigint::character varying FROM _tempus_import.jc
+INSERT INTO %(temp_schema).road_node_idmap (vendor_id)
+       SELECT id::bigint::character varying FROM %(temp_schema).jc
        ORDER BY id::bigint; 
-CREATE INDEX road_node_idmap_vendor_id_idx ON _tempus_import.road_node_idmap(vendor_id);
+CREATE INDEX road_node_idmap_vendor_id_idx ON %(temp_schema).road_node_idmap(vendor_id);
 
 INSERT INTO tempus.road_node(id, bifurcation, geom, network_id, vendor_id)
 SELECT DISTINCT
-	(select id from _tempus_import.road_node_idmap WHERE vendor_id = jc.id::bigint::character varying),
+	(select id from %(temp_schema).road_node_idmap WHERE vendor_id = jc.id::bigint::character varying),
     jc.jncttyp = 2 AS bifurcation,
 	ST_Force3DZ(st_transform(geom, 4326)) AS geom, 
 	(select max(id) from tempus.road_network where name = '%(source_name)'),
     jc.id
-FROM _tempus_import.jc AS jc
+FROM %(temp_schema).jc AS jc
 WHERE jc.feattyp = 4120; -- 4120 means road node, 4220 means rail node
 
 do $$
@@ -39,31 +39,31 @@ raise notice '==== road_section table ===';
 end$$;
 
 
-drop table if exists _tempus_import.road_section_idmap;
-create table _tempus_import.road_section_idmap
+drop table if exists %(temp_schema).road_section_idmap;
+create table %(temp_schema).road_section_idmap
 (
         id bigserial primary key,
         vendor_id character varying
 );
-SELECT setval('_tempus_import.road_section_idmap_id_seq', (SELECT CASE WHEN max(id) is null THEN 1 ELSE max(id)+1 END FROM tempus.road_section), False);
+SELECT setval('%(temp_schema).road_section_idmap_id_seq', (SELECT CASE WHEN max(id) is null THEN 1 ELSE max(id)+1 END FROM tempus.road_section), False);
 
 -- create index to speed up next query
-ANALYSE _tempus_import.sr;
-ANALYSE _tempus_import.nw; 
-CREATE INDEX idx_tempus_import_sr_id ON _tempus_import.sr (id);
-CREATE INDEX idx_tempus_import_nw_id ON _tempus_import.nw (id);
+ANALYSE %(temp_schema).sr;
+ANALYSE %(temp_schema).nw; 
+CREATE INDEX idx%(temp_schema)_sr_id ON %(temp_schema).sr (id);
+CREATE INDEX idx%(temp_schema)_nw_id ON %(temp_schema).nw (id);
 
-INSERT INTO _tempus_import.road_section_idmap(vendor_id)
-    SELECT id::bigint::character varying FROM _tempus_import.nw
+INSERT INTO %(temp_schema).road_section_idmap(vendor_id)
+    SELECT id::bigint::character varying FROM %(temp_schema).nw
     ORDER BY id::bigint;
-CREATE INDEX road_section_idmap_vendor_id_idx on _tempus_import.road_section_idmap(vendor_id); 
+CREATE INDEX road_section_idmap_vendor_id_idx on %(temp_schema).road_section_idmap(vendor_id); 
 
 INSERT INTO tempus.road_section(id, vendor_id, network_id, road_type, node_from, node_to, traffic_rules_ft, traffic_rules_tf, length, car_speed_limit, road_name, lane, tollway, geom)
 SELECT *
 FROM
 	(
 	SELECT
-	    (select id from _tempus_import.road_section_idmap where vendor_id=nw.id::bigint::character varying) as id, 
+	    (select id from %(temp_schema).road_section_idmap where vendor_id=nw.id::bigint::character varying) as id, 
         nw.id::bigint::character varying as vendor_id, 
         (select max(id) from tempus.road_network where name = '%(source_name)') as network_id, 
         CASE frc
@@ -78,8 +78,8 @@ FROM
                 WHEN 8 THEN 7
 		ELSE NULL
 		END AS road_type,
-		(select id from _tempus_import.road_node_idmap where vendor_id = f_jnctid::bigint::character varying) AS node_from, 
-        (select id from _tempus_import.road_node_idmap where vendor_id = t_jnctid::bigint::character varying) AS node_to, 
+		(select id from %(temp_schema).road_node_idmap where vendor_id = f_jnctid::bigint::character varying) AS node_from, 
+        (select id from %(temp_schema).road_node_idmap where vendor_id = t_jnctid::bigint::character varying) AS node_to, 
 		CASE
 			WHEN oneway IS NULL AND frc <= 2 THEN 4 + 32 + 64
 			WHEN oneway IS NULL THEN 1 + 2 + 4 + 32 + 64 -- [and frc > 2]
@@ -110,11 +110,11 @@ FROM
 			ELSE false
 		END AS tollway,
         ST_Transform(ST_Force3DZ(ST_LineMerge(nw.geom)), 4326) AS geom
-	FROM _tempus_import.nw AS nw
+	FROM %(temp_schema).nw AS nw
 	LEFT JOIN (
 				SELECT sr.id, min(speed) as car_speed_limit
 				FROM
-				_tempus_import.sr
+				%(temp_schema).sr
 				group by sr.id
 			  ) as speed on nw.id=speed.id
 	WHERE nw.feattyp = 4110 or nw.feattyp = 4130
@@ -133,7 +133,7 @@ SET traffic_rules_ft = traffic_rules_ft -
 FROM
     (
         SELECT id::bigint::character varying, array_agg(vt::integer ORDER BY vt)
-        FROM _tempus_import.rs
+        FROM %(temp_schema).rs
         WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 2 OR restrval = 4)
         GROUP BY id 
     ) q
@@ -150,20 +150,20 @@ SET traffic_rules_tf = traffic_rules_tf -
 FROM
     (
         SELECT id::bigint::character varying, array_agg(vt::integer ORDER BY vt)
-        FROM _tempus_import.rs
+        FROM %(temp_schema).rs
         WHERE feattyp = 4110 AND restrtyp = 'DF' AND (restrval = 3 OR restrval = 4)
         GROUP BY id 
     ) q
 WHERE q.id = road_section.vendor_id ;
 
-CREATE TABLE _tempus_import.speed_profiles
+CREATE TABLE %(temp_schema).speed_profiles
 (
 	id serial, 
 	car_speed_limit integer
 );
-SELECT setval('_tempus_import.speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
+SELECT setval('%(temp_schema).speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
 
-INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
+INSERT INTO %(temp_schema).speed_profiles(car_speed_limit)
 (
         SELECT DISTINCT car_speed_limit
         FROM tempus.road_section
@@ -174,7 +174,7 @@ INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
 -- Speed profile for cars (speed_rule = 5), one for each car speed limit value
 INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
 SELECT id,0,5,1440,car_speed_limit
-FROM _tempus_import.speed_profiles;
+FROM %(temp_schema).speed_profiles;
 
 -- When no speed limit is defined, a default value of 30 km/h is attributed
 INSERT INTO tempus.road_section_speed(road_section_id, period_id, profile_id)
@@ -188,26 +188,26 @@ begin
 raise notice '==== road_restriction and road_restriction_time_penalty tables ===';
 end$$;
 
-drop table if exists _tempus_import.road_restriction_idmap;
-create table _tempus_import.road_restriction_idmap
+drop table if exists %(temp_schema).road_restriction_idmap;
+create table %(temp_schema).road_restriction_idmap
 (
         id bigserial primary key,
         vendor_id character varying
 );
-select setval('_tempus_import.road_restriction_idmap_id_seq', (select case when max(id) is null then 1 else max(id)+1 end from tempus.road_restriction), false);
+select setval('%(temp_schema).road_restriction_idmap_id_seq', (select case when max(id) is null then 1 else max(id)+1 end from tempus.road_restriction), false);
 
-INSERT INTO _tempus_import.road_restriction_idmap (vendor_id)
+INSERT INTO %(temp_schema).road_restriction_idmap (vendor_id)
        SELECT DISTINCT ON (id) id::bigint::character varying 
-	   FROM _tempus_import.mp
+	   FROM %(temp_schema).mp
        ORDER BY id;
-CREATE INDEX road_restriction_idmap_vendor_id_idx on _tempus_import.road_restriction_idmap(vendor_id);
+CREATE INDEX road_restriction_idmap_vendor_id_idx on %(temp_schema).road_restriction_idmap(vendor_id);
 
 INSERT INTO tempus.road_restriction(id, network_id, vendor_id, sections)
-SELECT (select id from _tempus_import.road_restriction_idmap where vendor_id=mp.id::bigint::character varying) as id, 
+SELECT (select id from %(temp_schema).road_restriction_idmap where vendor_id=mp.id::bigint::character varying) as id, 
        (select max(id) from tempus.road_network where name = '%(source_name)'),
        mp.id::bigint::character varying, 
        array_agg(trpelid::bigint order by seqnr)
-FROM _tempus_import.mp LEFT JOIN _tempus_import.mn ON mp.id = mn.id
+FROM %(temp_schema).mp LEFT JOIN %(temp_schema).mn ON mp.id = mn.id
 WHERE mn.feattyp IN (2101,2103) AND mp.trpeltyp = 4110 AND mn.promantyp = 0 
 GROUP BY mp.id;
     
@@ -227,7 +227,7 @@ SELECT
 FROM
     (
         SELECT id::bigint::character varying, array_agg(vt::integer order by vt)
-        FROM _tempus_import.rs
+        FROM %(temp_schema).rs
         WHERE rs.feattyp in (2101, 2103) AND vt in (0, 11, 16, 24)
         GROUP BY id
     ) q JOIN tempus.road_restriction ON q.id = road_restriction.vendor_id;

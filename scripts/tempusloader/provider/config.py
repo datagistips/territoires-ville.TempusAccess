@@ -22,9 +22,6 @@
 # Configuration file for Tempus loader
 # Replace following values with specific paths for your system
 
-# import schema
-IMPORTSCHEMA = "_tempus_import"
-
 # Path where binaries are located (used below)
 BINPATH=""
 
@@ -33,4 +30,7 @@ import sys
 PSQL="psql" + (".exe" if sys.platform.startswith('win') else "")
 SHP2PGSQL="shp2pgsql" + (".exe" if sys.platform.startswith('win') else "")
 PGSQL2SHP="pgsql2shp" + (".exe" if sys.platform.startswith('win') else "")
+
+# import schema
+TEMPSCHEMA = "_temp"
 

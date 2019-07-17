@@ -24,9 +24,9 @@
 import os
 import sys
 
-from exporter import DataExporter
+from data_zip_manager import DataZipManager
 
-class ExportPTGTFS(DataExporter):
-    TXTFILES=['agency', 'calendar', 'calendar_dates', 'routes', 'trips', 'stops', 'stop_times', 'transfers', 'shapes']
-    PREEXPORT_SQL=['export_pt_gtfs.sql']
+class ExportPTGTFS(DataZipManager):
+    EXPORT_CSVTXTFILES=[ 'agency', 'calendar', 'calendar_dates', 'routes', 'trips', 'stops', 'stop_times', 'transfers', 'shapes' ]
+    PRE_SQL=[ 'export_pt_gtfs.sql' ]
     

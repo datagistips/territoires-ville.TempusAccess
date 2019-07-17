@@ -18,10 +18,10 @@
  */
 """
 
-from manager import DataManager
-    
-class DeleteRoad(DataManager):
+from data_dir_manager import DataDirManager
+
+class DeleteRoad(DataDirManager):
     """This class enables to delete road data from Tempus PostGIS database"""
     # SQL files to execute to delete data
-    SQL = ['delete_road.sql']
+    PRE_SQL = ['delete_road.sql']
     

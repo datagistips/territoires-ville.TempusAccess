@@ -18,10 +18,9 @@
  */
 """
 
-from manager import DataManager
+from data_dir_manager import DataDirManager
 
-class DeletePOI(DataManager):
+class DeletePOI(DataDirManager):
     """This class enables to delete POI data from Tempus PostGIS database"""
     # SQL files to execute to delete data
-    SQL = ['delete_poi.sql']
-    
+    PRE_SQL = ['delete_poi.sql']

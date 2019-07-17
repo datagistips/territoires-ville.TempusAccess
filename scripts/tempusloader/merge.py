@@ -21,7 +21,7 @@ def merge_pt_networks(args):
         sys.stderr.write(("Need 7 comma-separated strings "
                           "(command --pt-merge-options) for representing if stops, agencies, services, routes, trips, fares and shapes (in this order) are merged when having the same name.\n"))
         sys.exit(1)
-    ptm = provider.MergePT(dbstring = args.dbstring, logfile = args.logfile, subs = subs, pt_merge_options = splitted_options)
+    ptm = provider.MergePT(path= args.path, dbstring = args.dbstring, logfile = args.logfile, subs = subs, pt_merge_options = splitted_options)
     return ptm.run()
 
 

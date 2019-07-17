@@ -24,12 +24,9 @@
 import os
 import sys
 
-from exporter import DataExporter
+from data_dir_manager import DataDirManager
     
-class ExportPOITempus(DataExporter):
-    SHAPEFILES=['poi']
-    PREEXPORT_SQL=['export_poi_tempus.sql']
-    ZIPFILE='export_poi_tempus.zip'
-
-
+class ExportPOITempus(DataDirManager):
+    PRE_SQL=['export_poi_tempus.sql']
+    EXPORT_DBFSHPFILES=['poi']
     

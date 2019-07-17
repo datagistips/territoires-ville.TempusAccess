@@ -22,18 +22,17 @@
 #
 # Tempus data loader
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load Tempus specific zoning data
-class ImportZoningTempus(DataImporter):
+class ImportZoningTempus(DataDirManager):
     """This class enables to load IGN Route500 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('zoning', True)]
-    CSVFILES = []
+    IMPORT_DBFSHAPEFILES = [('zoning', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_zoning_pre_load.sql']
+    PRE_SQL = ['import_zoning_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_zoning_tempus.sql','import_zoning_post_load.sql']
+    POST_SQL = ['import_zoning_tempus.sql','import_zoning_post_load.sql']
     
     
     

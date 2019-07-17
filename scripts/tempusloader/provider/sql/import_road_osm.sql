@@ -39,14 +39,14 @@ begin
 raise notice '==== road_section_speed tables ===';
 end$$; 
 
-CREATE TABLE _tempus_import.speed_profiles
+CREATE TABLE %(temp_schema).speed_profiles
 (
 	id serial, 
 	car_speed_limit integer
 );
-SELECT setval('_tempus_import.speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
+SELECT setval('%(temp_schema).speed_profiles_id_seq', (SELECT CASE WHEN max(profile_id) IS NULL THEN 1 ELSE max(profile_id)+1 END FROM tempus.road_daily_profile), False); 
 
-INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
+INSERT INTO %(temp_schema).speed_profiles(car_speed_limit)
 (
         SELECT DISTINCT car_speed_limit
         FROM tempus.road_section
@@ -57,7 +57,7 @@ INSERT INTO _tempus_import.speed_profiles(car_speed_limit)
 -- Speed profile for cars (speed_rule = 5), one for each car speed limit value
 INSERT INTO tempus.road_daily_profile(profile_id, begin_time, speed_rule, end_time, average_speed)
 SELECT id,0,5,1440,car_speed_limit
-FROM _tempus_import.speed_profiles;
+FROM %(temp_schema).speed_profiles;
 
 -- When no speed limit is defined, a default value of 30 km/h is attributed
 INSERT INTO tempus.road_section_speed(road_section_id, period_id, profile_id)

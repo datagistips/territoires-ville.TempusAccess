@@ -19,49 +19,50 @@
  */
 """
 
-from importer import ZipImporter
+from data_zip_manager import DataZipManager
 
 # Fast GTFS Importer
-class ImportPTGTFS(ZipImporter):
+class ImportPTGTFS(DataZipManager):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
+    PRE_SQL = ["import_pt_preload.sql", "import_pt_gtfs_preload.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
-                ('calendar', True),
-                ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('feed_info', False), 
-                ('frequencies', False),
-                ('transfers', False),
-                ('routes', True),
-                ('shapes', False),
-                ('stop_times', True),
-                ('stops', True),
-                ('trips', True)]
-    # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = [ "import_pt_gtfs.sql", "import_pt_post_load.sql" ]
+    IMPORT_CSVTXTFILES = [
+                          ('agency', False),
+                          ('calendar', True),
+                          ('calendar_dates', True),
+                          ('fare_attributes', False),
+                          ('fare_rules', False),
+                          ('feed_info', False), 
+                          ('frequencies', False),
+                          ('transfers', False),
+                          ('routes', True),
+                          ('shapes', False),
+                          ('stop_times', True),
+                          ('stops', True),
+                          ('trips', True)
+                         ]
+    POST_SQL = [ "import_pt_gtfs.sql", "import_pt_postload.sql" ]
 
 
-class ImportPTGTFSTemp(ZipImporter):
+class ImportPTGTFSTemp(DataZipManager):
     """Public transportation GTFS temporary data loader class. No cleaning after loading. """
-    PRELOADSQL = ["import_pt_gtfs_pre_load.sql" ]
+    PRE_SQL = ["import_pt_preload.sql", "import_pt_gtfs_preload.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('agency', False),
-                ('calendar', True),
-                ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('feed_info', False), 
-                ('frequencies', False),
-                ('transfers', False),
-                ('routes', True),
-                ('shapes', False),
-                ('stop_times', True),
-                ('stops', True),
-                ('trips', True)]
-    POSTLOADSQL = [ "import_pt_gtfs.sql" ]
+    IMPORT_CSVTXTFILES = [
+                          ('agency', False),
+                          ('calendar', True),
+                          ('calendar_dates', True),
+                          ('fare_attributes', False),
+                          ('fare_rules', False),
+                          ('feed_info', False),
+                          ('frequencies', False),
+                          ('transfers', False),
+                          ('routes', True),
+                          ('shapes', False),
+                          ('stop_times', True),
+                          ('stops', True),
+                          ('trips', True)
+                         ]
+    POST_SQL = [ "import_pt_gtfs.sql" ]
 

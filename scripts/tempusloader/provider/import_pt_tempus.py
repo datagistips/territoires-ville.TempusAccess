@@ -18,24 +18,31 @@
  *   License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 """
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # GTFS Importer
-class ImportPTTempus(DataImporter):
+class ImportPTTempus(DataDirManager):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = ["import_pt_tempus_pre_load.sql" ]
+    PRE_SQL = ["import_pt_tempus_pre_load.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
-    CSVFILES = [('agency', True),
-                ('calendar_dates', True),
-                ('fare_attributes', False),
-                ('fare_rules', False),
-                ('frequencies', False),
-                ('transfers', False),
-                ('routes', True),
-                ('stop_times', True),
-                ('trips', True)]
-    DBFSHAPEFILES = [('stops', True), ('sections', True), ('shapes', False)]
+    IMPORT_CSVTXTFILES = [
+                            ('agency', True),
+                            ('calendar_dates', True),
+                            ('fare_attributes', False),
+                            ('fare_rules', False),
+                            ('frequencies', False),
+                            ('transfers', False),
+                            ('routes', True),
+                            ('stop_times', True),
+                            ('trips', True)
+                         ]
+    IMPORT_DBFSHPFILES = [
+                            ('stops', True), 
+                            ('sections', True), 
+                            ('shapes', False)
+                         ]
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = [ "import_pt_tempus.sql", "import_pt_post_load.sql" ]
+    POST_SQL = [ "import_pt_tempus.sql", "import_pt_post_load.sql" ]
+
 

@@ -24,10 +24,11 @@
 import os
 import sys
 
-from exporter import DataExporter
+from data_dir_manager import DataDirManager
 
-class ExportPTTempus(DataExporter):
-    SHAPEFILES=['stops', 'sections']
-    PREEXPORT_SQL=['export_pt_tempus.sql']
-    ZIPFILE='export_pt_tempus.zip'
-   
+class ExportPTTempus(DataDirManager):
+    EXPORT_DBFSHPFILES=['stops', 'sections']
+    EXPORT_CSVTXTFILES=[]
+    PRE_SQL=['export_pt_tempus.sql']
+    
+    

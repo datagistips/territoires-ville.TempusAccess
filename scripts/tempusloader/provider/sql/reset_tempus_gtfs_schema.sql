@@ -468,16 +468,16 @@ $$
 DECLARE
 s character varying; 
 BEGIN
-    s='DROP TABLE IF EXISTS _tempus_import.' || $2 || 'map;
-    CREATE TABLE _tempus_import.' || $2 || 'map
+    s='DROP TABLE IF EXISTS %(temp_schema).' || $2 || 'map;
+    CREATE TABLE %(temp_schema).' || $2 || 'map
     (
         id serial primary key,
         ' || $2 || ' varchar
     );
-    SELECT setval(''_tempus_import.' || $2 || 'map_id_seq'', (SELECT coalesce(max(id)+1, 1) FROM tempus_gtfs.' || $1 || '), false);
-    INSERT INTO _tempus_import.' || $2 || 'map( ' || $2 || ' )
-        SELECT DISTINCT ' || $2 || ' FROM _tempus_import.' || $1 || ';
-    CREATE INDEX ' || $2 || 'map_vendor_idx ON _tempus_import.' || $2 || 'map(' || $2 || ');'; 
+    SELECT setval(''%(temp_schema).' || $2 || 'map_id_seq'', (SELECT coalesce(max(id)+1, 1) FROM tempus_gtfs.' || $1 || '), false);
+    INSERT INTO %(temp_schema).' || $2 || 'map( ' || $2 || ' )
+        SELECT DISTINCT ' || $2 || ' FROM %(temp_schema).' || $1 || ';
+    CREATE INDEX ' || $2 || 'map_vendor_idx ON %(temp_schema).' || $2 || 'map(' || $2 || ');'; 
     EXECUTE(s);
 END;
 $$ 

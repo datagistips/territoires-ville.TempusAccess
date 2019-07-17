@@ -20,47 +20,44 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load IGN road data (Route120, Route500, ...)
-class ImportRoadIGNRoute120_1_1(DataImporter):
+class ImportRoadIGNRoute120_1_1(DataDirManager):
     """This class enables to load IGN Route120 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('troncon_route', True),('communication_restreinte', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_ign_route120_1_1.sql','import_road_post_load.sql']
+    POST_SQL = ['import_road_ign_route120_1_1.sql','import_road_post_load.sql']
 
-class ImportRoadIGNRoute500_2_1(DataImporter):
+class ImportRoadIGNRoute500_2_1(DataDirManager):
     """This class enables to load IGN Route500 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('troncon_route', True),('communication_restreinte', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_ign_route500_2_1.sql','import_road_post_load.sql']
+    POST_SQL = ['import_road_ign_route500_2_1.sql','import_road_post_load.sql']
 
-class ImportRoadIGNBDTopo_2_2(DataImporter):
+class ImportRoadIGNBDTopo_2_2(DataDirManager):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('route', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('route', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_ign_bdtopo_2_2.sql','import_road_post_load.sql']
+    POST_SQL = ['import_road_ign_bdtopo_2_2.sql','import_road_post_load.sql']
 
-class ImportRoadIGNBDCarto_3_2(DataImporter):
+class ImportRoadIGNBDCarto_3_2(DataDirManager):
     """This class enables to load IGN data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('troncon_route', True),('communication_restreinte', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('troncon_route', True),('communication_restreinte', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = [ 'import_road_pre_load.sql']
+    PRE_SQL = [ 'import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_ign_bdcarto_3_2.sql','import_road_post_load.sql']
-
+    POST_SQL = ['import_road_ign_bdcarto_3_2.sql','import_road_post_load.sql']
+    
+    
     

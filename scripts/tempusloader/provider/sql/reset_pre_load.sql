@@ -1,8 +1,8 @@
 
-DROP SCHEMA IF EXISTS _tempus_import CASCADE;
-CREATE SCHEMA _tempus_import; 
+DROP SCHEMA IF EXISTS %(temp_schema) CASCADE;
+CREATE SCHEMA %(temp_schema); 
 
-CREATE TABLE _tempus_import.formats
+CREATE TABLE %(temp_schema).formats
 (
     data_type character varying,
     data_format character varying, 
@@ -12,19 +12,19 @@ CREATE TABLE _tempus_import.formats
     default_srid integer, 
     path_type character varying
 ); 
-COMMENT ON TABLE _tempus_import.formats IS 'Plugin system table: do not modify!';
+COMMENT ON TABLE %(temp_schema).formats IS 'Plugin system table: do not modify!';
 
 
-CREATE TABLE _tempus_import.agregates
+CREATE TABLE %(temp_schema).agregates
 (
     code integer,
     lib character varying,
     func_name character varying
 ); 
-COMMENT ON TABLE _tempus_import.agregates IS 'Plugin system table: do not modify !';
+COMMENT ON TABLE %(temp_schema).agregates IS 'Plugin system table: do not modify !';
 
 
-CREATE TABLE _tempus_import.modalities
+CREATE TABLE %(temp_schema).modalities
 (
     var character varying, 
     mod_code integer, 
@@ -33,9 +33,9 @@ CREATE TABLE _tempus_import.modalities
     needs_pt boolean, 
     CONSTRAINT modalities_pkey PRIMARY KEY (var, mod_code)
 ); 
-COMMENT ON TABLE _tempus_import.modalities IS 'Plugin system table: do not modify !';
+COMMENT ON TABLE %(temp_schema).modalities IS 'Plugin system table: do not modify !';
 
-CREATE TABLE _tempus_import.obj_type
+CREATE TABLE %(temp_schema).obj_type
 (
   code integer NOT NULL,
   lib character varying,
@@ -44,17 +44,17 @@ CREATE TABLE _tempus_import.obj_type
   needs_pt boolean, 
   CONSTRAINT obj_type_pkey PRIMARY KEY (code)
 ); 
-COMMENT ON TABLE _tempus_import.obj_type
+COMMENT ON TABLE %(temp_schema).obj_type
   IS 'Plugin system table: do not modify !';
 
-COMMENT ON COLUMN _tempus_import.obj_type.code IS 'Integer code';
-COMMENT ON COLUMN _tempus_import.obj_type.lib IS 'Object name';
-COMMENT ON COLUMN _tempus_import.obj_type.indic_list IS 'List of available indics';
-COMMENT ON COLUMN _tempus_import.obj_type.def_name IS 'Default name of the layer';
+COMMENT ON COLUMN %(temp_schema).obj_type.code IS 'Integer code';
+COMMENT ON COLUMN %(temp_schema).obj_type.lib IS 'Object name';
+COMMENT ON COLUMN %(temp_schema).obj_type.indic_list IS 'List of available indics';
+COMMENT ON COLUMN %(temp_schema).obj_type.def_name IS 'Default name of the layer';
 
 
 
-CREATE TABLE _tempus_import.indicators
+CREATE TABLE %(temp_schema).indicators
 (
     code integer PRIMARY KEY,
     lib character varying,
@@ -82,10 +82,10 @@ CREATE TABLE _tempus_import.indicators
     needs_zoning boolean,
     needs_pt boolean
 );
-COMMENT ON TABLE _tempus_import.indicators
+COMMENT ON TABLE %(temp_schema).indicators
   IS 'Plugin system table: do not modify !';
 
-CREATE TABLE _tempus_import.holidays
+CREATE TABLE %(temp_schema).holidays
 (
   id serial NOT NULL,
   name character varying,

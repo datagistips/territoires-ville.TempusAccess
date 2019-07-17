@@ -32,13 +32,13 @@ INSERT INTO tempus.transport_mode (id, name,public_transport,traffic_rules,speed
    WHERE %(poi_type) in (2,4);
 
 
-DROP SEQUENCE IF EXISTS _tempus_import.poi_id;
-CREATE SEQUENCE _tempus_import.poi_id start with 1;
-SELECT setval('_tempus_import.poi_id', (SELECT CASE WHEN max(id) is null THEN 1 ELSE max(id)+1 END FROM tempus.poi), False);
+DROP SEQUENCE IF EXISTS %(temp_schema).poi_id;
+CREATE SEQUENCE %(temp_schema).poi_id start with 1;
+SELECT setval('%(temp_schema).poi_id', (SELECT CASE WHEN max(id) is null THEN 1 ELSE max(id)+1 END FROM tempus.poi), False);
 
 INSERT INTO tempus.poi (id, source_id, poi_type, name, parking_transport_modes, geom)
 SELECT
-    nextval('_tempus_import.poi_id')::bigint as id
+    nextval('%(temp_schema).poi_id')::bigint as id
     , (SELECT max(id) FROM tempus.poi_source WHERE name = '%(source_name)') as id
     , %(poi_type)::integer as poi_type
     , %(name_field) as name
@@ -56,7 +56,7 @@ SELECT
            null
     END)]
     , st_Force3DZ(st_transform(geom, 4326))
-FROM _tempus_import.poi
+FROM %(temp_schema).poi
 WHERE %(filter); 
    
 --

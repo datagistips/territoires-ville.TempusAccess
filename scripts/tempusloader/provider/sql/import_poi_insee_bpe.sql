@@ -23,7 +23,7 @@ INSERT INTO tempus.poi(
             'BPE INSEE - ' || varmod.modlibelle, 
             ARRAY[3], -- Only cars allowed to park (mode ID = 3)
             st_force3d(st_transform(st_setsrid(st_makepoint(bpe.lambert_x, bpe.lambert_y), 2154), 4326)) as geom
-    FROM _tempus_import.bpe_ensemble_xy bpe JOIN _tempus_import.varmod_ensemble_xy varmod ON (varmod.modalite = bpe.typequ)
+    FROM %(temp_schema).bpe_ensemble_xy bpe JOIN %(temp_schema).varmod_ensemble_xy varmod ON (varmod.modalite = bpe.typequ)
     WHERE varmod.variable = 'TYPEQU' AND bpe.lambert_x is not null AND bpe.lambert_y is not null AND %(filter); 
 
 

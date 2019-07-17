@@ -18,10 +18,11 @@
  */
 """
 
-from manager import DataManager
-    
-class DeleteZoning(DataManager):
+from data_dir_manager import DataDirManager
+
+class DeleteZoning(DataDirManager):
     """This class enables to delete zoning data from Tempus PostGIS database"""
     # SQL files to execute to delete data
-    SQL = ['delete_zoning.sql']
-    
+    PRE_SQL = ['delete_zoning.sql']
+
+

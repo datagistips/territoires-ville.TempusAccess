@@ -29,8 +29,8 @@ $$;
 -- Temporary table containing joined stop times, trips, routes and agencies data. 
 -- When stop times exist in both sources (normally only for TER buses), stop times are attributed to TER agency. 
 -- When a route exists in both sources, but with different trip ids and stop times, the route is duplicated. 
-DROP TABLE IF EXISTS _tempus_import.stop_times; 
-CREATE TABLE _tempus_import.stop_times AS
+DROP TABLE IF EXISTS %(temp_schema).stop_times; 
+CREATE TABLE %(temp_schema).stop_times AS
 (
     SELECT max(stop_times.feed_id) as feed_id, 
            stop_times.trip_id, 
@@ -69,10 +69,10 @@ CREATE TABLE _tempus_import.stop_times AS
            route_type
 ); 
 
-CREATE INDEX feed_id_idx ON _tempus_import.stop_times (feed_id); 
-CREATE INDEX route_id_idx ON _tempus_import.stop_times (route_id); 
-CREATE INDEX trip_id_idx ON _tempus_import.stop_times (trip_id); 
-CREATE INDEX stop_id_idx ON _tempus_import.stop_times (stop_id); 
+CREATE INDEX feed_id_idx ON %(temp_schema).stop_times (feed_id); 
+CREATE INDEX route_id_idx ON %(temp_schema).stop_times (route_id); 
+CREATE INDEX trip_id_idx ON %(temp_schema).stop_times (trip_id); 
+CREATE INDEX stop_id_idx ON %(temp_schema).stop_times (stop_id); 
 
 
 
@@ -96,7 +96,7 @@ INSERT INTO tempus_gtfs.agency(feed_id, agency_id, agency_name, agency_url, agen
 			agency_url, 
 			agency_timezone, 
 			agency_lang
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.agency ON (stop_times.feed_id = agency.feed_id AND stop_times.agency_id = agency.agency_id)
+    FROM %(temp_schema).stop_times JOIN tempus_gtfs.agency ON (stop_times.feed_id = agency.feed_id AND stop_times.agency_id = agency.agency_id)
 ); 
 
 do $$
@@ -123,7 +123,7 @@ INSERT INTO tempus_gtfs.routes (feed_id, route_id, agency_id, route_short_name, 
 			route_url, 
 			route_text_color, 
 			(SELECT id FROM tempus_gtfs.agency WHERE feed_id = '%(source_name)' AND agency.agency_id = routes.agency_id || ' - ' || routes.feed_id) as agency_id_int
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.routes ON (stop_times.feed_id = routes.feed_id AND stop_times.route_id = routes.route_id AND stop_times.agency_id = routes.agency_id)
+    FROM %(temp_schema).stop_times JOIN tempus_gtfs.routes ON (stop_times.feed_id = routes.feed_id AND stop_times.route_id = routes.route_id AND stop_times.agency_id = routes.agency_id)
     ORDER BY stop_times.route_id, stop_times.feed_id
 );
 
@@ -140,7 +140,7 @@ SELECT setval('tempus_gtfs.calendar_id_seq', (SELECT case when max(id) is null t
 INSERT INTO tempus_gtfs.calendar(feed_id, service_id)
 (
     SELECT DISTINCT '%(source_name)', service_id
-    FROM _tempus_import.stop_times
+    FROM %(temp_schema).stop_times
 ); */
 
 
@@ -170,7 +170,7 @@ INSERT INTO tempus_gtfs.trips (feed_id, trip_id, route_id, service_id, shape_id,
 			trip_short_name, 
 			direction_id, 
 			block_id            
-        FROM _tempus_import.stop_times JOIN tempus_gtfs.trips ON (stop_times.feed_id = trips.feed_id AND stop_times.trip_id = trips.trip_id) 
+        FROM %(temp_schema).stop_times JOIN tempus_gtfs.trips ON (stop_times.feed_id = trips.feed_id AND stop_times.trip_id = trips.trip_id) 
         WHERE stop_times.feed_id = any(ARRAY['ter', 'ic'])
     ORDER BY stop_times.feed_id, stop_times.trip_id, trips.service_id DESC  
 );
@@ -238,7 +238,7 @@ INSERT INTO tempus_gtfs.stops (
 		          ) as geom, 
                 road_section_id, 
                 abscissa_road_section
-        FROM _tempus_import.stop_times RIGHT JOIN tempus_gtfs.stops ON substring(stop_times.new_stop_id FROM 1 FOR 8) = substring(stops.stop_id FROM length(stops.stop_id) - 7 FOR 8)
+        FROM %(temp_schema).stop_times RIGHT JOIN tempus_gtfs.stops ON substring(stop_times.new_stop_id FROM 1 FOR 8) = substring(stops.stop_id FROM length(stops.stop_id) - 7 FOR 8)
         WHERE stops.feed_id = any(ARRAY['ter', 'ic']) 
           AND (
               CASE WHEN stops.parent_station_id IS NOT NULL THEN stop_times.new_stop_id 
@@ -269,12 +269,12 @@ INSERT INTO tempus_gtfs.calendar_dates(feed_id, service_id, date, service_id_int
 (
     SELECT DISTINCT '%(source_name)', stop_times.service_id, calendar_dates.date, 
            (SELECT id FROM tempus_gtfs.calendar WHERE feed_id = '%(source_name)' AND calendar.service_id = stop_times.service_id) 
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.calendar_dates ON (calendar_dates.service_id || ' - ' || calendar_dates.feed_id = split_part(stop_times.service_id, ';', 1)) 
+    FROM %(temp_schema).stop_times JOIN tempus_gtfs.calendar_dates ON (calendar_dates.service_id || ' - ' || calendar_dates.feed_id = split_part(stop_times.service_id, ';', 1)) 
     WHERE calendar_dates.feed_id = any(ARRAY['ter', 'ic'])
     UNION DISTINCT
     SELECT DISTINCT '%(source_name)', stop_times.service_id, calendar_dates.date, 
     (SELECT id FROM tempus_gtfs.calendar WHERE feed_id = '%(source_name)' AND calendar.service_id = stop_times.service_id) 
-    FROM _tempus_import.stop_times JOIN tempus_gtfs.calendar_dates ON (calendar_dates.service_id || ' - ' || calendar_dates.feed_id = split_part(stop_times.service_id, ';', 2)) 
+    FROM %(temp_schema).stop_times JOIN tempus_gtfs.calendar_dates ON (calendar_dates.service_id || ' - ' || calendar_dates.feed_id = split_part(stop_times.service_id, ';', 2)) 
     WHERE calendar_dates.feed_id = any(ARRAY['ter', 'ic'])	
 );
 
@@ -293,7 +293,7 @@ INSERT INTO tempus_gtfs.stop_times(feed_id, trip_id, stop_sequence, stop_id, arr
     SELECT '%(source_name)', trip_id, stop_sequence, new_stop_id, arrival_time, departure_time, interpolated, shape_dist_traveled, timepoint, pickup_type, drop_off_type, stop_headsign, 
     (SELECT id FROM tempus_gtfs.trips WHERE feed_id = '%(source_name)' AND trips.trip_id = stop_times.trip_id), 
     (SELECT id FROM tempus_gtfs.stops WHERE feed_id = '%(source_name)' AND stops.stop_id =  stop_times.new_stop_id)
-    FROM _tempus_import.stop_times
+    FROM %(temp_schema).stop_times
     ORDER BY trip_id, stop_sequence
 ); 
 
@@ -306,14 +306,14 @@ $$;
 UPDATE tempus_gtfs.stops
 SET geom = st_force3d(st_transform(ref_stops.geom, 4326)), 
     stop_name = ref_stops.stop_name
-FROM _tempus_import.ref_stops ref_stops
+FROM %(temp_schema).ref_stops ref_stops
 WHERE stops.feed_id = '%(source_name)' AND ref_stops.feed_id = '%(source_name)' AND (substring(stops.stop_id FROM 1 FOR 8)=ref_stops.stop_id) ; 
 
 REFRESH MATERIALIZED VIEW tempus_gtfs.stops_by_mode; 
 
 UPDATE tempus_gtfs.stops
 SET geom = st_force3d(st_transform(noeud_ferre.geom, 4326))
-FROM _tempus_import.noeud_ferre, _tempus_import.appariement_ign_arrets_fer ign
+FROM %(temp_schema).noeud_ferre, %(temp_schema).appariement_ign_arrets_fer ign
 WHERE ign.id_rte500 = noeud_ferre.id_rte500 AND ign.stop_id = stops.parent_station_id AND stops.id IN
 (
     SELECT id FROM tempus_gtfs.stops_by_mode
@@ -470,7 +470,7 @@ INSERT INTO tempus_gtfs.sections (feed_id, stop_from, stop_to, geom)
         SELECT DISTINCT ON (st1.new_stop_id, st2.new_stop_id)
           st1.new_stop_id as stop1, 
           st2.new_stop_id as stop2
-        FROM _tempus_import.stop_times st1 JOIN _tempus_import.stop_times st2 ON ((st1.trip_id = st2.trip_id) and (st1.feed_id = st2.feed_id) and (st2.stop_sequence = st1.stop_sequence + 1))
+        FROM %(temp_schema).stop_times st1 JOIN %(temp_schema).stop_times st2 ON ((st1.trip_id = st2.trip_id) and (st1.feed_id = st2.feed_id) and (st2.stop_sequence = st1.stop_sequence + 1))
     ) t
     JOIN tempus_gtfs.stops st1 on st1.stop_id = t.stop1 AND st1.feed_id = '%(source_name)'
     JOIN tempus_gtfs.stops st2 on st2.stop_id = t.stop2 AND st2.feed_id = '%(source_name)'
@@ -500,7 +500,7 @@ end
 $$;
 
 -- Delete temporary %(source_name) data
-DROP TABLE _tempus_import.stop_times;
+DROP TABLE %(temp_schema).stop_times;
 
 -- Delete temporary TER and IC data
 DELETE FROM tempus_gtfs.feed_info
@@ -522,33 +522,33 @@ raise notice '==== Correct train lines shapes ===';
 end
 $$;
 
-DROP TABLE IF EXISTS _tempus_import.troncon_voie_ferree_simplif;
-CREATE table _tempus_import.troncon_voie_ferree_simplif AS
+DROP TABLE IF EXISTS %(temp_schema).troncon_voie_ferree_simplif;
+CREATE table %(temp_schema).troncon_voie_ferree_simplif AS
 (
     SELECT id_rte500::integer, nature, energie, classement, st_transform(st_force2D(geom), 2154) as geom, null::integer as source, null::integer as target
-    FROM _tempus_import.troncon_voie_ferree
+    FROM %(temp_schema).troncon_voie_ferree
 );
 CREATE INDEX troncon_voie_ferree_simplif_geom_idx
-ON _tempus_import.troncon_voie_ferree_simplif
+ON %(temp_schema).troncon_voie_ferree_simplif
 USING gist(geom);
 
 
-DROP TABLE IF EXISTS _tempus_import.troncon_voie_ferree_simplif_vertices_pgr;
-SELECT pgr_createTopology('_tempus_import.troncon_voie_ferree_simplif', 10, 'geom', 'id_rte500');
+DROP TABLE IF EXISTS %(temp_schema).troncon_voie_ferree_simplif_vertices_pgr;
+SELECT pgr_createTopology('%(temp_schema).troncon_voie_ferree_simplif', 10, 'geom', 'id_rte500');
 CREATE INDEX troncon_voie_ferree_simplif_vertices_pgr_geom_idx
-ON _tempus_import.troncon_voie_ferree_simplif_vertices_pgr
+ON %(temp_schema).troncon_voie_ferree_simplif_vertices_pgr
 USING gist(the_geom);
 
 
-ALTER TABLE _tempus_import.appariement_ign_arrets_fer
+ALTER TABLE %(temp_schema).appariement_ign_arrets_fer
 ADD COLUMN IF NOT EXISTS id_pgr integer; 
 
-UPDATE _tempus_import.appariement_ign_arrets_fer
+UPDATE %(temp_schema).appariement_ign_arrets_fer
 SET id_pgr = null; 
 
-UPDATE _tempus_import.appariement_ign_arrets_fer
+UPDATE %(temp_schema).appariement_ign_arrets_fer
 SET id_pgr = noeuds_pgr.id 
-FROM _tempus_import.troncon_voie_ferree_simplif_vertices_pgr noeuds_pgr JOIN _tempus_import.noeud_ferre ON (st_distance(st_transform(noeud_ferre.geom, 2154), noeuds_pgr.the_geom)=0)
+FROM %(temp_schema).troncon_voie_ferree_simplif_vertices_pgr noeuds_pgr JOIN %(temp_schema).noeud_ferre ON (st_distance(st_transform(noeud_ferre.geom, 2154), noeuds_pgr.the_geom)=0)
 WHERE noeud_ferre.id_rte500 = appariement_ign_arrets_fer.id_rte500 ;
 
 REFRESH MATERIALIZED VIEW tempus_gtfs.sections_by_mode;
@@ -559,13 +559,13 @@ WITH q AS
 	(
         SELECT sections_by_mode.section_id, sections_by_mode.geom, t_from.id_pgr as id_pgr_from, t_to.id_pgr as id_pgr_to
         FROM tempus_gtfs.sections_by_mode JOIN tempus_gtfs.stops stop_from ON (stop_from.id = sections_by_mode.stop_from)
-                                            JOIN _tempus_import.appariement_ign_arrets_fer t_from ON (stop_from.parent_station_id = t_from.stop_id)
+                                            JOIN %(temp_schema).appariement_ign_arrets_fer t_from ON (stop_from.parent_station_id = t_from.stop_id)
                                             JOIN tempus_gtfs.stops stop_to ON (stop_to.id = sections_by_mode.stop_to)
-                                            JOIN _tempus_import.appariement_ign_arrets_fer t_to ON (stop_to.parent_station_id= t_to.stop_id) 
+                                            JOIN %(temp_schema).appariement_ign_arrets_fer t_to ON (stop_to.parent_station_id= t_to.stop_id) 
         WHERE sections_by_mode.feed_id = '%(source_name)' AND sections_by_mode.route_type = 2
 	)
 	SELECT t.section_id, st_force3d(st_geometryn(st_multi(st_linemerge(st_union(section.geom))), 1))::Geometry('LinestringZ', 2154) as geom
-	FROM t, _tempus_import.troncon_voie_ferree_simplif section, pgr_dijkstra('select id_rte500 as id, source, target, st_length(geom) as cost from _tempus_import.troncon_voie_ferree_simplif'::text, t.id_pgr_from::bigint, t.id_pgr_to::bigint, false) dijkstra
+	FROM t, %(temp_schema).troncon_voie_ferree_simplif section, pgr_dijkstra('select id_rte500 as id, source, target, st_length(geom) as cost from %(temp_schema).troncon_voie_ferree_simplif'::text, t.id_pgr_from::bigint, t.id_pgr_to::bigint, false) dijkstra
 	WHERE t.id_pgr_from <> t.id_pgr_to AND dijkstra.edge<>-1 AND section.id_rte500=dijkstra.edge
 	GROUP BY t.section_id
 )
@@ -587,8 +587,8 @@ DROP SEQUENCE IF EXISTS seq_shape_id;
 CREATE SEQUENCE seq_shape_id start WITH 1;
 SELECT setval('seq_shape_id', (SELECT max(id)+1 FROM tempus_gtfs.shapes));
 
-DROP TABLE IF EXISTS _tempus_import.tmp_shapes_desc; 
-CREATE TABLE _tempus_import.tmp_shapes_desc AS
+DROP TABLE IF EXISTS %(temp_schema).tmp_shapes_desc; 
+CREATE TABLE %(temp_schema).tmp_shapes_desc AS
 (
     SELECT nextval('seq_shape_id') as id, stops, array_agg(trip_id) as trips, route_type
     FROM 
@@ -603,13 +603,13 @@ CREATE TABLE _tempus_import.tmp_shapes_desc AS
     GROUP BY stops, route_type
 );  
 
-DROP TABLE IF EXISTS _tempus_import.tmp_shapes_geom;
-CREATE TABLE _tempus_import.tmp_shapes_geom AS 
+DROP TABLE IF EXISTS %(temp_schema).tmp_shapes_geom;
+CREATE TABLE %(temp_schema).tmp_shapes_geom AS 
 ( 
     WITH shapes_stops AS
     (
 	    SELECT id, id::character varying as shape_id, unnest(stops) as stop_id_int, generate_subscripts(stops, 1) AS stop_sequence, route_type
-	    FROM _tempus_import.tmp_shapes_desc
+	    FROM %(temp_schema).tmp_shapes_desc
 	    ORDER BY shape_id, stop_sequence
     )
     SELECT s1.id, s1.shape_id, st_force2d(st_multi(st_linemerge(st_union(array_agg(sections.geom)))))::Geometry('Multilinestring', 4326) as geom
@@ -622,15 +622,15 @@ CREATE TABLE _tempus_import.tmp_shapes_geom AS
  
 INSERT INTO tempus_gtfs.shapes(feed_id, shape_id, geom, id)
 SELECT '%(source_name)'::character varying as feed_id, shape_id, st_force3d(st_geometryn(st_linemerge(geom), 1)) as geom, id
-FROM _tempus_import.tmp_shapes_geom;
+FROM %(temp_schema).tmp_shapes_geom;
 
 UPDATE tempus_gtfs.trips
 SET shape_id = tmp_shapes_desc.id::character varying, shape_id_int = tmp_shapes_desc.id
-FROM _tempus_import.tmp_shapes_desc
+FROM %(temp_schema).tmp_shapes_desc
 WHERE trips.feed_id = '%(source_name)' AND trips.trip_id = ANY(tmp_shapes_desc.trips);
 
-DROP TABLE _tempus_import.tmp_shapes_geom; 
-DROP TABLE _tempus_import.tmp_shapes_desc; 
+DROP TABLE %(temp_schema).tmp_shapes_geom; 
+DROP TABLE %(temp_schema).tmp_shapes_desc; 
 
 
 do $$
@@ -673,21 +673,21 @@ SELECT '%(source_name)', s1.stop_id, s2.stop_id, 2 as transfer_type, st_distance
 INSERT INTO tempus_gtfs.transfers(feed_id, from_stop_id, to_stop_id, transfer_type, min_transfer_time, from_stop_id_int, to_stop_id_int)
 (
     SELECT '%(source_name)', from_stop, to_stop, 2, min_time, (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = '%(source_name)' AND stops.stop_id = from_stop::character varying), (SELECT id FROM tempus_gtfs.stops WHERE stops.feed_id = '%(source_name)' AND stops.stop_id = to_stop::character varying)
-    FROM _tempus_import.urban_pt_transfers LEFT JOIN tempus_gtfs.transfers ON (transfers.feed_id = '%(source_name)' AND transfers.from_stop_id = urban_pt_transfers.from_stop::character varying AND transfers.to_stop_id =urban_pt_transfers.to_stop::character varying)
+    FROM %(temp_schema).urban_pt_transfers LEFT JOIN tempus_gtfs.transfers ON (transfers.feed_id = '%(source_name)' AND transfers.from_stop_id = urban_pt_transfers.from_stop::character varying AND transfers.to_stop_id =urban_pt_transfers.to_stop::character varying)
     WHERE transfers.from_stop_id IS NULL
 );
 
 UPDATE tempus_gtfs.transfers
 SET min_transfer_time = urban_pt_transfers.min_time
-FROM _tempus_import.urban_pt_transfers
+FROM %(temp_schema).urban_pt_transfers
 WHERE transfers.feed_id = '%(source_name)' 
   AND urban_pt_transfers.from_stop::character varying = transfers.from_stop_id 
   AND urban_pt_transfers.to_stop::character varying = transfers.to_stop_id 
   AND urban_pt_transfers.min_time < transfers.min_transfer_time;
  
 -- Transfers are converted to road sections
-DROP TABLE IF EXISTS _tempus_import.transfers_without_doubles;
-CREATE TABLE _tempus_import.transfers_without_doubles AS
+DROP TABLE IF EXISTS %(temp_schema).transfers_without_doubles;
+CREATE TABLE %(temp_schema).transfers_without_doubles AS
 (
     WITH foo AS
     (
@@ -721,8 +721,8 @@ CREATE SEQUENCE seq_transfer_section_id start WITH 1;
 SELECT setval('seq_transfer_section_id', (SELECT max(id)+1 FROM tempus.road_section));
 
 -- mark each (distinct) stop involved in a transfer
-DROP TABLE IF EXISTS _tempus_import.road_transfers;
-CREATE TABLE _tempus_import.road_transfers AS
+DROP TABLE IF EXISTS %(temp_schema).road_transfers;
+CREATE TABLE %(temp_schema).road_transfers AS
 (
     WITH transfer_stops AS
 	(
@@ -774,14 +774,14 @@ INSERT INTO tempus.road_node(id, network_id, bifurcation, geom)
          , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
          , false AS bifurcation
          , intermed_node_geom
-    FROM _tempus_import.road_transfers
+    FROM %(temp_schema).road_transfers
     WHERE intermed_node_id IS NOT NULL
     UNION
     SELECT DISTINCT stop_node_id as id
          , (SELECT max(id) FROM tempus.road_network WHERE name = 'transfers_%(source_name)')
          , false AS bifurcation
          , stop_node_geom
-    FROM _tempus_import.road_transfers
+    FROM %(temp_schema).road_transfers
     ORDER BY id
 ); 
 
@@ -799,7 +799,7 @@ SELECT
    first_split_length, 
    (SELECT road_name FROM tempus.road_section WHERE id = road_section_id), 
    first_split_geom
-FROM _tempus_import.road_transfers
+FROM %(temp_schema).road_transfers
 WHERE first_split_id IS NOT NULL
 UNION
 SELECT
@@ -813,7 +813,7 @@ SELECT
    first_split_length, 
    (SELECT road_name FROM tempus.road_section WHERE id = road_section_id), 
    second_split_geom
-FROM _tempus_import.road_transfers
+FROM %(temp_schema).road_transfers
 WHERE first_split_id IS NOT NULL
 UNION
 SELECT
@@ -830,14 +830,14 @@ SELECT
    link_section_length, 
    'Transfer', 
    link_section_geom
-FROM _tempus_import.road_transfers
+FROM %(temp_schema).road_transfers
 WHERE link_section_id IS NOT NULL
 ORDER BY id
 );
 
 UPDATE tempus_gtfs.stops
 SET road_section_id = link_section_id, abscissa_road_section = 1
-FROM _tempus_import.road_transfers
+FROM %(temp_schema).road_transfers
 WHERE stops.id = road_transfers.id; 
 
 -- Insert the transfer sections
@@ -854,11 +854,11 @@ SELECT
   , 'Transfer'
   , st_makeline(s1.geom, s2.geom)
 FROM
-  _tempus_import.transfers_without_doubles tr
+  %(temp_schema).transfers_without_doubles tr
   JOIN tempus_gtfs.stops s1 ON (s1.feed_id = tr.feed_id AND s1.stop_id = tr.from_stop_id)
   JOIN tempus_gtfs.stops s2 ON (s2.feed_id = tr.feed_id AND s2.stop_id = tr.to_stop_id)
-  JOIN _tempus_import.road_transfers nn1 ON nn1.id = s1.id
-  JOIN _tempus_import.road_transfers nn2 ON nn2.id = s2.id;  
+  JOIN %(temp_schema).road_transfers nn1 ON nn1.id = s1.id
+  JOIN %(temp_schema).road_transfers nn2 ON nn2.id = s2.id;  
 
 
 -- Speed is defined for pedestrians on road sections

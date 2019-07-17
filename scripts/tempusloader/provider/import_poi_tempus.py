@@ -20,16 +20,16 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load a POI shape file
-class ImportPOITempus(DataImporter):
+class ImportPOITempus(DataDirManager):
     """This class enables to load POI data into a PostGIS database and link it to
     an existing network."""
     # Shapefile names to load, without the extension and prefix. 
     # Source shapefile set by user for this importer
     # this is used for table name
-    DBFSHAPEFILES = [('poi', True)]
+    DBFSHAPEFILES = [ ('poi', True) ]
     CSVFILES = []
     # SQL files to execute before loading shapefiles
     PRELOADSQL = ["import_poi_pre_load.sql"]

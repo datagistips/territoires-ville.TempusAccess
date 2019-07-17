@@ -1,19 +1,19 @@
 INSERT INTO tempus_access.formats
-SELECT * FROM _tempus_import.formats;
+SELECT * FROM %(temp_schema).formats;
 
 INSERT INTO tempus_access.agregates
-SELECT * FROM _tempus_import.agregates;
+SELECT * FROM %(temp_schema).agregates;
 
 INSERT INTO tempus_access.modalities
-SELECT * FROM _tempus_import.modalities;
+SELECT * FROM %(temp_schema).modalities;
 
 INSERT INTO tempus_access.obj_type
-SELECT * FROM _tempus_import.obj_type;
+SELECT * FROM %(temp_schema).obj_type;
 
 INSERT INTO tempus_access.indicators
-SELECT * FROM _tempus_import.indicators;
+SELECT * FROM %(temp_schema).indicators;
 
 INSERT INTO tempus.holidays
-SELECT * FROM _tempus_import.holidays;
+SELECT * FROM %(temp_schema).holidays;
 
-DROP SCHEMA IF EXISTS _tempus_import CASCADE;
+DROP SCHEMA IF EXISTS %(temp_schema) CASCADE;

@@ -60,7 +60,6 @@ class delete_zoning_dialog(QDialog):
         
     def _connectSlots(self):
         self.ui.pushButtonDelete.clicked.connect(self._slotPushButtonDeleteClicked)
-        self.ui.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self._slotClose)
     
     
     def _slotPushButtonDeleteClicked(self):
@@ -93,10 +92,4 @@ class delete_zoning_dialog(QDialog):
                 box.setText(u"Erreur pendant l'import. \nPour en savoir plus ouvrir la console Python de QGIS et relancer la commande. ")
             box.exec_()
         
-        
-    def _slotClose(self):
-        self.hide()
-    
-    
-		
-    
+            

@@ -10,7 +10,7 @@ end$$;
 
 -- Remove all related constraints
 ALTER TABLE tempus_gtfs.stops 
-    DROP CONSTRAINT IF EXISTS stops_road_section_id_fkey;
+DROP CONSTRAINT IF EXISTS stops_road_section_id_fkey;
 
 DROP INDEX IF EXISTS tempus_gtfs.stops_id_idx; 
 DROP INDEX IF EXISTS tempus_gtfs.stops_station_id_int_idx;
@@ -54,5 +54,5 @@ raise notice '==== Reset import schema ===';
 end$$;
 
 /* Drop import schema and recreate it */
-DROP SCHEMA IF EXISTS _tempus_import CASCADE;
-CREATE SCHEMA _tempus_import;
+DROP SCHEMA IF EXISTS %(temp_schema) CASCADE;
+CREATE SCHEMA %(temp_schema);

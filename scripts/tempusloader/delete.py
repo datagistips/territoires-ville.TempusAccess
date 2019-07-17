@@ -11,7 +11,7 @@ def delete_poi_source(args):
         sys.stderr.write("The service name of the POI must be specified with --source-name !\n")
         sys.exit(1)
     subs["source_name"] = args.source_name
-    poid = provider.DeletePOI(args.dbstring, args.logfile, subs)
+    poid = provider.DeletePOI(dbstring=args.dbstring, logfile=args.logfile, subs=subs)
     return poid.run()
     
     
@@ -21,7 +21,7 @@ def delete_road_network(args):
         sys.stderr.write("The road network name must be specified with --source-name !\n")
         sys.exit(1)
     subs["source_name"] = args.source_name
-    roadd = provider.DeleteRoad(args.dbstring, args.logfile, subs)
+    roadd = provider.DeleteRoad(dbstring=args.dbstring, logfile=args.logfile, subs=subs)
     return roadd.run()
     
     
@@ -31,7 +31,7 @@ def delete_pt_network(args):
         sys.stderr.write("The PT network name must be specified with --source-name !\n")
         sys.exit(1)
     subs["source_name"] = args.source_name
-    ptd = provider.DeletePT(args.dbstring, args.logfile, subs)
+    ptd = provider.DeletePT(dbstring=args.dbstring, logfile=args.logfile, subs=subs)
     return ptd.run()
 
 

@@ -33,8 +33,9 @@ def import_poi_tempus(args, shape_options):
         subs['id_field'] = 'id'
     if not 'filter' in subs.keys():
         subs['filter'] = 'true'
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     poii = provider.ImportPOITempus(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
-    return poii.load()
+    return poii.run()
     
     
 def import_poi_insee_bpe(args, shape_options):
@@ -58,7 +59,8 @@ def import_poi_insee_bpe(args, shape_options):
     subs["filter"] = args.filter
     if not 'filter' in subs.keys():
         subs['filter'] = 'true' 
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     bpei = provider.ImportPOIINSEEBPE(path=args.path, prefix=args.prefix, dbstring=args.dbstring, logfile=args.logfile, options=shape_options, doclean =not args.noclean, subs=subs)
-    return bpei.load()
+    return bpei.run()
     
     

@@ -19,38 +19,39 @@
  */
 """
 
-from importer import ZipImporter
+from data_zip_manager import DataZipManager
 
 # Fast GTFS Importer
-class ImportPTNTFS(ZipImporter):
+class ImportPTNTFS(DataZipManager)
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = ["import_pt_ntfs_pre_load.sql" ]
+    PRE_SQL = [ "import_pt_preload.sql", "import_pt_ntfs_preload.sql" ]
     # List of text files to load: the second argument says if the file is mandatory or not
-    DBFSHAPEFILES = []
-    CSVFILES = [('admin_stations', True),
-                ('comment_links', True),
-                ('calendar', True),
-                ('calendar_dates', True),
-                ('comments', True),
-                ('commercial_modes', True),
-                ('companies', True), 
-                ('datasets', True),
-                ('feed_infos', True),
-                ('equipments', True),
-                ('frequencies', True),
-                ('geometries', True),
-                ('lines', True),
-                ('networks', True),
-                ('object_codes', True),
-                ('object_properties', True),
-                ('physical_modes', True),
-                ('routes', True),
-                ('transfers', True),
-                ('trip_properties', True),
-                ('stop_times', True),
-                ('stops', True),
-                ('trips', True)]
+    IMPORT_CSVTXTFILES = [('admin_stations', True),
+                          ('comment_links', True),
+                          ('calendar', True),
+                          ('calendar_dates', True),
+                          ('comments', True),
+                          ('commercial_modes', True),
+                          ('companies', True),
+                          ('datasets', True),
+                          ('feed_infos', True),
+                          ('equipments', True),
+                          ('frequencies', True),
+                          ('geometries', True),
+                          ('lines', True),
+                          ('networks', True),
+                          ('object_codes', True),
+                          ('object_properties', True),
+                          ('physical_modes', True),
+                          ('routes', True),
+                          ('transfers', True),
+                          ('trip_properties', True),
+                          ('stop_times', True),
+                          ('stops', True),
+                          ('trips', True)
+                         ]
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = [ "import_pt_ntfs.sql", "import_pt_post_load.sql" ]
+    POST_SQL = [ "import_pt_ntfs.sql", "import_pt_post_load.sql" ]
+    
 

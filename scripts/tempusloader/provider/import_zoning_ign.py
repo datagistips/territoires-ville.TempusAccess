@@ -22,17 +22,16 @@
 #
 # Tempus data loader
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load IGN areas data (AdminExpress, ...)
-class ImportZoningIGNAdminExpress(DataImporter):
+class ImportZoningIGNAdminExpress(DataDirManager):
     """This class enables to load IGN Route500 data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('commune', True),('departement', True),('region', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('commune', True),('departement', True),('region', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_zoning_pre_load.sql']
+    PRE_SQL = ['import_zoning_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_zoning_ign_adminexpress.sql','import_zoning_post_load.sql']
+    POST_SQL = ['import_zoning_ign_adminexpress.sql','import_zoning_post_load.sql']
     
     

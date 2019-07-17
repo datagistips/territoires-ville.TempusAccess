@@ -18,17 +18,22 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
         
-class ImportPTSNCF(DataImporter):
+class ImportPTSNCF(DataDirManager):
     """Public transportation GTFS data loader class."""
     # SQL files to execute before loading GTFS data
-    PRELOADSQL = [ 'import_pt_sncf_pre_load.sql' ]
+    PRE_SQL = [ "import_pt_preload.sql" ]
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('ref_stops', True), ('appariement_ign_arrets_fer', True), ('urban_pt_transfers', True), ('noeud_ferre', True), ('troncon_voie_ferree', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [\
+                            ('ref_stops', True), \
+                            ('appariement_ign_arrets_fer', True), \
+                            ('urban_pt_transfers', True), \
+                            ('noeud_ferre', True), \
+                            ('troncon_voie_ferree', True)\
+                         ]
     # SQL files to execute after loading GTFS data 
-    POSTLOADSQL = ['merge_pt_sncf.sql', 'import_pt_tempus.sql', 'import_pt_post_load.sql']
+    POST_SQL = ['merge_pt_sncf.sql', 'import_pt_tempus.sql', 'import_pt_postload.sql']
 
 
 

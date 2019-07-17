@@ -6,7 +6,7 @@
 */
 
 -- Handle direction type
-CREATE OR REPLACE FUNCTION _tempus_import.navteq_transport_direction(character varying, character varying, character varying, character varying, character varying, boolean)
+CREATE OR REPLACE FUNCTION %(temp_schema).navteq_transport_direction(character varying, character varying, character varying, character varying, character varying, boolean)
 RETURNS integer AS $$
 
 DECLARE
@@ -35,15 +35,15 @@ INSERT INTO tempus.road_node
                 DISTINCT id,
                 false as bifurcation
         FROM
-		(SELECT ref_in_id AS id  FROM _tempus_import.streets
+		(SELECT ref_in_id AS id  FROM %(temp_schema).streets
 		 UNION
-                 SELECT nref_in_id AS id FROM _tempus_import.streets) as t;
+                 SELECT nref_in_id AS id FROM %(temp_schema).streets) as t;
 
 update tempus.road_node
 set
         geom = ST_Force_3DZ(ST_Transform(ST_StartPoint(st.geom),4326))
 from
-        _tempus_import.streets as st
+        %(temp_schema).streets as st
 where
         id = ref_in_id;
 
@@ -51,7 +51,7 @@ update tempus.road_node
 set
         geom = ST_Force_3DZ(ST_Transform(ST_EndPoint(st.geom),4326))
 from
-        _tempus_import.streets as st
+        %(temp_schema).streets as st
 where
         id = nref_in_id;
 
@@ -84,8 +84,8 @@ SELECT
 	ref_in_id AS node_from,
 	nref_in_id AS node_to,
 
-        _tempus_import.navteq_transport_direction(ar_auto, ar_bus, ar_pedest, ar_taxis, dir_travel::character varying, true) AS transport_type_ft,
-        _tempus_import.navteq_transport_direction(ar_auto, ar_bus, ar_pedest, ar_taxis, dir_travel::character varying, false) AS transport_type_tf,
+        %(temp_schema).navteq_transport_direction(ar_auto, ar_bus, ar_pedest, ar_taxis, dir_travel::character varying, true) AS transport_type_ft,
+        %(temp_schema).navteq_transport_direction(ar_auto, ar_bus, ar_pedest, ar_taxis, dir_travel::character varying, false) AS transport_type_tf,
 
 	ST_Length(geom) AS length,
 	fr_spd_lim AS car_speed_limit,
@@ -109,7 +109,7 @@ SELECT
 	ST_Transform(ST_Force_3DZ(ST_LineMerge(geom)), 4326) AS geom
 	-- FIXME remove ST_LineMerge call as soon as loader will use Simple geometry option
 
-FROM _tempus_import.streets AS st;
+FROM %(temp_schema).streets AS st;
 
 -- Restore constraints and index
 ALTER TABLE tempus.road_section ADD CONSTRAINT road_section_pkey
@@ -143,7 +143,7 @@ INSERT INTO tempus.road_daily_profile
                 WHEN 8 THEN 10
                 ELSE NULL
                END AS average_speed
-    FROM _tempus_import.streets
+    FROM %(temp_schema).streets
     GROUP BY speed_cat
     ORDER BY speed_cat
 );
@@ -155,7 +155,7 @@ INSERT INTO tempus.road_section_speed
     SELECT link_id as road_section_id,
             0 as period_id,
             speed_cat::integer as road_daily_profile
-    FROM _tempus_import.streets
+    FROM %(temp_schema).streets
 );
 
 
@@ -194,8 +194,8 @@ FROM
 		cdms.cond_id::bigint AS mcond_id,
 		rdms.link_id::bigint AS link,
 		0 as mseq_number -- first item of the sequence
-	FROM _tempus_import.cdms AS cdms
-	JOIN _tempus_import.rdms AS rdms
+	FROM %(temp_schema).cdms AS cdms
+	JOIN %(temp_schema).rdms AS rdms
 	ON cdms.cond_id = rdms.cond_id
 	WHERE (cond_type = 7 OR cond_type = 1) -- 7 for driving manoeuvres, 1 for tolls
 		AND seq_number = 1 -- only select the first item of the sequence
@@ -207,8 +207,8 @@ FROM
 		cdms.cond_id::bigint as mcond_id,
 		man_linkid::bigint as link,
 		seq_number as mseq_number -- here seq_number >= 1
-	FROM _tempus_import.cdms as cdms
-	JOIN _tempus_import.rdms as rdms
+	FROM %(temp_schema).cdms as cdms
+	JOIN %(temp_schema).rdms as rdms
 	ON cdms.cond_id = rdms.cond_id
 	WHERE (cond_type = 7 OR cond_type = 1)  -- 7 for driving manoeuvres, 1 for tolls
 	)
@@ -229,7 +229,7 @@ SELECT
 	as traffic_rules,
         'Infinity'::float as time_value
 FROM
-	_tempus_import.cdms as cdms
+	%(temp_schema).cdms as cdms
 WHERE
         cond_type = 7
         AND (ar_pedstrn = 'Y' OR ar_bus = 'Y' or ar_auto = 'Y' or ar_taxis = 'Y');
@@ -244,7 +244,7 @@ SELECT
         as toll_rules,
         NULL AS toll_value
 FROM
-	_tempus_import.cdms as cdms
+	%(temp_schema).cdms as cdms
 WHERE
         cond_type = 1
         AND (ar_pedstrn = 'Y' or ar_auto = 'Y' or ar_taxis = 'Y');
@@ -261,7 +261,7 @@ SET traffic_rules_ft = traffic_rules_ft
         + case when ar_bus = 'Y' and ((cond_val1 = 'BOTH DIRECTIONS') OR (cond_val1 = 'TO REFERENCE NODE' )) AND ((traffic_rules_tf & 2) = 0) then 2 else 0 end
         + case when ar_auto = 'Y' and ((cond_val1 = 'BOTH DIRECTIONS') OR (cond_val1 = 'TO REFERENCE NODE')) AND ((traffic_rules_tf & 4) = 0) then 4 else 0 end
         + case when ar_taxis = 'Y' and ((cond_val1 = 'BOTH DIRECTIONS') OR (cond_val1 = 'TO REFERENCE NODE')) AND ((traffic_rules_tf & 8) = 0) then 8 else 0 end
-FROM _tempus_import.cdms as cdms
+FROM %(temp_schema).cdms as cdms
 WHERE cdms.cond_type = 5 AND cdms.link_id = road_section.id;
 
 -- TABLE tempus.poi : insert car parks
@@ -273,7 +273,7 @@ SELECT poi_id as id,
         link_id as road_section_id,
         st_LineLocatePoint(road_section.geom, ST_Transform(parking.geom,4326))::double precision as abscissa_road_section,
         st_force3DZ(st_transform(parking.geom, 4326))
-FROM _tempus_import.parking, tempus.road_section
+FROM %(temp_schema).parking, tempus.road_section
 WHERE road_section.id = parking.link_id;
 
 
@@ -330,7 +330,7 @@ DELETE FROM tempus.road_restriction WHERE id IN
 );
 
 -- Removing import function (direction type)
-DROP FUNCTION _tempus_import.navteq_transport_direction(character varying, character varying, character varying, character varying, character varying, boolean);
+DROP FUNCTION %(temp_schema).navteq_transport_direction(character varying, character varying, character varying, character varying, character varying, boolean);
 
 -- Vacuuming database
 VACUUM FULL ANALYSE;

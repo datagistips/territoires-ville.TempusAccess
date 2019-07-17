@@ -20,17 +20,16 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load Navteq road data (Navstreets)
-class ImportRoadNavstreets(DataImporter):
+class ImportRoadNavstreets(DataDirManager):
     """This class enables to load Navteq Navstreets data into a PostGIS database."""
     # Shapefile names to load, without the extension and prefix. It will be the table name.
-    DBFSHAPEFILES = [('streets', True), ('altstreets', True), ('parking', True), ('cdms', True), ('rdms', True)]
-    CSVFILES = []
+    IMPORT_DBFSHPFILES = [('streets', True), ('altstreets', True), ('parking', True), ('cdms', True), ('rdms', True)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ["import_road_pre_load.sql"]
+    PRE_SQL = ["import_road_pre_load.sql"]
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_navteq.sql','import_road_post_load.sql']
+    POST_SQL = ['import_road_navteq.sql','import_road_post_load.sql']
 
 

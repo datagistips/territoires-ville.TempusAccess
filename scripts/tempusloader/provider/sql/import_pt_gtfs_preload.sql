@@ -50,8 +50,8 @@ raise notice '==== Reset import schema ===';
 end$$;
 
 /* Drop import schema and recreate it */
-DROP SCHEMA IF EXISTS _tempus_import CASCADE;
-CREATE SCHEMA _tempus_import;
+DROP SCHEMA IF EXISTS %(temp_schema) CASCADE;
+CREATE SCHEMA %(temp_schema);
 
 /* Create PT tables in the tempus import schema for raw import of GTFS data */
 
@@ -61,8 +61,8 @@ raise notice '==== Reset PT import tables ===';
 end$$;
 
 /* GTFS data tables */
-DROP TABLE IF EXISTS _tempus_import.feed_info;
-CREATE TABLE _tempus_import.feed_info
+DROP TABLE IF EXISTS %(temp_schema).feed_info;
+CREATE TABLE %(temp_schema).feed_info
 (
   feed_publisher_name character varying,
   feed_publisher_url character varying,
@@ -75,8 +75,8 @@ CREATE TABLE _tempus_import.feed_info
 ); 
 
 
-DROP TABLE IF EXISTS _tempus_import.agency;
-CREATE TABLE _tempus_import.agency (
+DROP TABLE IF EXISTS %(temp_schema).agency;
+CREATE TABLE %(temp_schema).agency (
     agency_id character varying,
     agency_name character varying NOT NULL,
     agency_url character varying NOT NULL,
@@ -87,8 +87,8 @@ CREATE TABLE _tempus_import.agency (
     agency_email character varying
 );
 
-DROP TABLE IF EXISTS _tempus_import.calendar;
-CREATE TABLE _tempus_import.calendar (
+DROP TABLE IF EXISTS %(temp_schema).calendar;
+CREATE TABLE %(temp_schema).calendar (
     service_id character varying NOT NULL,
     monday integer NOT NULL,
     tuesday integer NOT NULL,
@@ -101,16 +101,16 @@ CREATE TABLE _tempus_import.calendar (
     end_date character varying NOT NULL
 );
 
-DROP TABLE IF EXISTS _tempus_import.calendar_dates;
-CREATE TABLE _tempus_import.calendar_dates (
+DROP TABLE IF EXISTS %(temp_schema).calendar_dates;
+CREATE TABLE %(temp_schema).calendar_dates (
     service_id character varying NOT NULL,
     "date" character varying NOT NULL,
     exception_type character varying NOT NULL
 );
 
 
-DROP TABLE IF EXISTS _tempus_import.fare_attributes; 
-CREATE TABLE _tempus_import.fare_attributes (
+DROP TABLE IF EXISTS %(temp_schema).fare_attributes; 
+CREATE TABLE %(temp_schema).fare_attributes (
     fare_id character varying NOT NULL,
     price character varying NOT NULL,
     currency_type character varying NOT NULL,
@@ -120,8 +120,8 @@ CREATE TABLE _tempus_import.fare_attributes (
     transfer_duration integer
 );
 
-DROP TABLE IF EXISTS _tempus_import.fare_rules;
-CREATE TABLE _tempus_import.fare_rules (
+DROP TABLE IF EXISTS %(temp_schema).fare_rules;
+CREATE TABLE %(temp_schema).fare_rules (
     fare_id character varying NOT NULL,
     route_id character varying,
     origin_id character varying,
@@ -129,16 +129,16 @@ CREATE TABLE _tempus_import.fare_rules (
     contains_id character varying
 );
 
-DROP TABLE IF EXISTS _tempus_import.frequencies;
-CREATE TABLE _tempus_import.frequencies (
+DROP TABLE IF EXISTS %(temp_schema).frequencies;
+CREATE TABLE %(temp_schema).frequencies (
     trip_id character varying NOT NULL,
     start_time character varying NOT NULL,
     end_time character varying NOT NULL,
     headway_secs integer NOT NULL
 );
 
-DROP TABLE IF EXISTS _tempus_import.routes; 
-CREATE TABLE _tempus_import.routes (
+DROP TABLE IF EXISTS %(temp_schema).routes; 
+CREATE TABLE %(temp_schema).routes (
     agency_id character varying,
     route_id character varying NOT NULL,
     route_short_name character varying,
@@ -150,8 +150,8 @@ CREATE TABLE _tempus_import.routes (
     route_text_color character varying
 );
 
-DROP TABLE IF EXISTS _tempus_import.shapes;
-CREATE TABLE _tempus_import.shapes (
+DROP TABLE IF EXISTS %(temp_schema).shapes;
+CREATE TABLE %(temp_schema).shapes (
     shape_id character varying NOT NULL,
     shape_pt_lat double precision NOT NULL,
     shape_pt_lon double precision NOT NULL,
@@ -160,8 +160,8 @@ CREATE TABLE _tempus_import.shapes (
     geom geometry(LinestringZ, 4326)
 );
 
-DROP TABLE IF EXISTS _tempus_import.stop_times;
-CREATE TABLE _tempus_import.stop_times (
+DROP TABLE IF EXISTS %(temp_schema).stop_times;
+CREATE TABLE %(temp_schema).stop_times (
     trip_id character varying NOT NULL,
     arrival_time character varying NOT NULL,
     departure_time character varying NOT NULL,
@@ -174,8 +174,8 @@ CREATE TABLE _tempus_import.stop_times (
     timepoint integer
 );
 
-DROP TABLE IF EXISTS _tempus_import.stops;
-CREATE TABLE _tempus_import.stops (
+DROP TABLE IF EXISTS %(temp_schema).stops;
+CREATE TABLE %(temp_schema).stops (
     stop_id character varying NOT NULL,
     stop_code character varying,
     stop_name character varying NOT NULL,
@@ -191,8 +191,8 @@ CREATE TABLE _tempus_import.stops (
     geom geometry(PointZ, 4326)
 );
 
-DROP TABLE IF EXISTS _tempus_import.trips;
-CREATE TABLE _tempus_import.trips (
+DROP TABLE IF EXISTS %(temp_schema).trips;
+CREATE TABLE %(temp_schema).trips (
     route_id character varying NOT NULL,
     service_id character varying NOT NULL,
     trip_id character varying NOT NULL,
@@ -207,15 +207,15 @@ CREATE TABLE _tempus_import.trips (
 );
 
 
-DROP TABLE IF EXISTS _tempus_import.transfers;
-CREATE TABLE _tempus_import.transfers (
+DROP TABLE IF EXISTS %(temp_schema).transfers;
+CREATE TABLE %(temp_schema).transfers (
     from_stop_id character varying NOT NULL,
     to_stop_id character varying NOT NULL,
     transfer_type character varying NOT NULL,
     min_transfer_time character varying
 );
 
-CREATE OR REPLACE FUNCTION _tempus_import.format_gtfs_time(text)
+CREATE OR REPLACE FUNCTION %(temp_schema).format_gtfs_time(text)
 RETURNS integer AS 
 $$
 BEGIN

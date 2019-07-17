@@ -18,24 +18,21 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 import os
 
 # Module to load Visum data
-class ImportRoadVisum(DataImporter):
+class ImportRoadVisum(DataDirManager):
     """This class enables to load Visum-generated shapefiles data into a PostGIS
 database.
     """
-
     # Shapefile names to load, without the extension and prefix
-    DBFSHAPEFILES = [('node', True), ('link', True), ('mov', False)]
+    IMPORT_DBFSHPFILES = [('node', True), ('link', True), ('mov', False)]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ['import_road_pre_load.sql']
+    PRE_SQL = ['import_road_pre_load.sql']
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ['import_road_visum.sql', 'import_road_post_load.sql']
-
+    POST_SQL = ['import_road_visum.sql', 'import_road_post_load.sql']
     SPEEDPROFILES = [] # Examples: 'hsnp','hspr' (cf tomtom.py)
-
     EXPECTED_NODE_ATTRIBUTES = ["NO", "CONTROLTYPE"]
     EXPECTED_EDGE_ATTRIBUTES = ["NO", "FROMNODENO", "TONODENO", "TSYSSET",
                                 "LENGTH", "NOMROUTE", "NUMLANES", "V0PRT",

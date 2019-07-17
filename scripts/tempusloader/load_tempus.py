@@ -100,19 +100,15 @@ def main():
             sys.stderr.write("Please provide a destination file / directory.\n")
             sys.exit(1)
         if args.data_type == 'pt':
+            args.path = args.path[0]
             r = export_pt_network(args)
             sys.exit(0)
-        elif args.data_type == 'poi':
-            r = export_poi_source(args)
-            sys.exit(0)
         elif args.data_type == 'road':
+            args.path = args.path[0]
             r = export_road_network(args)   
             sys.exit(0)
-        elif args.data_type == 'zoning':
-            r = export_zoning(args)
-            sys.exit(0)
         else:
-            sys.stderr.write("Please provide a data type among 'pt', 'poi', 'road' or 'zoning'\n")
+            sys.stderr.write("Please provide a data type among 'pt' or 'road'\n")
             sys.exit(1)
 
     # Database reset

@@ -20,14 +20,17 @@
  */
 """
 
-from importer import DataImporter
+from data_dir_manager import DataDirManager
 
 # Module to load a POI shape file
-class ImportPOIINSEEBPE(DataImporter):
+class ImportPOIINSEEBPE(DataDirManager):
     """This class enables to load INSEE BPE POI data into a PostGIS database and link it to an existing network."""
     # Shapefile names to load, without the extension and prefix. 
-    DBFSHAPEFILES = [('bpe_ensemble_xy', True),('varmod_ensemble_xy', True)]
+    IMPORT_DBFSHPFILES = [
+                          ('bpe_ensemble_xy', True),
+                          ('varmod_ensemble_xy', True)
+                         ]
     # SQL files to execute before loading shapefiles
-    PRELOADSQL = ["import_poi_pre_load.sql"]
+    PRE_SQL = ["import_poi_pre_load.sql"]
     # SQL files to execute after loading shapefiles 
-    POSTLOADSQL = ["import_poi_insee_bpe.sql"]
+    POST_SQL = ["import_poi_insee_bpe.sql"]

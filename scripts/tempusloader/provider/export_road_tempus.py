@@ -24,11 +24,10 @@
 import os
 import sys
 
-from exporter import DataExporter
+from data_dir_manager import DataDirManager
 
-class ExportRoadTempus(DataExporter):
-    SHAPEFILES=['node', 'section']
-    TXTFILES=['days_period', 'speed_daily_profile', 'section_speed', 'restriction', 'time_penalty', 'toll']
-    PREEXPORT_SQL=['export_road_tempus.sql']
-    ZIPFILE='export_road_tempus.zip'
+class ExportRoadTempus(DataDirManager):
+    EXPORT_DBFSHPFILES=['node', 'section']
+    EXPORT_CSVTXTFILES=['days_period', 'speed_daily_profile', 'section_speed', 'restriction', 'time_penalty', 'toll']
+    PRE_SQL=['export_road_tempus.sql']
     

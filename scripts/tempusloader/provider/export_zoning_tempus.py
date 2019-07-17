@@ -24,9 +24,9 @@
 import os
 import sys
 
-from exporter import DataExporter
+from data_dir_manager import DataDirManager
 
-class ExportZoningTempus(DataExporter):
-    SHAPEFILES=['zoning']
-    PREEXPORT_SQL=['export_zoning_tempus.sql']
+class ExportZoningTempus(DataDirManager):
+    EXPORT_DBFSHPFILES=['zoning']
+    PRE_SQL=['export_zoning_tempus.sql']
     

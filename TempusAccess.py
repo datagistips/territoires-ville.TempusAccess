@@ -40,9 +40,13 @@ from TempusAccess_dock_widget import TempusAccess_dock_widget
 from set_db_connection_dialog import set_db_connection_dialog
 from manage_db_dialog import manage_db_dialog
 from import_pt_dialog import import_pt_dialog
-from manage_pt_dialog import manage_pt_dialog
+from export_pt_dialog import export_pt_dialog
+from merge_pt_dialog import merge_pt_dialog
+from control_pt_dialog import control_pt_dialog
+from delete_pt_dialog import delete_pt_dialog
 from import_road_dialog import import_road_dialog
-from export_delete_road_dialog import export_delete_road_dialog
+from export_road_dialog import export_road_dialog
+from delete_road_dialog import delete_road_dialog
 from import_poi_dialog import import_poi_dialog
 from delete_poi_dialog import delete_poi_dialog
 from import_zoning_dialog import import_zoning_dialog
@@ -116,9 +120,15 @@ class TempusAccess:
         
         self.import_pt_dialog=import_pt_dialog(self, self.iface)
         self.import_pt_dialog.setModal(True)         
-        self.manage_pt_dialog=manage_pt_dialog(self, self.iface)
-        self.manage_pt_dialog.setModal(True) 
-        self.manage_pt_dialog.ui.listViewPTNetworks.setModel(self.modelPTNetwork)
+        self.export_pt_dialog=export_pt_dialog(self, self.iface)
+        self.export_pt_dialog.setModal(True) 
+        self.delete_pt_dialog=delete_pt_dialog(self, self.iface)
+        self.delete_pt_dialog.setModal(True)         
+        self.control_pt_dialog=control_pt_dialog(self, self.iface)
+        self.control_pt_dialog.setModal(True)
+        self.merge_pt_dialog=merge_pt_dialog(self, self.iface)
+        self.merge_pt_dialog.setModal(True)
+        self.merge_pt_dialog.ui.listViewPTNetworks.setModel(self.modelPTNetwork)
         
         # Road networks
         self.modelRoadNetwork = QtSql.QSqlQueryModel()
@@ -128,8 +138,10 @@ class TempusAccess:
         
         self.import_road_dialog=import_road_dialog(self, self.iface)
         self.import_road_dialog.setModal(True) 
-        self.export_delete_road_dialog=export_delete_road_dialog(self, self.iface)
-        self.export_delete_road_dialog.setModal(True) 
+        self.export_road_dialog=export_road_dialog(self, self.iface)
+        self.export_road_dialog.setModal(True) 
+        self.delete_road_dialog=delete_road_dialog(self, self.iface)
+        self.delete_road_dialog.setModal(True) 
         
         # POI
         self.modelPOISource = QtSql.QSqlQueryModel()
@@ -250,44 +262,36 @@ class TempusAccess:
         # Connect signals and slots
         self._connectSlots()
         
-        # Create actions that will start plugin configuration 
+        # Create actions that will be added to the menu
         self.action = QAction(QIcon(self.icon_dir + "/icon_tempus.jpg"), u"Lancer le serveur",self.iface.mainWindow())
-        self.action_set_db_connection = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Définir la connexion à la base de données", self.iface.mainWindow())
-        self.action_manage_db = QAction(QIcon(self.icon_dir + "/icon_db.png"), u"Gérer les bases de données", self.iface.mainWindow())
-        self.action_import_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Importer un réseau routier", self.iface.mainWindow())
-        self.action_export_delete_road = QAction(QIcon(self.icon_dir + "/icon_road.png"), u"Exporter ou supprimer un réseau routier", self.iface.mainWindow())
-        self.action_import_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Importer une offre de transport en commun", self.iface.mainWindow())
-        self.action_manage_pt = QAction(QIcon(self.icon_dir + "/icon_pt.png"), u"Gérer les offres de transport en commun", self.iface.mainWindow())
-        self.action_import_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Importer des points d'intérêt", self.iface.mainWindow())
-
-        self.action_delete_poi = QAction(QIcon(self.icon_dir + "/icon_poi.png"), u"Supprimer une source de points d'intérêt", self.iface.mainWindow())
-        self.action_import_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Importer un zonage", self.iface.mainWindow())
-        self.action_delete_zoning = QAction(QIcon(self.icon_dir + "/icon_zoning.png"), u"Supprimer un zonage", self.iface.mainWindow())
-
-        self.action_manage_indicators = QAction(QIcon(self.icon_dir + "/icon_indicators.png"), u"Gérer les calculs stockés", self.iface.mainWindow())
-        
-        self.action.setToolTip(u"Lancer le serveur")
-        self.action_set_db_connection.setToolTip(u"Définir la connexion à la base de données")
-        self.action_manage_db.setToolTip(u"Gérer les bases de données")
-        self.action_import_road.setToolTip(u"Importer un réseau routier")
-        self.action_export_delete_road.setToolTip(u"Exporter ou supprimer un réseau routier")
-        self.action_import_pt.setToolTip(u"Importer une offre de transport en commun")
-        self.action_manage_pt.setToolTip(u"Gérer les offres de transport en commun")
-        self.action_import_poi.setToolTip(u"Importer des points d'intérêt")
-
-        self.action_delete_poi.setToolTip(u"Supprimer une source de points d'intérêt")
-        self.action_import_zoning.setToolTip(u"Importer un zonage")
-        self.action_delete_zoning.setToolTip(u"Supprimer un zonage")
-        self.action_manage_indicators.setToolTip(u"Gérer les indicateurs")
-        
+        self.action_set_db_connection = QAction(u"Définir la connexion à la base de données", self.iface.mainWindow())
+        self.action_manage_db = QAction(u"Gérer les bases de données", self.iface.mainWindow())
+        self.action_import_road = QAction(u"Importer un réseau routier", self.iface.mainWindow())
+        self.action_export_road = QAction(u"Exporter un réseau routier", self.iface.mainWindow())
+        self.action_delete_road = QAction(u"Supprimer un réseau routier", self.iface.mainWindow())
+        self.action_import_pt = QAction(u"Importer une offre", self.iface.mainWindow())
+        self.action_control_pt = QAction(u"Contrôler la qualité des offres", self.iface.mainWindow())
+        self.action_merge_pt = QAction(u"Fusionner des offres", self.iface.mainWindow())
+        self.action_export_pt = QAction(u"Exporter une offre", self.iface.mainWindow())
+        self.action_delete_pt = QAction(u"Supprimer une offre", self.iface.mainWindow())
+        self.action_import_poi = QAction(u"Importer des données", self.iface.mainWindow())
+        self.action_delete_poi = QAction(u"Supprimer des données", self.iface.mainWindow())
+        self.action_import_zoning = QAction(u"Importer des données", self.iface.mainWindow())
+        self.action_delete_zoning = QAction(u"Supprimer des données", self.iface.mainWindow())
+        self.action_manage_indicators = QAction(u"Gérer les calculs stockés", self.iface.mainWindow())
+                
         # Connect the actions to the methods
-        self.action.triggered.connect(self.load)
+        self.action.triggered.connect(self.load) 
         self.action_set_db_connection.triggered.connect(self.set_db_connection)
         self.action_manage_db.triggered.connect(self.manage_db)
         self.action_import_road.triggered.connect(self.import_road)
-        self.action_export_delete_road.triggered.connect(self.export_delete_road)
+        self.action_export_road.triggered.connect(self.export_road)
+        self.action_delete_road.triggered.connect(self.delete_road)
         self.action_import_pt.triggered.connect(self.import_pt)
-        self.action_manage_pt.triggered.connect(self.manage_pt)
+        self.action_export_pt.triggered.connect(self.export_pt)
+        self.action_control_pt.triggered.connect(self.control_pt)
+        self.action_merge_pt.triggered.connect(self.merge_pt)
+        self.action_delete_pt.triggered.connect(self.delete_pt)
         self.action_import_poi.triggered.connect(self.import_poi)
         self.action_delete_poi.triggered.connect(self.delete_poi)
         self.action_import_zoning.triggered.connect(self.import_zoning)
@@ -296,31 +300,30 @@ class TempusAccess:
         
         # Add toolbar buttons and menu items
         self.iface.addPluginToMenu(u"&TempusAccess",self.action)
-        self.iface.addPluginToMenu(u"&TempusAccess", self.action_set_db_connection)
-        self.iface.addPluginToMenu(u"&TempusAccess", self.action_manage_db)
-        self.iface.addPluginToMenu(u"&TempusAccess", self.action_import_road)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_export_delete_road)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_pt)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_pt)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_poi)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_poi)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_import_zoning)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_delete_zoning)
-        self.iface.addPluginToMenu(u"&TempusAccess",self.action_manage_indicators)
-                
+        
         m = self.toolButton.menu()
-        m.addAction(self.action)
-        m.addAction(self.action_set_db_connection)
-        m.addAction(self.action_manage_db)
-        m.addAction(self.action_import_road)
-        m.addAction(self.action_export_delete_road)
-        m.addAction(self.action_import_pt)
-        m.addAction(self.action_manage_pt)
-        m.addAction(self.action_import_poi)
-        m.addAction(self.action_delete_poi)
-        m.addAction(self.action_import_zoning)
-        m.addAction(self.action_delete_zoning)
-        m.addAction(self.action_manage_indicators)
+        db_menu = m.addMenu(QIcon(self.icon_dir + "/icon_db.png"), u"Bases de données")
+        road_menu = m.addMenu(QIcon(self.icon_dir + "/icon_road.png"), u"Réseaux routiers")
+        pt_menu = m.addMenu(QIcon(self.icon_dir + "/icon_pt.png"), u"Réseaux de transport collectif")
+        poi_menu = m.addMenu(QIcon(self.icon_dir + "/icon_poi.png"), u"Points d'intérêt")
+        z_menu = m.addMenu(QIcon(self.icon_dir + "/icon_zoning.png"), u"Zonages")
+        indic_menu = m.addMenu(QIcon(self.icon_dir + "/icon_indicators.png"), u"Indicateurs")
+        db_menu.addAction(self.action)
+        db_menu.addAction(self.action_set_db_connection)
+        db_menu.addAction(self.action_manage_db)
+        road_menu.addAction(self.action_import_road)
+        # road_menu.addAction(self.action_export_road)
+        road_menu.addAction(self.action_delete_road)
+        pt_menu.addAction(self.action_import_pt)
+        pt_menu.addAction(self.action_export_pt)
+        # pt_menu.addAction(self.action_control_pt)
+        pt_menu.addAction(self.action_merge_pt)
+        pt_menu.addAction(self.action_delete_pt)
+        poi_menu.addAction(self.action_import_poi)
+        poi_menu.addAction(self.action_delete_poi)
+        z_menu.addAction(self.action_import_zoning)
+        z_menu.addAction(self.action_delete_zoning)
+        indic_menu.addAction(self.action_manage_indicators)
         
         self.toolButton.setDefaultAction(self.action)
         self.first = False
@@ -358,17 +361,6 @@ class TempusAccess:
         root.removeChildNode(node_group)
         
         # Remove the plugin menu items and icons
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_indicators) 
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_zoning)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_zoning)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_poi)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_delete_poi)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_pt)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_pt)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_import_road)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_export_delete_road)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_set_db_connection)
-        self.iface.removePluginMenu(u"&TempusAccess", self.action_manage_db)
         self.iface.removePluginMenu(u"&TempusAccess", self.action)
 
         self.iface.removeToolBarIcon(self.action_manage_indicators)
@@ -377,9 +369,13 @@ class TempusAccess:
         self.iface.removeToolBarIcon(self.action_import_poi)
         self.iface.removeToolBarIcon(self.action_delete_poi)
         self.iface.removeToolBarIcon(self.action_import_pt)
-        self.iface.removeToolBarIcon(self.action_manage_pt)
+        self.iface.removeToolBarIcon(self.action_export_pt)
+        self.iface.removeToolBarIcon(self.action_delete_pt)
+        self.iface.removeToolBarIcon(self.action_merge_pt)
+        # self.iface.removeToolBarIcon(self.action_control_pt)
         self.iface.removeToolBarIcon(self.action_import_road)
-        self.iface.removeToolBarIcon(self.action_export_delete_road)
+        # self.iface.removeToolBarIcon(self.action_export_road)
+        self.iface.removeToolBarIcon(self.action_delete_road)
         self.iface.removeToolBarIcon(self.action_set_db_connection)
         self.iface.removeToolBarIcon(self.action_manage_db)
         self.iface.removeToolBarIcon(self.action)
@@ -393,9 +389,13 @@ class TempusAccess:
         self.import_poi_dialog.hide()
         self.delete_poi_dialog.hide()
         self.import_pt_dialog.hide()
-        self.manage_pt_dialog.hide()
+        self.export_pt_dialog.hide()
+        self.delete_pt_dialog.hide()
+        self.control_pt_dialog.hide()
+        self.merge_pt_dialog.hide()
         self.import_road_dialog.hide()
-        self.export_delete_road_dialog.hide() 
+        self.export_road_dialog.hide() 
+        self.delete_road_dialog.hide() 
         self.set_db_connection_dialog.hide()
         self.manage_db_dialog.hide()
         
@@ -452,8 +452,12 @@ class TempusAccess:
         self.import_road_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_road_dialog.ui.comboBoxFormat.currentIndex())
 
 
-    def export_delete_road(self):
-        self.export_delete_road_dialog.show()
+    def export_road(self):
+        self.export_road_dialog.show()
+        
+    
+    def delete_road(self):
+        self.delete_road_dialog.show()
         
     
     def import_pt(self):
@@ -467,9 +471,21 @@ class TempusAccess:
         self.import_pt_dialog._slotComboBoxFormatCurrentIndexChanged(self.import_pt_dialog.ui.comboBoxFormat.currentIndex())
     
     
-    def manage_pt(self):
-        self.manage_pt_dialog.show()
-    
+    def export_pt(self):
+        self.export_pt_dialog.show()
+
+
+    def delete_pt(self):
+        self.delete_pt_dialog.show()
+        
+        
+    def control_pt(self):
+        self.control_pt_dialog.show()
+        
+        
+    def merge_pt(self):
+        self.merge_pt_dialog.show()
+        
     
     def import_poi(self):
         self.import_poi_dialog.show()
@@ -1162,12 +1178,10 @@ class TempusAccess:
         self.buildQuery()
         
         self.done=False
-        self.time.start()
-        self.timer.start()
         
         if ((self.obj_def_name == "stop_areas") or \
             (self.obj_def_name == "stops") or \
-            (self.obj_def_name=="sections") or \
+            (self.obj_def_name == "sections") or \
             (self.obj_def_name == "trips") or \
             (self.obj_def_name == "stops_routes") or \
             (self.obj_def_name == "routes") or \
@@ -1210,7 +1224,6 @@ class TempusAccess:
                                             self.constraint_date_after\
                                         )
             done = self.path_indic.run()
-            self.timer.stop()
             self.resultAvailable(done)
             
             
@@ -1238,7 +1251,7 @@ class TempusAccess:
             
             else: # has not returned any row
                 box = QMessageBox()
-                box.setText(u"La requête a abouti mais n'a pas retourné de résultats." )
+                box.setText(u"La requête (stockée dans le fichier \"scripts/temp.sql\" du plugin) a abouti mais n'a pas retourné de résultats.")
                 display_and_clear_python_console()
                 box.exec_()
         else:

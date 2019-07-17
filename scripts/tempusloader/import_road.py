@@ -16,14 +16,15 @@ def import_road_ign_route120(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     Importer = {
         '1.1': provider.ImportRoadIGNRoute120_1_1,
         None: provider.ImportRoadIGNRoute120_1_1
     }[args.model_version]
     rte120i = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
-    return rte120i.load()
+    return rte120i.run()
 
-
+    
 def import_road_ign_route500(args, shape_options):
     """Load IGN (Route500) road data into a Tempus database."""
     subs={}
@@ -35,12 +36,13 @@ def import_road_ign_route500(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     Importer = {
         '2.1': provider.ImportRoadIGNRoute500_2_1,
         None: provider.ImportRoadIGNRoute500_2_1
     }[args.model_version]
     rte500i = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
-    return rte500i.load()
+    return rte500i.run()
 
 
 def import_road_ign_bdtopo(args, shape_options):
@@ -54,12 +56,13 @@ def import_road_ign_bdtopo(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     Importer = {
         '2.2': provider.ImportRoadIGNBDTopo_2_2,
         None: provider.ImportRoadIGNBDTopo_2_2
     }[args.model_version]
     bdtopoi = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
-    return bdtopoi.load()
+    return bdtopoi.run()
 
     
 def import_road_ign_bdcarto(args, shape_options):
@@ -73,12 +76,13 @@ def import_road_ign_bdcarto(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     Importer = {
         '3.2': provider.ImportRoadIGNBDCarto_3_2,
         None: provider.ImportRoadIGNBDCarto_3_2
     }[args.model_version]
     bdcartoi = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs)
-    return bdcartoi.load()
+    return bdcartoi.run()
     
     
 def import_road_visum(args, shape_options):
@@ -102,6 +106,7 @@ def import_road_visum(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     splitted_modes = args.visum_modes.split(',')
     if len(splitted_modes) != 4:
         sys.stderr.write(("Need 4 comma-separated strings "
@@ -109,7 +114,7 @@ def import_road_visum(args, shape_options):
                           "pedestrians, bikes, private vehicles and taxis\n"))
         sys.exit(1)
     visumi = provider.ImportRoadVisum(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean, subs, splitted_modes)
-    return visumi.load()
+    return visumi.run()
 
     
 def import_road_osm(args, shape_options):
@@ -123,8 +128,9 @@ def import_road_osm(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     osmi = provider.ImportRoadOSM(args.path, args.dbstring, args.logfile, subs)
-    return osmi.load()
+    return osmi.run()
 
 
 def import_road_tomtom(args, shape_options):
@@ -138,13 +144,14 @@ def import_road_tomtom(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     Importer = {
         '1409': provider.ImportRoadMultinet_1409,
         None: provider.ImportRoadMultinet
     }[args.model_version]
     shape_options['I'] = False
     mni = Importer(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean)
-    return mni.load()
+    return mni.run()
     
 
 def import_road_navteq(args, shape_options):
@@ -158,8 +165,9 @@ def import_road_navteq(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_comment
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
     ntqi = provider.ImportRoadNavstreets(args.path, args.prefix, args.dbstring, args.logfile, shape_options, not args.noclean)
-    return ntqi.load()
+    return ntqi.run()
 
 
 def import_road_tempus(args, shape_options):
@@ -173,5 +181,6 @@ def import_road_tempus(args, shape_options):
         subs["source_comment"] = ''
     else:
         subs["source_comment"] = args.source_commentroadtempusi = provider.ImportRoadTempus(args.path, args.dbstring, args.logfile)
-    return roadtempusi.load()
+    subs["temp_schema"]=provider.config.TEMPSCHEMA
+    return roadtempusi.run()
 
